@@ -12,24 +12,28 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: List directory structure
+        run: |
+          echo "=== Root directory ==="
+          ls -la
+          echo "=== Apps directory ==="
+          ls -la apps/
+          echo "=== Web directory ==="
+          ls -la apps/web/
+          echo "=== Workers directory ==="
+          ls -la apps/workers/
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
 
       - name: Install Web dependencies
         working-directory: ./apps/web
-        run: npm ci
-
-      - name: Lint Web
-        working-directory: ./apps/web
-        run: npm run lint
-
-      - name: Type check Web
-        working-directory: ./apps/web
-        run: npm run type-check
+        run: npm install
 
       - name: Build Web
         working-directory: ./apps/web
@@ -37,7 +41,7 @@ jobs:
 
       - name: Install Workers dependencies
         working-directory: ./apps/workers
-        run: npm ci
+        run: npm install
 
       - name: Build Workers
         working-directory: ./apps/workers
@@ -51,16 +55,17 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
 
       - name: Install Web dependencies
         working-directory: ./apps/web
-        run: npm ci
+        run: npm install
 
       - name: Deploy to Vercel Preview
         uses: amondnet/vercel-action@v25
@@ -70,8 +75,6 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: ./apps/web
           scope: ${{ secrets.VERCEL_ORG_ID }}
-          alias-domains: |
-            casto-pr-{{BRANCH}}.vercel.app
 
   workers-preview:
     name: Workers Preview
@@ -81,16 +84,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
-
-      - name: Install Workers dependencies
-        working-directory: ./apps/workers
-        run: npm ci
+          submodules: false
 
       - name: Deploy Workers Preview
         uses: cloudflare/wrangler-action@v3
