@@ -15,15 +15,10 @@ const app = new Hono<{ Bindings: Bindings }>()
 
 // CORS設定
 app.use('*', cors({
-  origin: [
-    'http://localhost:3000', 
-    'https://casto.sb2024.xyz',
-    'https://web-coj9r9qib-ta1pres-projects.vercel.app',
-    'https://*.vercel.app'
-  ],
+  origin: '*', // 開発段階では全て許可
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
+  credentials: false, // credentialsをfalseに変更
 }))
 
 // Health Check
