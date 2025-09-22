@@ -19,16 +19,28 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install Web dependencies
+        working-directory: ./apps/web
         run: npm ci
 
-      - name: Lint
+      - name: Lint Web
+        working-directory: ./apps/web
         run: npm run lint
 
-      - name: Type check
+      - name: Type check Web
+        working-directory: ./apps/web
         run: npm run type-check
 
-      - name: Build check
+      - name: Build Web
+        working-directory: ./apps/web
+        run: npm run build
+
+      - name: Install Workers dependencies
+        working-directory: ./apps/workers
+        run: npm ci
+
+      - name: Build Workers
+        working-directory: ./apps/workers
         run: npm run build
 
   preview-deploy:
@@ -46,7 +58,8 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install Web dependencies
+        working-directory: ./apps/web
         run: npm ci
 
       - name: Deploy to Vercel Preview
@@ -75,7 +88,8 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install Workers dependencies
+        working-directory: ./apps/workers
         run: npm ci
 
       - name: Deploy Workers Preview
