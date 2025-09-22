@@ -1,0 +1,25 @@
+{
+  "name": "casto-monorepo",
+  "private": true,
+  "packageManager": "npm@10.0.0",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=web",
+    "dev:workers": "turbo run dev --filter=workers",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "type-check": "turbo run type-check",
+    "db:setup": "docker run --name casto-postgres -e POSTGRES_DB=casto_dev -e POSTGRES_USER=casto -e POSTGRES_PASSWORD=dev_password -p 5432:5432 -d postgres:15",
+    "db:start": "docker start casto-postgres",
+    "db:stop": "docker stop casto-postgres",
+    "setup": "npm install && npm run db:setup"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "turbo": "^2.5.6"
+  }
+}

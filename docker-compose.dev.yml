@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # casto Next.js アプリケーション
+  casto-nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: casto-nextjs
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8787
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/web/node_modules
+    ports:
+      - "3000:3000"
+    networks:
+      - dev_web
+    labels:
+      - "traefik.enable=true"
+      # HTTP Router
+      - "traefik.http.routers.casto-http.rule=Host(`casto.sb2024.xyz`)"
+      - "traefik.http.routers.casto-http.entrypoints=web"
+      # HTTPS Router
+      - "traefik.http.routers.casto-https.rule=Host(`casto.sb2024.xyz`)"
+      - "traefik.http.routers.casto-https.entrypoints=websecure"
+      - "traefik.http.routers.casto-https.tls=true"
+      - "traefik.http.services.casto.loadbalancer.server.port=3000"
+
+networks:
+  dev_web:
+    external: true
+    name: dev_dev_web

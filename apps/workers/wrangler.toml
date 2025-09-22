@@ -1,0 +1,39 @@
+name = "casto-workers"
+main = "src/index.ts"
+compatibility_date = "2024-09-22"
+compatibility_flags = ["nodejs_compat"]
+
+[env.development]
+name = "casto-workers-dev"
+
+[env.staging]
+name = "casto-workers-stg"
+
+[env.production]
+name = "casto-workers"
+
+# Variables (non-secret)
+[vars]
+ENVIRONMENT = "development"
+
+# Secrets (use `wrangler secret put` to set)
+# JWT_SECRET
+# DATABASE_URL
+# LINE_CHANNEL_SECRET
+# STRIPE_SECRET_KEY
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "CACHE"
+id = "your_kv_namespace_id"
+preview_id = "your_preview_kv_namespace_id"
+
+# Queues
+[[queues.producers]]
+queue = "notifications"
+binding = "NOTIFICATION_QUEUE"
+
+[[queues.consumers]]
+queue = "notifications"
+max_batch_size = 10
+max_batch_timeout = 30
