@@ -8,12 +8,15 @@ name = "casto-workers-dev"
 
 [env.preview]
 name = "casto-workers-preview"
+vars = { ENVIRONMENT = "preview" }
 
 [env.staging]
 name = "casto-workers-stg"
+vars = { ENVIRONMENT = "staging" }
 
 [env.production]
 name = "casto-workers"
+vars = { ENVIRONMENT = "production" }
 
 # Variables (non-secret)
 [vars]
