@@ -6,6 +6,7 @@ type Bindings = {
   DATABASE_URL: string
   LINE_CHANNEL_SECRET: string
   STRIPE_SECRET_KEY: string
+  ENVIRONMENT: string
   CACHE: KVNamespace
   NOTIFICATION_QUEUE: Queue
 }
@@ -14,7 +15,12 @@ const app = new Hono<{ Bindings: Bindings }>()
 
 // CORS設定
 app.use('*', cors({
-  origin: ['http://localhost:3000', 'https://casto.sb2024.xyz'],
+  origin: [
+    'http://localhost:3000', 
+    'https://casto.sb2024.xyz',
+    'https://web-coj9r9qib-ta1pres-projects.vercel.app',
+    'https://*.vercel.app'
+  ],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
