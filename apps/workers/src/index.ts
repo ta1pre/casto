@@ -2,13 +2,13 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 
 type Bindings = {
-  JWT_SECRET: string
-  DATABASE_URL: string
-  LINE_CHANNEL_SECRET: string
-  STRIPE_SECRET_KEY: string
-  ENVIRONMENT: string
-  CACHE: KVNamespace
-  NOTIFICATION_QUEUE: Queue
+  JWT_SECRET?: string
+  DATABASE_URL?: string
+  LINE_CHANNEL_SECRET?: string
+  STRIPE_SECRET_KEY?: string
+  ENVIRONMENT?: string
+  CACHE?: KVNamespace
+  NOTIFICATION_QUEUE?: Queue
 }
 
 const app = new Hono<{ Bindings: Bindings }>()

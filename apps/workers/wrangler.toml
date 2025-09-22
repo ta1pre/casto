@@ -6,6 +6,9 @@ compatibility_flags = ["nodejs_compat"]
 [env.development]
 name = "casto-workers-dev"
 
+[env.preview]
+name = "casto-workers-preview"
+
 [env.staging]
 name = "casto-workers-stg"
 
@@ -22,18 +25,18 @@ ENVIRONMENT = "development"
 # LINE_CHANNEL_SECRET
 # STRIPE_SECRET_KEY
 
-# KV Namespaces
-[[kv_namespaces]]
-binding = "CACHE"
-id = "your_kv_namespace_id"
-preview_id = "your_preview_kv_namespace_id"
+# KV Namespaces (disabled for development)
+# [[kv_namespaces]]
+# binding = "CACHE"
+# id = "your_kv_namespace_id"
+# preview_id = "your_preview_kv_namespace_id"
 
-# Queues
-[[queues.producers]]
-queue = "notifications"
-binding = "NOTIFICATION_QUEUE"
+# Queues (disabled for development)
+# [[queues.producers]]
+# queue = "notifications"
+# binding = "NOTIFICATION_QUEUE"
 
-[[queues.consumers]]
-queue = "notifications"
-max_batch_size = 10
-max_batch_timeout = 30
+# [[queues.consumers]]
+# queue = "notifications"
+# max_batch_size = 10
+# max_batch_timeout = 30
