@@ -45,38 +45,46 @@ app.get('/api/v1/health', (c) => {
   })
 })
 
-// Users API
+// Users API - テーブル構造確認用
 app.get('/api/v1/users', async (c) => {
   try {
     const supabase = createSupabaseClient(c)
     
-    const { data, error } = await supabase
-      .from('users')
-      .select(`
-        id,
-        created_at,
-        updated_at,
-        status,
-        user_handles (
-          provider,
-          handle,
-          verified_at
-        ),
-        user_roles (
-          role,
-          granted_at
-        )
-      `)
-      .eq('status', 'active')
-      .limit(10)
+    // テーブル構造を確認するためのクエリ
+    const { data: columns, error: columnsError } = await supabase
+      .rpc('get_table_columns', { table_name: 'users' })
     
-    if (error) {
-      return c.json({ error: error.message }, 500)
+    if (columnsError) {
+      // RPCが失敗した場合は、information_schemaから直接取得
+      const { data: schemaData, error: schemaError } = await supabase
+        .from('information_schema.columns')
+        .select('column_name, data_type, is_nullable')
+        .eq('table_name', 'users')
+        .eq('table_schema', 'public')
+      
+      if (schemaError) {
+        // それも失敗した場合は、既存データを確認
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .limit(1)
+        
+        return c.json({
+          table_structure: userError ? 'Unable to determine' : Object.keys(userData?.[0] || {}),
+          users: userData || [],
+          error: userError?.message,
+          timestamp: new Date().toISOString()
+        })
+      }
+      
+      return c.json({
+        table_structure: schemaData,
+        timestamp: new Date().toISOString()
+      })
     }
     
     return c.json({
-      users: data,
-      count: data?.length || 0,
+      table_structure: columns,
       timestamp: new Date().toISOString()
     })
   } catch (error) {
@@ -87,7 +95,7 @@ app.get('/api/v1/users', async (c) => {
   }
 })
 
-// Create User
+// Create User - 最小限のユーザーテーブル対応
 app.post('/api/v1/users', async (c) => {
   try {
     const body = await c.req.json()
@@ -99,13 +107,24 @@ app.post('/api/v1/users', async (c) => {
     
     const supabase = createSupabaseClient(c)
     
-    // トランザクション的にユーザーを作成
+    // ユーザーデータ準備
+    const userData: any = {
+      display_name: handle, // とりあえずhandleを表示名として使用
+      role,
+      auth_provider: provider,
+      is_active: true
+    }
+    
+    // プロバイダーに応じて認証情報を設定
+    if (provider === 'email') {
+      userData.email = handle
+    } else if (provider === 'line') {
+      userData.line_user_id = handle
+    }
+    
     const { data: user, error: userError } = await supabase
       .from('users')
-      .insert({
-        status: 'active',
-        flags: {}
-      })
+      .insert(userData)
       .select()
       .single()
     
@@ -113,40 +132,15 @@ app.post('/api/v1/users', async (c) => {
       return c.json({ error: userError.message }, 500)
     }
     
-    // 認証情報を追加
-    const { error: handleError } = await supabase
-      .from('user_handles')
-      .insert({
-        user_id: user.id,
-        provider,
-        handle,
-        verified_at: new Date().toISOString()
-      })
-    
-    if (handleError) {
-      return c.json({ error: handleError.message }, 500)
-    }
-    
-    // ロールを追加
-    const { error: roleError } = await supabase
-      .from('user_roles')
-      .insert({
-        user_id: user.id,
-        role
-      })
-    
-    if (roleError) {
-      return c.json({ error: roleError.message }, 500)
-    }
-    
     return c.json({
       user: {
         id: user.id,
-        created_at: user.created_at,
-        status: user.status,
-        provider,
-        handle,
-        role
+        email: user.email,
+        line_user_id: user.line_user_id,
+        display_name: user.display_name,
+        role: user.role,
+        auth_provider: user.auth_provider,
+        created_at: user.created_at
       }
     }, 201)
   } catch (error) {
@@ -157,7 +151,7 @@ app.post('/api/v1/users', async (c) => {
   }
 })
 
-// Get User by ID
+// Get User by ID - 最小限のユーザーテーブル対応
 app.get('/api/v1/users/:id', async (c) => {
   try {
     const userId = c.req.param('id')
@@ -167,18 +161,14 @@ app.get('/api/v1/users/:id', async (c) => {
       .from('users')
       .select(`
         id,
+        email,
+        line_user_id,
+        display_name,
+        role,
+        auth_provider,
+        is_active,
         created_at,
-        updated_at,
-        status,
-        user_handles (
-          provider,
-          handle,
-          verified_at
-        ),
-        user_roles (
-          role,
-          granted_at
-        )
+        updated_at
       `)
       .eq('id', userId)
       .single()
