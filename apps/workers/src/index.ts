@@ -45,6 +45,76 @@ app.get('/api/v1/health', (c) => {
   })
 })
 
+// Database Connection Test
+app.get('/api/v1/db-test', async (c) => {
+  try {
+    // 環境変数の確認
+    const supabaseUrl = c.env?.SUPABASE_URL
+    const supabaseKey = c.env?.SUPABASE_SERVICE_ROLE_KEY
+    
+    console.log('🔍 DB Test - Environment check:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseKey,
+      urlPrefix: supabaseUrl?.substring(0, 30),
+      environment: c.env?.ENVIRONMENT || 'unknown'
+    })
+    
+    if (!supabaseUrl || !supabaseKey) {
+      return c.json({ 
+        success: false,
+        error: 'Supabase credentials not configured',
+        debug: {
+          hasUrl: !!supabaseUrl,
+          hasKey: !!supabaseKey,
+          environment: c.env?.ENVIRONMENT || 'unknown'
+        }
+      }, 500)
+    }
+    
+    const supabase = createSupabaseClient(c)
+    
+    // 簡単なクエリでデータベース接続をテスト
+    const { data, error } = await supabase
+      .from('users')
+      .select('count')
+      .limit(1)
+    
+    if (error) {
+      console.error('❌ DB Test - Query failed:', error)
+      return c.json({ 
+        success: false,
+        error: 'Database query failed',
+        details: error.message,
+        debug: {
+          supabaseUrl: supabaseUrl?.substring(0, 30) + '...',
+          errorCode: error.code,
+          errorDetails: error.details,
+          errorHint: error.hint
+        }
+      }, 500)
+    }
+    
+    console.log('✅ DB Test - Success:', data)
+    return c.json({
+      success: true,
+      message: 'Database connection successful',
+      data: data,
+      timestamp: new Date().toISOString()
+    })
+    
+  } catch (error) {
+    console.error('💥 DB Test - Exception:', error)
+    return c.json({ 
+      success: false,
+      error: 'Database connection failed',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      debug: {
+        environment: c.env?.ENVIRONMENT || 'unknown'
+      }
+    }, 500)
+  }
+})
+
 // Check existing tables
 app.get('/api/v1/tables', async (c) => {
   try {

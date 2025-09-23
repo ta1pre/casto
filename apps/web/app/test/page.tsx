@@ -42,7 +42,7 @@ export default function TestPage() {
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
 
   if (!API_BASE) {
-    return <Alert severity="error">APIベースURLが設定されていません。環境変数 NEXT_PUBLIC_API_BASE_URL を確認してください。</Alert>
+    return <Alert severity="error">AAPIベースURLが設定されていません。環境変数 NEXT_PUBLIC_API_BASE_URL を確認してください。</Alert>
   }
 
   const testHealthCheck = async () => {
