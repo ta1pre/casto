@@ -257,6 +257,16 @@ gh secret set CLOUDFLARE_API_TOKEN
 vercel ls
 ```
 
+---
+
+## ⚠️ 注意事項（ヘルスチェックの整合性）
+
+- `.github/workflows/production-deploy.yml` では Web のヘルスチェックとして `https://casto.app/api/health` を参照しています。
+- 本レポジトリ（`apps/web`）内には `/api/health` エンドポイントの実装は見当たりません（確認済み）。
+- Cloudflare Workers 側には `/api/v1/health` が実装されています（確認済み）。
+- 実運用で Web 側に別途ヘルスエンドポイントがあるかは「わからない」。
+- 運用方針に合わせて ①Web に `/api/health` を実装する ②ヘルスチェック先を別URLに変更する ③Workers の `/api/v1/health` を用いる、のいずれかに統一してください。
+
 #### Cloudflare API Token
 1. [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens) → Create Token
 2. テンプレート: Custom token
