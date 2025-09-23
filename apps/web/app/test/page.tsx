@@ -16,6 +16,18 @@ interface TestResult {
   data?: ApiResponse
   error?: string
   type: string
+  requestDetails?: {
+    url: string
+    method: string
+    headers?: Record<string, string>
+    body?: string
+  }
+  responseDetails?: {
+    status: number
+    statusText: string
+    headers: Record<string, string>
+    url: string
+  }
 }
 
 export default function TestPage() {
@@ -35,12 +47,63 @@ export default function TestPage() {
 
   const testHealthCheck = async () => {
     setLoading(true)
+    const url = `${API_BASE}/api/v1/health`
+    
+    console.log('🚀 [Health Check] リクエスト開始:', url)
+    
     try {
-      const response = await fetch(`${API_BASE}/api/v1/health`)
+      const response = await fetch(url)
+      
+      // レスポンスヘッダーを取得
+      const responseHeaders: Record<string, string> = {}
+      response.headers.forEach((value, key) => {
+        responseHeaders[key] = value
+      })
+      
+      console.log('📡 [Health Check] レスポンス受信:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: responseHeaders,
+        url: response.url
+      })
+      
       const data = await response.json()
-      setResult({ success: true, data, type: 'health' })
+      console.log('📄 [Health Check] レスポンスデータ:', data)
+      
+      const result = {
+        success: response.ok,
+        data,
+        type: 'health',
+        requestDetails: {
+          url,
+          method: 'GET'
+        },
+        responseDetails: {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+          url: response.url
+        }
+      }
+      
+      if (!response.ok) {
+        console.error('❌ [Health Check] HTTPエラー:', response.status, response.statusText)
+      } else {
+        console.log('✅ [Health Check] 成功!')
+      }
+      
+      setResult(result)
     } catch (error) {
-      setResult({ success: false, error: error instanceof Error ? error.message : 'Unknown error', type: 'health' })
+      console.error('💥 [Health Check] ネットワークエラー:', error)
+      setResult({ 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error', 
+        type: 'health',
+        requestDetails: {
+          url,
+          method: 'GET'
+        }
+      })
     } finally {
       setLoading(false)
     }
@@ -48,12 +111,64 @@ export default function TestPage() {
 
   const testGetUsers = async () => {
     setLoading(true)
+    const url = `${API_BASE}/api/v1/users`
+    
+    console.log('🚀 [Get Users] リクエスト開始:', url)
+    
     try {
-      const response = await fetch(`${API_BASE}/api/v1/users`)
+      const response = await fetch(url)
+      
+      // レスポンスヘッダーを取得
+      const responseHeaders: Record<string, string> = {}
+      response.headers.forEach((value, key) => {
+        responseHeaders[key] = value
+      })
+      
+      console.log('📡 [Get Users] レスポンス受信:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: responseHeaders,
+        url: response.url
+      })
+      
       const data = await response.json()
-      setResult({ success: response.ok, data, type: 'users' })
+      console.log('📄 [Get Users] レスポンスデータ:', data)
+      
+      const result = {
+        success: response.ok,
+        data,
+        type: 'users',
+        requestDetails: {
+          url,
+          method: 'GET'
+        },
+        responseDetails: {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+          url: response.url
+        }
+      }
+      
+      if (!response.ok) {
+        console.error('❌ [Get Users] HTTPエラー:', response.status, response.statusText)
+        console.error('❌ [Get Users] エラーデータ:', data)
+      } else {
+        console.log('✅ [Get Users] 成功!')
+      }
+      
+      setResult(result)
     } catch (error) {
-      setResult({ success: false, error: error instanceof Error ? error.message : 'Unknown error', type: 'users' })
+      console.error('💥 [Get Users] ネットワークエラー:', error)
+      setResult({ 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error', 
+        type: 'users',
+        requestDetails: {
+          url,
+          method: 'GET'
+        }
+      })
     } finally {
       setLoading(false)
     }
@@ -66,18 +181,78 @@ export default function TestPage() {
     }
 
     setLoading(true)
+    const url = `${API_BASE}/api/v1/users`
+    const requestBody = JSON.stringify(userForm)
+    const requestHeaders = {
+      'Content-Type': 'application/json',
+    }
+    
+    console.log('🚀 [Create User] リクエスト開始:', url)
+    console.log('📤 [Create User] リクエストボディ:', userForm)
+    console.log('📤 [Create User] リクエストヘッダー:', requestHeaders)
+    
     try {
-      const response = await fetch(`${API_BASE}/api/v1/users`, {
+      const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userForm)
+        headers: requestHeaders,
+        body: requestBody
       })
+      
+      // レスポンスヘッダーを取得
+      const responseHeaders: Record<string, string> = {}
+      response.headers.forEach((value, key) => {
+        responseHeaders[key] = value
+      })
+      
+      console.log('📡 [Create User] レスポンス受信:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: responseHeaders,
+        url: response.url
+      })
+      
       const data = await response.json()
-      setResult({ success: response.ok, data, type: 'create' })
+      console.log('📄 [Create User] レスポンスデータ:', data)
+      
+      const result = {
+        success: response.ok,
+        data,
+        type: 'create',
+        requestDetails: {
+          url,
+          method: 'POST',
+          headers: requestHeaders,
+          body: requestBody
+        },
+        responseDetails: {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+          url: response.url
+        }
+      }
+      
+      if (!response.ok) {
+        console.error('❌ [Create User] HTTPエラー:', response.status, response.statusText)
+        console.error('❌ [Create User] エラーデータ:', data)
+      } else {
+        console.log('✅ [Create User] 成功!')
+      }
+      
+      setResult(result)
     } catch (error) {
-      setResult({ success: false, error: error instanceof Error ? error.message : 'Unknown error', type: 'create' })
+      console.error('💥 [Create User] ネットワークエラー:', error)
+      setResult({ 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error', 
+        type: 'create',
+        requestDetails: {
+          url,
+          method: 'POST',
+          headers: requestHeaders,
+          body: requestBody
+        }
+      })
     } finally {
       setLoading(false)
     }
@@ -86,8 +261,17 @@ export default function TestPage() {
   return (
     <Box sx={{ p: 4, maxWidth: 1200, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>
-        ✅ Vercel連携解決！ 接続テスト (更新日時: 2025/09/23 13:34)
+        🔍 詳細ログ付き接続テスト (更新日時: 2025/09/23 16:20)
       </Typography>
+      
+      <Alert severity="info" sx={{ mb: 3 }}>
+        <Typography variant="body2">
+          <strong>🚀 デバッグモード有効！</strong><br/>
+          • ブラウザの開発者ツール（F12）→ コンソールタブで詳細ログを確認できます<br/>
+          • リクエスト/レスポンスの詳細情報が画面とコンソールの両方に出力されます<br/>
+          • データベース接続エラーの原因を特定するための情報が含まれています
+        </Typography>
+      </Alert>
       
       <Grid container spacing={3}>
         {/* Health Check */}
@@ -205,20 +389,103 @@ export default function TestPage() {
             {result.success ? '✅ 成功！' : '❌ エラー'}
           </Alert>
 
+          {/* Request Details */}
+          {result.requestDetails && (
+            <Card sx={{ mb: 2 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom color="primary">
+                  📤 リクエスト詳細
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  <strong>URL:</strong> {result.requestDetails.url}
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  <strong>Method:</strong> {result.requestDetails.method}
+                </Typography>
+                {result.requestDetails.headers && (
+                  <Box sx={{ mb: 1 }}>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      <strong>Headers:</strong>
+                    </Typography>
+                    <pre style={{ 
+                      background: '#e3f2fd', 
+                      padding: '8px', 
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      margin: 0
+                    }}>
+                      {JSON.stringify(result.requestDetails.headers, null, 2)}
+                    </pre>
+                  </Box>
+                )}
+                {result.requestDetails.body && (
+                  <Box>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      <strong>Body:</strong>
+                    </Typography>
+                    <pre style={{ 
+                      background: '#e3f2fd', 
+                      padding: '8px', 
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      margin: 0
+                    }}>
+                      {result.requestDetails.body}
+                    </pre>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Response Details */}
+          {result.responseDetails && (
+            <Card sx={{ mb: 2 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom color="secondary">
+                  📡 レスポンス詳細
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  <strong>Status:</strong> {result.responseDetails.status} {result.responseDetails.statusText}
+                </Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  <strong>URL:</strong> {result.responseDetails.url}
+                </Typography>
+                <Box sx={{ mb: 1 }}>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>Headers:</strong>
+                  </Typography>
+                  <pre style={{ 
+                    background: '#fff3e0', 
+                    padding: '8px', 
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    margin: 0,
+                    maxHeight: '200px',
+                    overflow: 'auto'
+                  }}>
+                    {JSON.stringify(result.responseDetails.headers, null, 2)}
+                  </pre>
+                </Box>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Response Data */}
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                結果 ({result.type})
+                📄 レスポンスデータ ({result.type})
               </Typography>
               <pre style={{ 
-                background: '#f5f5f5', 
+                background: result.success ? '#e8f5e8' : '#ffebee', 
                 padding: '16px', 
                 borderRadius: '4px',
                 overflow: 'auto',
                 fontSize: '14px',
                 maxHeight: '400px'
               }}>
-                {JSON.stringify(result, null, 2)}
+                {JSON.stringify(result.data || result.error, null, 2)}
               </pre>
             </CardContent>
           </Card>
