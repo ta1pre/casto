@@ -118,19 +118,11 @@ jobs:
           if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
             # Remove CR/LF, then trim leading/trailing whitespace
             TRIMMED=$(printf '%s' "$CLOUDFLARE_API_TOKEN" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-            # Strip optional surrounding quotes if the secret was saved with them
-            case "$TRIMMED" in
-              "\""*) TRIMMED=${TRIMMED#"};;  # leading double quote
-            esac
-            case "$TRIMMED" in
-              *"\"") TRIMMED=${TRIMMED%"};;  # trailing double quote
-            esac
-            case "$TRIMMED" in
-              "'") TRIMMED=${TRIMMED#"};;  # leading single quote
-            esac
-            case "$TRIMMED" in
-              *"'") TRIMMED=${TRIMMED%"};;  # trailing single quote
-            esac
+            # Strip optional surrounding quotes if the secret was saved with them (safe Bash patterns)
+            if [[ $TRIMMED == \"* ]]; then TRIMMED=${TRIMMED#\"}; fi   # leading "
+            if [[ $TRIMMED == *\" ]]; then TRIMMED=${TRIMMED%\"}; fi   # trailing "
+            if [[ $TRIMMED == \'* ]]; then TRIMMED=${TRIMMED#\'}; fi     # leading '
+            if [[ $TRIMMED == *\' ]]; then TRIMMED=${TRIMMED%\'}; fi     # trailing '
             export CLOUDFLARE_API_TOKEN="$TRIMMED"
             echo "Token length after normalize: ${#CLOUDFLARE_API_TOKEN}"
           fi
