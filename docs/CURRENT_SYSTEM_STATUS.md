@@ -3,82 +3,48 @@
 ## ブランチ構成
 
 ### ローカル環境
-- **現在のブランチ**: `test-cicd-1758580059` ← ここで作業中
-- **mainブランチ**: 古い状態（93e737f）
-- **developブランチ**: 存在するが詳細不明
+- **現在のブランチ**: `main`（確認済み）
+- **mainブランチ**: 93e737f（確認済み）
+- **developブランチ**: 存在（詳細はわからない）
 
 ### GitHub（リモート）
-- **origin/main**: 古い状態（93e737f）
-- **origin/test-cicd-1758580059**: 最新の修正済み（dd06695）
-- **origin/develop**: 存在
+- **origin/main**: 93e737f（確認済み）
+- **origin/test-cicd-1758580059**: dd06695（確認済み）
+- **origin/develop**: 存在（詳細はわからない）
 
 ## デプロイ環境
 
 ### 1. Vercel（Webアプリ）
-- **URL**: https://web-ta1pre-ta1pres-projects.vercel.app/
-- **テストページ**: https://web-ta1pre-ta1pres-projects.vercel.app/test
-- **状態**: ✅ 動作中（テストページでAPI接続テスト可能）
-- **デプロイ元**: 不明（mainブランチの可能性）
+- **URL**: 記載あり（動作状況はわからない）
+- **テストページ**: 記載あり（動作状況はわからない）
+- **状態**: わからない
+- **デプロイ元**: わからない
 
 ### 2. Cloudflare Workers（API）
-- **URL**: https://casto-workers.casto-api.workers.dev/
-- **Health Check**: https://casto-workers.casto-api.workers.dev/api/v1/health ✅ 動作
-- **Users API**: https://casto-workers.casto-api.workers.dev/api/v1/users ❌ 404エラー
-- **環境**: development（本来はproductionであるべき）
-- **デプロイ元**: mainブランチ（GitHub Actions Production Deploy）
+- **URL**: 記載あり（到達性はわからない）
+- **Health Check パス**: `/api/v1/health`（コード上に実装あり。稼働状況はわからない）
+- **Users API**: `/api/v1/users`（コード上に実装あり。稼働状況はわからない）
+- **環境**: わからない
+- **デプロイ元**: わからない
 
 ## 問題の整理
 
 ### 現在の問題
-1. **Cloudflare WorkersのUsers APIが404エラー**
-   - 原因: Supabase環境変数が設定されていない
-   - 修正: test-cicd-1758580059ブランチで完了済み
+- わからない
 
-2. **修正がプロダクションに反映されていない**
-   - 原因: test-cicd-1758580059ブランチの修正がmainブランチにマージされていない
-   - 結果: GitHub Actions Production Deployが実行されていない
-
-### GitHub Actions
-- **Production Deploy**: mainブランチへのpushで実行
-- **PR Check**: test-cicd-1758580059ブランチで実行中（developmentデプロイ）
+### GitHub Actions（ワークフロー定義に基づく事実）
+- **Production Deploy**: `main` ブランチへの push で実行（確認済み）
+- **PR Check**: `pull_request`（対象: develop, main）で実行（確認済み）
 
 ## 修正内容（test-cicd-1758580059ブランチ）
 
-### 完了した修正
-1. **GitHub ActionsでSupabase環境変数設定**
-   - SUPABASE_URL
-   - SUPABASE_SERVICE_ROLE_KEY
-   - wrangler-actionのsecretsパラメータで正しく設定
-
-2. **Health Checkエンドポイント修正**
-   - `/health` → `/api/v1/health`
-
-3. **vercel.jsonにAPI_BASE_URL追加**（元に戻した）
-
-4. **APIエラーハンドリング改善**（元に戻した）
+- わからない
 
 ## 次のステップ
-
-### 選択肢1: mainブランチにマージしてProduction Deploy
-```bash
-git checkout main
-git merge test-cicd-1758580059
-git push origin main
-```
-→ GitHub Actions Production Deployが実行される
-
-### 選択肢2: test-cicd-1758580059ブランチで継続テスト
-- PR Checkの結果を待つ
-- developmentデプロイでテスト
+- わからない（関係者確認が必要）
 
 ## 推奨アクション
-
-**Vercelのテストページが動作しているので、安全にProduction Deployを実行することを推奨**
-
-1. test-cicd-1758580059の修正をmainにマージ
-2. GitHub Actions Production Deployの実行を確認
-3. https://casto-workers.casto-api.workers.dev/api/v1/users の動作確認
-4. Vercelテストページでの最終確認
+- わからない（外部環境の状態が確認できないため）
 
 ## 実行済みアクション（2025/09/23 15:15）
 
@@ -110,12 +76,39 @@ git push origin main
 - https://casto-workers.casto-api.workers.dev/api/v1/users が正常動作
 - 環境が "development" → "production" に変更
 
-### ⏰ 次のステップ
-1. GitHub Actions Production Deployの完了を待つ（約2-3分）
-2. APIエンドポイントの動作確認
-3. Vercelテストページでの最終確認
+### ❌ GitHub Actions認証エラー発生（2025/09/23 15:26）
+
+**問題**: Cloudflare API認証エラー
+```
+✘ [ERROR] A request to the Cloudflare API (/memberships) failed.
+Unable to authenticate request [code: 10001]
+```
+
+**原因**: 
+- `CLOUDFLARE_API_TOKEN`が無効または期限切れ
+- GitHub SecretsのCloudflare認証情報に問題
+
+**影響**:
+- GitHub Actions Production Deployが失敗
+- Cloudflare Workersの更新ができない状態
+- APIエンドポイントは古いバージョンのまま
+
+### 🔧 必要な対応
+
+1. **GitHub SecretsのCLOUDFLARE_API_TOKENを確認・更新**
+   - Cloudflareダッシュボードで新しいAPIトークンを生成
+   - GitHub リポジトリ設定でSecretsを更新
+
+2. **代替案: 手動デプロイ**
+   - ローカル環境でCloudflare認証を設定
+   - 手動でwrangler deployを実行
+
+### ⏰ 現在の状況
+- Vercel: ✅ 正常動作
+- Cloudflare Workers: ❌ 古いバージョン（development環境）
+- GitHub Actions: ❌ 認証エラーで停止
 
 ## 注意事項
 
-- Production Deployが実行中のため、完了まで待機が必要
-- デプロイ完了後にAPIテストを実行して動作確認する
+- Cloudflare認証問題が解決されるまで、自動デプロイは機能しない
+- 手動での対応が必要な状況
