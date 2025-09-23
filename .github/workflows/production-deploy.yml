@@ -89,6 +89,9 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: './apps/workers'
           command: deploy --env production
+          secrets: |
+            SUPABASE_URL
+            SUPABASE_SERVICE_ROLE_KEY
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
