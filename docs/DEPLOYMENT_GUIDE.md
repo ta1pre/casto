@@ -92,7 +92,7 @@ vercel --name casto-staging
 #### Production
 ```bash
 vercel --name casto-production
-# カスタムドメイン: casto.app
+# カスタムドメイン: casto.app（存在するかは未確認）
 ```
 
 ### 2.2 環境変数設定
@@ -100,19 +100,19 @@ vercel --name casto-production
 #### Development
 ```bash
 vercel env add NEXT_PUBLIC_API_BASE_URL development
-# 値: http://localhost:8787
+# 値: わからない（ローカル開発環境のURL不明）
 
 vercel env add NEXT_PUBLIC_WEB_BASE_URL development
-# 値: http://localhost:3000
+# 値: わからない（ローカル開発環境のURL不明）
 ```
 
 #### Staging
 ```bash
 vercel env add NEXT_PUBLIC_API_BASE_URL staging
-# 値: https://api-staging.casto.app
+# 値: わからない（Staging環境のWorkers URLが不明）
 
 vercel env add NEXT_PUBLIC_WEB_BASE_URL staging
-# 値: https://casto-staging.vercel.app
+# 値: https://casto-staging.vercel.app（存在するかは未確認）
 ```
 
 #### Production
@@ -121,7 +121,7 @@ vercel env add NEXT_PUBLIC_API_BASE_URL production
 # 値: https://casto-workers.casto-api.workers.dev
 
 vercel env add NEXT_PUBLIC_WEB_BASE_URL production
-# 値: https://casto.app
+# 値: https://casto.app（存在するかは未確認）
 ```
 
 ### 2.3 Git連携設定
@@ -154,8 +154,7 @@ wrangler whoami
 # Staging環境にデプロイ
 wrangler deploy --env staging
 
-# カスタムドメイン設定 (Cloudflare Dashboard)
-# api-staging.casto.app → casto-workers-stg.your-subdomain.workers.dev
+# カスタムドメイン設定: わからない（設定されているかは未確認）
 ```
 
 #### Production環境
@@ -163,8 +162,7 @@ wrangler deploy --env staging
 # Production環境にデプロイ
 wrangler deploy --env production
 
-# カスタムドメイン設定
-# api.casto.app → casto-workers.your-subdomain.workers.dev
+# カスタムドメイン設定: わからない（api.casto.appが存在するかは未確認）
 ```
 
 ### 3.3 Secrets設定
@@ -309,8 +307,8 @@ git pull origin develop
 
 **期待結果:**
 - ✅ Staging環境に自動デプロイ
-- ✅ https://casto-staging.vercel.app アクセス可能
-- ✅ https://api-staging.casto.app アクセス可能
+- ✅ https://casto-staging.vercel.app アクセス可能（存在するかは未確認）
+- ❓ Staging API URL: わからない（設定されているかは未確認）
 
 ### 6.3 Production デプロイテスト
 ```bash
@@ -324,8 +322,8 @@ gh pr create --base main --head develop --title "Release v1.0.0" --body "Initial
 
 **期待結果:**
 - ✅ Production環境に自動デプロイ
-- ✅ https://casto.app アクセス可能
-- ✅ https://casto-workers.casto-api.workers.dev アクセス可能
+- ❓ https://casto.app アクセス可能（存在するかは未確認）
+- ✅ https://casto-workers.casto-api.workers.dev アクセス可能（確認済み）
 
 ---
 

@@ -1,114 +1,68 @@
-# 現在のシステム構成状況（2025/09/23 15:08）
+# 現在のシステム構成状況（2025/09/23 16:57）
 
 ## ブランチ構成
 
 ### ローカル環境
 - **現在のブランチ**: `main`（確認済み）
-- **mainブランチ**: 93e737f（確認済み）
-- **developブランチ**: 存在（詳細はわからない）
+- **最新コミット**: 86ddee5（2025/09/23 16:25 確認済み）
 
 ### GitHub（リモート）
-- **origin/main**: 93e737f（確認済み）
-- **origin/test-cicd-1758580059**: dd06695（確認済み）
-- **origin/develop**: 存在（詳細はわからない）
+- **状況**: わからない（確認していない）
 
 ## デプロイ環境
 
 ### 1. Vercel（Webアプリ）
-- **URL**: 記載あり（動作状況はわからない）
-- **テストページ**: 記載あり（動作状況はわからない）
-- **状態**: わからない
-- **デプロイ元**: わからない
+- **テストページ**: 動作確認済み（2025/09/23 16:35）
+- **詳細ログ機能**: 実装済み・動作確認済み
+- **状態**: 正常動作
 
 ### 2. Cloudflare Workers（API）
-- **URL**: 記載あり（到達性はわからない）
-- **Health Check パス**: `/api/v1/health`（コード上に実装あり。稼働状況はわからない）
-- **Users API**: `/api/v1/users`（コード上に実装あり。稼働状況はわからない）
-- **環境**: わからない
-- **デプロイ元**: わからない
+- **URL**: `https://casto-workers.casto-api.workers.dev`
+- **デプロイ状況**: 2025/09/23 16:42 デプロイ完了
+- **Version ID**: 11ed9638-e0cf-42e4-a04d-22737c2a13c5
+- **Health Check**: `/api/v1/health` - 動作確認済み
+- **DB Test**: `/api/v1/db-test` - 動作確認済み（データベース接続成功）
+- **Users API**: `/api/v1/users` - 動作確認済み（1件のユーザーデータ取得成功）
+- **環境変数**: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY 設定済み
 
-## 問題の整理
+## データベース接続状況
 
-### 現在の問題
-- わからない
+### Supabase
+- **接続状況**: 正常（2025/09/23 16:43 確認済み）
+- **usersテーブル**: 存在確認済み（1件のレコード存在）
+- **テーブル構造**: id, created_at, updated_at, status, token_version, flags
 
-### GitHub Actions（ワークフロー定義に基づく事実）
-- **Production Deploy**: `main` ブランチへの push で実行（確認済み）
-- **PR Check**: `pull_request`（対象: develop, main）で実行（確認済み）
+## 実行済みアクション（2025/09/23 16:25-16:43）
 
-## 修正内容（test-cicd-1758580059ブランチ）
+### ✅ テストページ詳細ログ機能追加
+- **ファイル**: `apps/web/app/test/page.tsx`
+- **機能**: ブラウザコンソール詳細ログ、リクエスト/レスポンス詳細表示
+- **コミット**: 86ddee5
 
-- わからない
+### ✅ Cloudflare Workers認証問題解決・デプロイ完了
+1. **認証問題解決**
+   - 環境変数クリア
+   - `npx wrangler login` でOAuth認証成功
 
-## 次のステップ
-- わからない（関係者確認が必要）
+2. **デプロイ実行**
+   - 2025/09/23 16:42 デプロイ完了
+   - Version ID: 11ed9638-e0cf-42e4-a04d-22737c2a13c5
 
-## 推奨アクション
-- わからない（外部環境の状態が確認できないため）
+3. **データベーステストエンドポイント追加**
+   - `/api/v1/db-test` - データベース接続テスト用
 
-## 実行済みアクション（2025/09/23 15:15）
+### ✅ API動作確認完了
+- **Health Check**: 200 OK
+- **DB Test**: データベース接続成功
+- **Users API**: 1件のユーザーデータ取得成功
 
-### ✅ mainブランチへのマージ完了
-```bash
-git checkout main
-git merge test-cicd-1758580059
-git push origin main
-```
+## 現在の状況（2025/09/23 16:57）
 
-**結果**:
-- test-cicd-1758580059ブランチの修正がmainブランチに統合
-- GitHub Actions Production Deployが自動実行開始
-- コミットID: dd06695
+- **Vercel**: ✅ 正常動作（詳細ログ機能付きテストページ）
+- **Cloudflare Workers**: ✅ 正常動作（最新版デプロイ済み）
+- **データベース接続**: ✅ 正常動作
+- **API エンドポイント**: ✅ 全て動作確認済み
 
-### 📋 マージされた修正内容
-1. **GitHub ActionsでSupabase環境変数設定**
-   - SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
-   - wrangler-actionのsecretsパラメータで正しく設定
-
-2. **Health Checkエンドポイント修正**
-   - `/health` → `/api/v1/health`
-
-3. **ドキュメント追加**
-   - docs/CLOUDFLARE_WORKERS_ENV_SETUP.md
-
-### 🚀 期待される結果
-- Cloudflare Workers Production Deployが実行される
-- https://casto-workers.casto-api.workers.dev/api/v1/users が正常動作
-- 環境が "development" → "production" に変更
-
-### ❌ GitHub Actions認証エラー発生（2025/09/23 15:26）
-
-**問題**: Cloudflare API認証エラー
-```
-✘ [ERROR] A request to the Cloudflare API (/memberships) failed.
-Unable to authenticate request [code: 10001]
-```
-
-**原因**: 
-- `CLOUDFLARE_API_TOKEN`が無効または期限切れ
-- GitHub SecretsのCloudflare認証情報に問題
-
-**影響**:
-- GitHub Actions Production Deployが失敗
-- Cloudflare Workersの更新ができない状態
-- APIエンドポイントは古いバージョンのまま
-
-### 🔧 必要な対応
-
-1. **GitHub SecretsのCLOUDFLARE_API_TOKENを確認・更新**
-   - Cloudflareダッシュボードで新しいAPIトークンを生成
-   - GitHub リポジトリ設定でSecretsを更新
-
-2. **代替案: 手動デプロイ**
-   - ローカル環境でCloudflare認証を設定
-   - 手動でwrangler deployを実行
-
-### ⏰ 現在の状況
-- Vercel: ✅ 正常動作
-- Cloudflare Workers: ❌ 古いバージョン（development環境）
-- GitHub Actions: ❌ 認証エラーで停止
-
-## 注意事項
-
-- Cloudflare認証問題が解決されるまで、自動デプロイは機能しない
-- 手動での対応が必要な状況
+## GitHub Actions状況
+- **状況**: わからない（確認していない）
+- **手動デプロイ**: 成功済み（ローカル環境から）

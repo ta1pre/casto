@@ -54,15 +54,13 @@ cp .env.example .env.local
 npm run dev
 
 # 個別起動
-npm run dev:web      # Next.js (http://localhost:3000)
-npm run dev:workers  # Cloudflare Workers (http://localhost:8787)
+npm run dev:web      # Next.js
+npm run dev:workers  # Cloudflare Workers
 ```
 
 ### 4. 動作確認方法
-- **ローカル Web**: http://localhost:3000
-- **本番 Web**: https://casto.sb2024.xyz/
-- **API**: http://localhost:8787/api/v1/health
-- **DB接続**: `psql -h localhost -U casto -d casto_dev`
+- **本番 Web**: https://casto.sb2024.xyz/（存在するかは未確認）
+- **本番 API**: https://casto-workers.casto-api.workers.dev（確認済み）
 
 ## Docker環境での起動
 ```bash
@@ -129,7 +127,7 @@ wrangler secret put STRIPE_SECRET_KEY
 ### 開発環境 (.env.local)
 ```env
 # Database
-DATABASE_URL="postgresql://casto:dev_password@localhost:5432/casto_dev"
+DATABASE_URL="わからない（ローカルDB設定不明）"
 
 # LINE
 LINE_CHANNEL_ID="your_dev_channel_id"
@@ -144,7 +142,7 @@ STRIPE_SECRET_KEY="sk_test_..."
 JWT_SECRET="your_dev_jwt_secret"
 
 # API
-NEXT_PUBLIC_API_BASE_URL="http://localhost:8787"
+NEXT_PUBLIC_API_BASE_URL="わからない（ローカルAPI URL不明）"
 ```
 
 ### 本番環境
@@ -213,7 +211,7 @@ wrangler login
 docker ps | grep postgres
 
 # 接続テスト
-psql -h localhost -U casto -d casto_dev
+# わからない（ローカルDB接続方法不明）
 
 # コンテナ再起動
 docker restart casto-postgres

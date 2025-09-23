@@ -80,7 +80,7 @@ CREATE TABLE users (
     pnpm dev
     ```
 
-これで、Webアプリケーション (例: `http://localhost:3000`) とAPIサーバー (例: `http://localhost:8788`) が起動します。
+これで、WebアプリケーションとAPIサーバーが起動します。
 
 ## 6. Vercel連携
 

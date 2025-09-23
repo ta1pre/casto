@@ -110,9 +110,9 @@ GitHubを起点とした自動デプロイ環境を構築し、dev/staging/produ
 #### Development
 ```bash
 # .env.local (Git管理外)
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8787
-NEXT_PUBLIC_WEB_BASE_URL=http://localhost:3000
-SUPABASE_URL=http://localhost:54321
+NEXT_PUBLIC_API_BASE_URL=わからない（ローカルAPI URL不明）
+NEXT_PUBLIC_WEB_BASE_URL=わからない（ローカルWeb URL不明）
+SUPABASE_URL=わからない（ローカルSupabase URL不明）
 SUPABASE_ANON_KEY=local_anon_key
 ```
 
