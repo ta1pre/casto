@@ -89,7 +89,7 @@ jobs:
           echo "🔍 Checking Cloudflare authentication..."
           if npx wrangler whoami; then
             echo "✅ Authentication successful, deploying..."
-            npx wrangler deploy
+            npx wrangler deploy --env production
           else
             echo "❌ Cloudflare authentication failed."
             echo "Token format: ${CLOUDFLARE_API_TOKEN:0:10}..."
