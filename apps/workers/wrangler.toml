@@ -15,7 +15,7 @@ name = "casto-workers-stg"
 vars = { ENVIRONMENT = "staging" }
 
 [env.production]
-name = "casto-workers-preview"
+name = "casto-workers"
 vars = { ENVIRONMENT = "production" }
 
 # Variables (non-secret)
