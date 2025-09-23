@@ -87,14 +87,23 @@ jobs:
         working-directory: ./apps/workers
         run: |
           echo "🔍 Checking Cloudflare authentication..."
+          echo "Wrangler version: $(npx wrangler --version)"
+          
           if npx wrangler whoami; then
             echo "✅ Authentication successful, deploying..."
             npx wrangler deploy --env production
           else
             echo "❌ Cloudflare authentication failed."
             echo "Token format: ${CLOUDFLARE_API_TOKEN:0:10}..."
-            echo "Skipping deployment for now to avoid blocking."
-            echo "Please check CLOUDFLARE_API_TOKEN in GitHub Secrets."
+            echo ""
+            echo "🔧 Troubleshooting steps:"
+            echo "1. Verify API Token has User Memberships:Read permission"
+            echo "2. Verify API Token has User Details:Read permission"
+            echo "3. Check token expiration date"
+            echo "4. Use 'Edit Cloudflare Workers' template for token creation"
+            echo ""
+            echo "Skipping deployment to avoid blocking."
+            exit 1
           fi
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
