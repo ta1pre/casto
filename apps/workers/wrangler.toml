@@ -23,6 +23,8 @@ vars = { ENVIRONMENT = "production" }
 ENVIRONMENT = "development"
 
 # Secrets (use `wrangler secret put` to set)
+# SUPABASE_URL
+# SUPABASE_SERVICE_ROLE_KEY
 # JWT_SECRET
 # DATABASE_URL
 # LINE_CHANNEL_SECRET

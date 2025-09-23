@@ -89,6 +89,9 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: './apps/workers'
           command: deploy --env production
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
   health-check:
     name: Health Check
@@ -103,7 +106,7 @@ jobs:
 
       - name: Check API Health
         run: |
-          curl -f https://casto-workers.casto-api.workers.dev/health || exit 1
+          curl -f https://casto-workers.casto-api.workers.dev/api/v1/health || exit 1
 
   notify:
     name: Notify Deployment
