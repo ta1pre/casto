@@ -7,7 +7,9 @@
 ### Vercel関連
 ```
 VERCEL_ORG_ID = team_idrAIQND9CrEn3C7BerMktAl
-VERCEL_PROJECT_ID = prj_Jeuz5fLTh8EyFwDpg5JQFLEdDDBL
+VERCEL_PROJECT_ID = prj_Jeuz5fLTh8EyFwDpg5JQFLEdDDBL   # PR/Preview 用（pr-check.yml）
+VERCEL_STAGING_PROJECT_ID = わからない                  # staging-deploy.yml で使用
+VERCEL_PRODUCTION_PROJECT_ID = わからない               # production-deploy.yml で使用
 ```
 
 ### 取得が必要なトークン
@@ -28,6 +30,10 @@ VERCEL_PROJECT_ID = prj_Jeuz5fLTh8EyFwDpg5JQFLEdDDBL
      - Account:Cloudflare Workers:Edit
    - 生成されたトークンをコピー
 
+### Workers/DB関連（ワークフローで参照）
+- `SUPABASE_URL`（production-deploy.yml で `wrangler-action` に渡す）
+- `SUPABASE_SERVICE_ROLE_KEY`（同上）
+
 ## 📝 GitHub Secrets設定手順
 
 ### 方法1: GitHub Web UI
@@ -45,8 +51,20 @@ Value: team_idrAIQND9CrEn3C7BerMktAl
 Name: VERCEL_PROJECT_ID
 Value: prj_Jeuz5fLTh8EyFwDpg5JQFLEdDDBL
 
+Name: VERCEL_STAGING_PROJECT_ID
+Value: [staging プロジェクトID]（わからない）
+
+Name: VERCEL_PRODUCTION_PROJECT_ID
+Value: [production プロジェクトID]（わからない）
+
 Name: CLOUDFLARE_API_TOKEN
 Value: [上記で取得したCloudflareトークン]
+
+Name: SUPABASE_URL
+Value: [Supabase プロジェクトURL]（わからない）
+
+Name: SUPABASE_SERVICE_ROLE_KEY
+Value: [Supabase サービスロールキー]（わからない）
 ```
 
 ### 方法2: GitHub CLI（ログイン後）
@@ -54,7 +72,11 @@ Value: [上記で取得したCloudflareトークン]
 gh secret set VERCEL_TOKEN
 gh secret set VERCEL_ORG_ID --body "team_idrAIQND9CrEn3C7BerMktAl"
 gh secret set VERCEL_PROJECT_ID --body "prj_Jeuz5fLTh8EyFwDpg5JQFLEdDDBL"  
+gh secret set VERCEL_STAGING_PROJECT_ID   # 値はわからない
+gh secret set VERCEL_PRODUCTION_PROJECT_ID # 値はわからない
 gh secret set CLOUDFLARE_API_TOKEN
+gh secret set SUPABASE_URL               # 値はわからない
+gh secret set SUPABASE_SERVICE_ROLE_KEY  # 値はわからない
 ```
 
 ## ✅ 設定完了後のテスト
@@ -74,3 +96,5 @@ gh pr create --title "Test CI/CD Pipeline" --body "Testing automated deployment"
 ```
 
 これでGitHub Actionsが自動実行され、Vercel + Cloudflareへの自動デプロイがテストされます。
+
+補足: 上記の具体的な ID/URL/キーの値について本レポジトリからは確認できないため、値の正否は「わからない」。各サービスのダッシュボードで必ず確認してください。

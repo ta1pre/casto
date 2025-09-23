@@ -9,9 +9,8 @@
 - `/packages/shared`, `/packages/ui` ディレクトリ
 
 ### ❌ 未構築・不足部分
-- Cloudflare Workers の実装・設定
-- データベース接続設定
-- 環境変数管理
+- データベース接続設定（外部環境の実体はわからない）
+- 環境変数管理（本番/ステージングの最終値はわからない）
 - ローカル開発サーバーの統合
 - 本番デプロイ設定
 
@@ -112,6 +111,8 @@ wrangler secret put DATABASE_URL
 wrangler secret put LINE_CHANNEL_SECRET
 wrangler secret put STRIPE_SECRET_KEY
 ```
+
+補足: `apps/workers/src/index.ts` に API の実装（`/api/v1/health`, `/api/v1/users` など）が既に存在（確認済み）。
 
 ### 3. データベース (本番)
 ```bash
