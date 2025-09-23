@@ -30,24 +30,55 @@
 | [**`QUESTIONS.md`**](./docs/QUESTIONS.md)    | 未解決の課題・疑問リスト                           |
 | [**`DEPLOYMENT_STRATEGY.md`**](./docs/DEPLOYMENT_STRATEGY.md) | デプロイ戦略・CI/CD設計                            |
 | [**`DEPLOYMENT_GUIDE.md`**](./docs/DEPLOYMENT_GUIDE.md) | デプロイ手順・環境構築ガイド                       |
+| [**`CLOUDFLARE_DEV_SETUP.md`**](./docs/CLOUDFLARE_DEV_SETUP.md) | 開発環境セットアップ（完成済み）                   |
+| [**`ローカル開発環境について.md`**](./docs/ローカル開発環境について.md) | Docker統合開発環境の注意事項                       |
 
 ---
 
 ## 🚀 クイックスタート (Quick Start)
 
-### ローカル開発環境セットアップ
+### ✅ 開発環境（構築完了済み - 2025-09-23）
+
+**すぐに開発を開始できます：**
+
+| コンポーネント | URL | 状態 |
+|---------------|-----|------|
+| **Frontend** | https://casto.sb2024.xyz | ✅ 動作中 |
+| **API (Dev)** | https://casto-workers-dev.casto-api.workers.dev | ✅ 動作中 |
+| **テストページ** | https://casto.sb2024.xyz/test | ✅ 利用可能 |
+
+### 開発フロー
 ```bash
-# 1. 依存関係インストール
+# 1. APIコード変更
+vim apps/workers/src/index.ts
+
+# 2. 開発用Workerにデプロイ
+cd apps/workers
+npx wrangler deploy --env development
+
+# 3. テスト
+# https://casto.sb2024.xyz/test でAPI動作確認
+
+# 4. 本番デプロイ
+git push → GitHub Actions → 自動デプロイ
+```
+
+### 📖 詳細な開発環境情報
+詳しくは [CLOUDFLARE_DEV_SETUP.md](./docs/CLOUDFLARE_DEV_SETUP.md) を参照してください。
+
+### 従来の手動セットアップ（参考）
+```bash
+# 依存関係インストール
 npm install
 
-# 2. 環境変数設定
+# 環境変数設定
 cp .env.example .env.local
 # .env.local を編集して実際の値を設定
 
-# 3. データベース起動
+# データベース起動
 npm run db:setup
 
-# 4. 開発サーバー起動
+# 開発サーバー起動
 npm run dev
 ```
 
