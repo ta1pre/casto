@@ -17,7 +17,7 @@ vars = { ENVIRONMENT = "staging" }
 
 [env.production]
 name = "casto-workers"
-vars = { ENVIRONMENT = "production" }
+vars = { ENVIRONMENT = "production", SUPABASE_URL = "https://sfscmpjplvxtikmifqhe.supabase.co", SUPABASE_SERVICE_ROLE_KEY = "sb_secret__Lv-HqBCTZt3F7vFBbQsZA_SpUmgdGK" }
 
 # Variables (non-secret)
 [vars]
