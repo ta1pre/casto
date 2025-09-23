@@ -82,7 +82,7 @@ export default function TestPage() {
   return (
     <Box sx={{ p: 4, maxWidth: 1200, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>
-        🧪 API + Database 接続テスト
+        🧪 API + Database 接続テストだ！
       </Typography>
       
       <Grid container spacing={3}>
