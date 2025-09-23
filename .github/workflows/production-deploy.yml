@@ -110,7 +110,7 @@ jobs:
       - name: Check Web Health
         run: |
           sleep 30
-          curl -f https://casto.app/api/health || exit 1
+          curl -f https://web-ta1pre-ta1pres-projects.vercel.app/ || exit 1
 
       - name: Check API Health
         run: |
