@@ -94,7 +94,7 @@ export default function TestPage() {
                 1. Health Check
               </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                API基本動作確認
+                API基本動作確認だ
               </Typography>
               
               <Button 
