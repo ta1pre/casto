@@ -27,7 +27,11 @@ export default function TestPage() {
     role: 'applicant'
   })
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://casto-workers.casto-api.workers.dev'
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  if (!API_BASE) {
+    return <Alert severity="error">APIベースURLが設定されていません。環境変数 NEXT_PUBLIC_API_BASE_URL を確認してください。</Alert>
+  }
 
   const testHealthCheck = async () => {
     setLoading(true)

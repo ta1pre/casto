@@ -103,7 +103,7 @@ jobs:
 
       - name: Check API Health
         run: |
-          curl -f https://api.casto.app/health || exit 1
+          curl -f https://casto-workers.casto-api.workers.dev/health || exit 1
 
   notify:
     name: Notify Deployment
@@ -117,7 +117,7 @@ jobs:
         run: |
           echo "🚀 Production deployment successful!"
           echo "Web: https://casto.app"
-          echo "API: https://api.casto.app"
+          echo "API: https://casto-workers.casto-api.workers.dev"
 
       - name: Notify Failure
         if: needs.health-check.result == 'failure'

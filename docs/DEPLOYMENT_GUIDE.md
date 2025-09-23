@@ -118,7 +118,7 @@ vercel env add NEXT_PUBLIC_WEB_BASE_URL staging
 #### Production
 ```bash
 vercel env add NEXT_PUBLIC_API_BASE_URL production
-# 値: https://api.casto.app
+# 値: https://casto-workers.casto-api.workers.dev
 
 vercel env add NEXT_PUBLIC_WEB_BASE_URL production
 # 値: https://casto.app
@@ -315,7 +315,7 @@ gh pr create --base main --head develop --title "Release v1.0.0" --body "Initial
 **期待結果:**
 - ✅ Production環境に自動デプロイ
 - ✅ https://casto.app アクセス可能
-- ✅ https://api.casto.app アクセス可能
+- ✅ https://casto-workers.casto-api.workers.dev アクセス可能
 
 ---
 

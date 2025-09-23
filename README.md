@@ -79,7 +79,7 @@ casto/
 |------|----------|-----|----------|
 | **Development** | http://localhost:3000 | http://localhost:8787 | Local PostgreSQL |
 | **Staging** | https://casto-staging.vercel.app | https://api-staging.casto.app | Supabase Staging |
-| **Production** | https://casto.app | https://api.casto.app | Supabase Production |
+| **Production** | https://casto.app | https://casto-workers.casto-api.workers.dev | Supabase Production |
 
 ### 自動デプロイ
 - **PR作成**: Preview環境に自動デプロイ

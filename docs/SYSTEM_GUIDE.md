@@ -81,3 +81,20 @@ CREATE TABLE users (
     ```
 
 これで、Webアプリケーション (例: `http://localhost:3000`) とAPIサーバー (例: `http://localhost:8788`) が起動します。
+
+## 6. Vercel連携
+
+このプロジェクトのフロントエンド (`apps/web`) は、Vercelにデプロイされます。
+
+- **Vercelプロジェクト**: `ta1pres-projects/web`
+- **連携状態**: ローカル環境とVercelプロジェクトは `vercel link` コマンドによって紐付けられています。
+
+**トラブルシューティング**:
+Gitリポジトリにpushしてもデプロイが開始されない場合、ローカルとVercelの連携が切れている可能性があります。その場合は、以下のコマンドを実行して再リンクしてください。
+
+```bash
+cd apps/web
+vercel link
+```
+
+このコマンドにより `.vercel` ディレクトリが作成され、プロジェクトIDなどが保存されます。このディレクトリは `.gitignore` に含まれており、バージョン管理の対象外です。

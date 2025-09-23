@@ -128,7 +128,7 @@ SUPABASE_ANON_KEY=staging_anon_key
 #### Production
 ```bash
 # Vercel Environment Variables
-NEXT_PUBLIC_API_BASE_URL=https://api.casto.app
+NEXT_PUBLIC_API_BASE_URL=https://casto-workers.casto-api.workers.dev
 NEXT_PUBLIC_WEB_BASE_URL=https://casto.app
 SUPABASE_URL=https://production-project.supabase.co
 SUPABASE_ANON_KEY=production_anon_key
