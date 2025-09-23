@@ -3,6 +3,7 @@
   "private": true,
   "packageManager": "npm@10.0.0",
   "scripts": {
+    "⚠️-WARNING": "このディレクトリで直接実行しないでください。上位階層のDocker環境を使用してください。詳細: docs/ローカル開発環境について.md",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "dev:web": "turbo run dev --filter=web",
