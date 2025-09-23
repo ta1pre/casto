@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Button, Card, CardContent, Typography, Box, Alert, TextField, MenuItem } from '@mui/material'
-import Grid from '@mui/material/Grid'
 
 interface ApiResponse {
   status?: string
@@ -85,114 +84,105 @@ export default function TestPage() {
         🧪 API + Database 接続テスト
       </Typography>
       
-      <Grid container spacing={3}>
+      {/* Test Cards */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {/* Health Check */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                1. Health Check
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                API基本動作確認
-              </Typography>
-              
-              <Button 
-                variant="contained" 
-                onClick={testHealthCheck}
-                disabled={loading}
-                sx={{ mt: 2 }}
-              >
-                {loading ? '実行中...' : 'Health Check'}
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              1. Health Check
+            </Typography>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              API基本動作確認
+            </Typography>
+            
+            <Button 
+              variant="contained" 
+              onClick={testHealthCheck}
+              disabled={loading}
+              sx={{ mt: 2 }}
+            >
+              {loading ? '実行中...' : 'Health Check'}
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Get Users */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                2. Get Users
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Supabaseからユーザー一覧取得
-              </Typography>
-              
-              <Button 
-                variant="contained" 
-                onClick={testGetUsers}
-                disabled={loading}
-                sx={{ mt: 2 }}
-              >
-                {loading ? '実行中...' : 'ユーザー取得'}
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              2. Get Users
+            </Typography>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Supabaseからユーザー一覧取得
+            </Typography>
+            
+            <Button 
+              variant="contained" 
+              onClick={testGetUsers}
+              disabled={loading}
+              sx={{ mt: 2 }}
+            >
+              {loading ? '実行中...' : 'ユーザー取得'}
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Create User */}
-        <Grid size={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                3. Create User
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                新規ユーザー作成テスト
-              </Typography>
-              
-              <Grid container spacing={2} sx={{ mt: 1 }}>
-                <Grid size={{ xs: 12, sm: 4 }}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Provider"
-                    value={userForm.provider}
-                    onChange={(e) => setUserForm({...userForm, provider: e.target.value})}
-                  >
-                    <MenuItem value="email">Email</MenuItem>
-                    <MenuItem value="line">LINE</MenuItem>
-                  </TextField>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>
-                  <TextField
-                    fullWidth
-                    label="Handle"
-                    value={userForm.handle}
-                    onChange={(e) => setUserForm({...userForm, handle: e.target.value})}
-                    placeholder="test@example.com"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Role"
-                    value={userForm.role}
-                    onChange={(e) => setUserForm({...userForm, role: e.target.value})}
-                  >
-                    <MenuItem value="applicant">Applicant</MenuItem>
-                    <MenuItem value="fan">Fan</MenuItem>
-                    <MenuItem value="organizer">Organizer</MenuItem>
-                    <MenuItem value="manager">Manager</MenuItem>
-                  </TextField>
-                </Grid>
-              </Grid>
-              
-              <Button 
-                variant="contained" 
-                onClick={testCreateUser}
-                disabled={loading || !userForm.handle}
-                sx={{ mt: 2 }}
+        <Card>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              3. Create User
+            </Typography>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              新規ユーザー作成テスト
+            </Typography>
+            
+            <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'wrap' }}>
+              <TextField
+                select
+                label="Provider"
+                value={userForm.provider}
+                onChange={(e) => setUserForm({...userForm, provider: e.target.value})}
+                sx={{ minWidth: 120 }}
               >
-                {loading ? '実行中...' : 'ユーザー作成'}
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+                <MenuItem value="email">Email</MenuItem>
+                <MenuItem value="line">LINE</MenuItem>
+              </TextField>
+              
+              <TextField
+                label="Handle"
+                value={userForm.handle}
+                onChange={(e) => setUserForm({...userForm, handle: e.target.value})}
+                placeholder="test@example.com"
+                sx={{ minWidth: 200 }}
+              />
+              
+              <TextField
+                select
+                label="Role"
+                value={userForm.role}
+                onChange={(e) => setUserForm({...userForm, role: e.target.value})}
+                sx={{ minWidth: 120 }}
+              >
+                <MenuItem value="applicant">Applicant</MenuItem>
+                <MenuItem value="fan">Fan</MenuItem>
+                <MenuItem value="organizer">Organizer</MenuItem>
+                <MenuItem value="manager">Manager</MenuItem>
+              </TextField>
+            </Box>
+            
+            <Button 
+              variant="contained" 
+              onClick={testCreateUser}
+              disabled={loading || !userForm.handle}
+              sx={{ mt: 2 }}
+            >
+              {loading ? '実行中...' : 'ユーザー作成'}
+            </Button>
+          </CardContent>
+        </Card>
+      </Box>
 
       {/* Results */}
       {result && (
