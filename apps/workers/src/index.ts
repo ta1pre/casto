@@ -48,6 +48,21 @@ app.get('/api/v1/health', (c) => {
 // Check existing tables
 app.get('/api/v1/tables', async (c) => {
   try {
+    // 環境変数の確認
+    const supabaseUrl = c.env?.SUPABASE_URL
+    const supabaseKey = c.env?.SUPABASE_SERVICE_ROLE_KEY
+    
+    if (!supabaseUrl || !supabaseKey) {
+      return c.json({ 
+        error: 'Supabase credentials not configured',
+        debug: {
+          hasUrl: !!supabaseUrl,
+          hasKey: !!supabaseKey,
+          environment: c.env?.ENVIRONMENT || 'unknown'
+        }
+      }, 500)
+    }
+    
     const supabase = createSupabaseClient(c)
     
     // Try to get table list from information_schema
@@ -60,7 +75,12 @@ app.get('/api/v1/tables', async (c) => {
     if (error) {
       return c.json({ 
         error: error.message,
-        note: 'Could not access information_schema'
+        note: 'Could not access information_schema',
+        debug: {
+          supabaseUrl: supabaseUrl?.substring(0, 30) + '...',
+          errorCode: error.code,
+          errorDetails: error.details
+        }
       }, 500)
     }
     
@@ -72,7 +92,10 @@ app.get('/api/v1/tables', async (c) => {
   } catch (error) {
     return c.json({ 
       error: 'Failed to get table list',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
+      debug: {
+        environment: c.env?.ENVIRONMENT || 'unknown'
+      }
     }, 500)
   }
 })
@@ -117,6 +140,21 @@ app.post('/api/v1/create-table', async (c) => {
 // Users API - 既存テーブル構造に対応
 app.get('/api/v1/users', async (c) => {
   try {
+    // 環境変数の確認
+    const supabaseUrl = c.env?.SUPABASE_URL
+    const supabaseKey = c.env?.SUPABASE_SERVICE_ROLE_KEY
+    
+    if (!supabaseUrl || !supabaseKey) {
+      return c.json({ 
+        error: 'Supabase credentials not configured',
+        debug: {
+          hasUrl: !!supabaseUrl,
+          hasKey: !!supabaseKey,
+          environment: c.env?.ENVIRONMENT || 'unknown'
+        }
+      }, 500)
+    }
+    
     const supabase = createSupabaseClient(c)
     
     // まず既存のテーブル構造を確認
@@ -129,6 +167,11 @@ app.get('/api/v1/users', async (c) => {
       return c.json({ 
         error: error.message,
         note: 'Trying to access existing table structure',
+        debug: {
+          supabaseUrl: supabaseUrl?.substring(0, 30) + '...',
+          errorCode: error.code,
+          errorDetails: error.details
+        },
         timestamp: new Date().toISOString()
       }, 500)
     }
@@ -142,7 +185,10 @@ app.get('/api/v1/users', async (c) => {
   } catch (error) {
     return c.json({ 
       error: 'Database connection failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
+      debug: {
+        environment: c.env?.ENVIRONMENT || 'unknown'
+      }
     }, 500)
   }
 })
