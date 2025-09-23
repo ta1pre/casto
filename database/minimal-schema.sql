@@ -1,6 +1,14 @@
 -- 最小限のユーザーテーブル（テスト用）
--- 既存テーブルを削除して再作成
+-- 既存の複雑なテーブル構造を全て削除して再作成
 
+-- 既存テーブルを全て削除（CASCADE で関連テーブルも削除）
+DROP TABLE IF EXISTS audit_logs CASCADE;
+DROP TABLE IF EXISTS notifications CASCADE;
+DROP TABLE IF EXISTS payments CASCADE;
+DROP TABLE IF EXISTS entries CASCADE;
+DROP TABLE IF EXISTS auditions CASCADE;
+DROP TABLE IF EXISTS user_roles CASCADE;
+DROP TABLE IF EXISTS user_handles CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
 -- 最小限のユーザーテーブル

@@ -45,46 +45,98 @@ app.get('/api/v1/health', (c) => {
   })
 })
 
-// Users API - テーブル構造確認用
+// Check existing tables
+app.get('/api/v1/tables', async (c) => {
+  try {
+    const supabase = createSupabaseClient(c)
+    
+    // Try to get table list from information_schema
+    const { data, error } = await supabase
+      .from('information_schema.tables')
+      .select('table_name')
+      .eq('table_schema', 'public')
+      .eq('table_type', 'BASE TABLE')
+    
+    if (error) {
+      return c.json({ 
+        error: error.message,
+        note: 'Could not access information_schema'
+      }, 500)
+    }
+    
+    return c.json({
+      tables: data,
+      count: data?.length || 0,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error) {
+    return c.json({ 
+      error: 'Failed to get table list',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, 500)
+  }
+})
+
+// Create simple users table via Supabase client
+app.post('/api/v1/create-table', async (c) => {
+  try {
+    const supabase = createSupabaseClient(c)
+    
+    // Try to insert a test record to create the table structure
+    const { data, error } = await supabase
+      .from('users')
+      .insert({
+        email: 'test@example.com',
+        display_name: 'テストユーザー',
+        role: 'applicant',
+        auth_provider: 'email',
+        is_active: true
+      })
+      .select()
+    
+    if (error) {
+      return c.json({ 
+        error: error.message,
+        note: 'Failed to insert test data'
+      }, 500)
+    }
+    
+    return c.json({
+      message: 'Test data inserted successfully',
+      data,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error) {
+    return c.json({ 
+      error: 'Failed to create table',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, 500)
+  }
+})
+
+// Users API - 既存テーブル構造に対応
 app.get('/api/v1/users', async (c) => {
   try {
     const supabase = createSupabaseClient(c)
     
-    // テーブル構造を確認するためのクエリ
-    const { data: columns, error: columnsError } = await supabase
-      .rpc('get_table_columns', { table_name: 'users' })
+    // まず既存のテーブル構造を確認
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .limit(5)
     
-    if (columnsError) {
-      // RPCが失敗した場合は、information_schemaから直接取得
-      const { data: schemaData, error: schemaError } = await supabase
-        .from('information_schema.columns')
-        .select('column_name, data_type, is_nullable')
-        .eq('table_name', 'users')
-        .eq('table_schema', 'public')
-      
-      if (schemaError) {
-        // それも失敗した場合は、既存データを確認
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('*')
-          .limit(1)
-        
-        return c.json({
-          table_structure: userError ? 'Unable to determine' : Object.keys(userData?.[0] || {}),
-          users: userData || [],
-          error: userError?.message,
-          timestamp: new Date().toISOString()
-        })
-      }
-      
-      return c.json({
-        table_structure: schemaData,
+    if (error) {
+      return c.json({ 
+        error: error.message,
+        note: 'Trying to access existing table structure',
         timestamp: new Date().toISOString()
-      })
+      }, 500)
     }
     
     return c.json({
-      table_structure: columns,
+      users: data,
+      count: data?.length || 0,
+      table_structure: data.length > 0 ? Object.keys(data[0]) : [],
       timestamp: new Date().toISOString()
     })
   } catch (error) {
