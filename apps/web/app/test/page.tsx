@@ -82,7 +82,7 @@ export default function TestPage() {
   return (
     <Box sx={{ p: 4, maxWidth: 1200, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>
-        🧪 API + Database 接続テストだおおおお！
+        ✅ Vercel連携解決！ 接続テスト (更新日時: 2025/09/23 12:01)
       </Typography>
       
       <Grid container spacing={3}>
