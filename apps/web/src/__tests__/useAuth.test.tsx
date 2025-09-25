@@ -5,7 +5,6 @@
 import { renderHook, act } from '@testing-library/react'
 import { SWRConfig } from 'swr'
 import { useAuth } from '../hooks/useAuth'
-import type { LoginRequest } from '../types/auth'
 
 // Mock fetch
 const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>
@@ -15,7 +14,7 @@ const mockLocalStorage = {
   removeItem: jest.fn()
 }
 
-// @ts-ignore
+// @ts-expect-error
 global.localStorage = mockLocalStorage
 
 describe('useAuth', () => {

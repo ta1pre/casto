@@ -6,7 +6,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useAuthContext, useRoles } from '../providers/AuthProvider'
+import { useAuthContext } from '../providers/AuthProvider'
 import type { Role } from '../types/auth'
 
 interface HeaderProps {
@@ -14,8 +14,7 @@ interface HeaderProps {
 }
 
 export function Header({ onRoleSwitch }: HeaderProps) {
-  const { user, session, logout, loading } = useAuthContext()
-  const { hasRole, hasAnyRole } = useRoles()
+  const { user, logout, loading } = useAuthContext()
   const [showRoleMenu, setShowRoleMenu] = useState(false)
 
   const handleLogout = async () => {
