@@ -1,8 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { createClient } from '@supabase/supabase-js'
-import { createAuthRoutes } from './routes/api/auth'
-import { AuthMiddleware } from './middleware/auth'
+import { createRBACRoutes } from './routes/api/rbac'
 
 type Bindings = {
   JWT_SECRET?: string
@@ -419,10 +418,8 @@ app.post('/api/auth/refresh', async (c) => {
   return c.json({ message: 'Auth refresh endpoint - TODO' })
 })
 
-app.post('/api/auth/register', async (c) => {
-  // TODO: ユーザー登録処理実装
-  return c.json({ message: 'Auth register endpoint - TODO' })
-})
+// RBAC APIルートのマウント
+app.route('/api/rbac', createRBACRoutes())
 
 app.post('/api/v1/webhooks/stripe', async (c) => {
   // TODO: Stripe Webhook処理実装
