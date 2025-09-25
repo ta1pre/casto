@@ -7,19 +7,9 @@
 
 import React, { createContext, useContext, ReactNode } from 'react'
 import { useAuth } from '../hooks/useAuth'
-import type { AuthState, LoginRequest } from '../types/auth'
+import type { UseAuthReturn } from '../hooks/useAuth'
 
-interface AuthContextType extends AuthState {
-  login: (request: LoginRequest) => Promise<boolean>
-  logout: () => Promise<void>
-  refreshSession: () => Promise<boolean>
-  hasPermission: (permission: string) => boolean
-  hasRole: (role: string) => boolean
-  hasAnyPermission: (permissions: string[]) => boolean
-  hasAnyRole: (roles: string[]) => boolean
-  isAuthenticated: () => boolean
-  mutateSession: () => void
-}
+type AuthContextType = UseAuthReturn
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
@@ -30,22 +20,8 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const auth = useAuth()
 
-  const contextValue: AuthContextType = {
-    ...auth,
-    // メソッドの再エクスポート（型安全性のため）
-    login: auth.login,
-    logout: auth.logout,
-    refreshSession: auth.refreshSession,
-    hasPermission: auth.hasPermission,
-    hasRole: auth.hasRole,
-    hasAnyPermission: auth.hasAnyPermission,
-    hasAnyRole: auth.hasAnyRole,
-    isAuthenticated: auth.isAuthenticated,
-    mutateSession: auth.mutateSession
-  }
-
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider value={auth}>
       {children}
     </AuthContext.Provider>
   )
@@ -70,10 +46,6 @@ export function useAuthContext(): AuthContextType {
 export function usePermissions() {
   const { hasPermission, hasAnyPermission, hasAllPermissions } = useAuthContext()
 
-  const hasAllPermissions = (permissions: string[]): boolean => {
-    return permissions.every(permission => hasPermission(permission))
-  }
-
   return {
     hasPermission,
     hasAnyPermission,
@@ -86,10 +58,6 @@ export function usePermissions() {
  */
 export function useRoles() {
   const { hasRole, hasAnyRole, hasAllRoles } = useAuthContext()
-
-  const hasAllRoles = (roles: string[]): boolean => {
-    return roles.every(role => hasRole(role))
-  }
 
   return {
     hasRole,

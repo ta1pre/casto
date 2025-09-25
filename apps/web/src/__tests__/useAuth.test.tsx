@@ -14,7 +14,7 @@ const mockLocalStorage = {
   removeItem: jest.fn()
 }
 
-// @ts-expect-error
+// @ts-expect-error JSDOM 環境に localStorage を定義するため
 global.localStorage = mockLocalStorage
 
 describe('useAuth', () => {

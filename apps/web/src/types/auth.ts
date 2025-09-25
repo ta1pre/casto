@@ -11,6 +11,7 @@ export interface User {
   lineUserId?: string
   roles: Role[]
   permissions: Permission[]
+  provider: AuthProvider
   createdAt: Date
   updatedAt: Date
   lastLoginAt?: Date

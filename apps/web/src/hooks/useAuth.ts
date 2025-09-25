@@ -4,13 +4,27 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
-import useSWR from 'swr'
+import useSWR, { type KeyedMutator } from 'swr'
 import type { AuthState, Session, User, LoginRequest } from '../types/auth'
 
 const SESSION_STORAGE_KEY = 'auth_session'
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api'
 
-export function useAuth() {
+export interface UseAuthReturn extends AuthState {
+  login: (request: LoginRequest) => Promise<boolean>
+  logout: () => Promise<void>
+  refreshSession: () => Promise<boolean>
+  hasPermission: (permission: string) => boolean
+  hasRole: (role: string) => boolean
+  hasAnyPermission: (permissions: string[]) => boolean
+  hasAnyRole: (roles: string[]) => boolean
+  hasAllPermissions: (permissions: string[]) => boolean
+  hasAllRoles: (roles: string[]) => boolean
+  isAuthenticated: () => boolean
+  mutateSession: KeyedMutator<Session | null>
+}
+
+export function useAuth(): UseAuthReturn {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     session: null,
@@ -24,7 +38,7 @@ export function useAuth() {
     error: sessionError,
     mutate: mutateSession,
     isLoading: sessionLoading
-  } = useSWR<Session>('/auth/session', async (url: string) => {
+  } = useSWR<Session | null>('/auth/session', async (url: string) => {
     try {
       const response = await fetch(`${API_BASE_URL}${url}`, {
         credentials: 'include',
@@ -222,6 +236,20 @@ export function useAuth() {
   }, [hasRole])
 
   /**
+   * 複数の権限をすべて持つかチェック
+   */
+  const hasAllPermissions = useCallback((permissions: string[]): boolean => {
+    return permissions.every(permission => hasPermission(permission))
+  }, [hasPermission])
+
+  /**
+   * 複数のロールをすべて持つかチェック
+   */
+  const hasAllRoles = useCallback((roles: string[]): boolean => {
+    return roles.every(role => hasRole(role))
+  }, [hasRole])
+
+  /**
    * 認証済みかどうかチェック
    */
   const isAuthenticated = useCallback((): boolean => {
@@ -243,6 +271,8 @@ export function useAuth() {
     hasRole,
     hasAnyPermission,
     hasAnyRole,
+    hasAllPermissions,
+    hasAllRoles,
     isAuthenticated,
 
     // SWR utilities
@@ -250,9 +280,6 @@ export function useAuth() {
   }
 }
 
-/**
- * アクセストークンをストレージから取得
- */
 function getStoredAccessToken(): string | null {
   if (typeof window === 'undefined') return null
 

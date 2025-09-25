@@ -16,7 +16,18 @@ declare global {
         statusMessage?: string
       }>
       getIDToken: () => string | null
-      getDecodedIDToken: () => any
+      getDecodedIDToken: () => {
+        iss?: string
+        sub?: string
+        aud?: string
+        exp?: number
+        iat?: number
+        nonce?: string
+        name?: string
+        picture?: string
+        email?: string
+        [key: string]: unknown
+      }
       getAccessToken: () => string | null
       getContext: () => {
         type: 'utou' | 'room' | 'group' | 'external'
