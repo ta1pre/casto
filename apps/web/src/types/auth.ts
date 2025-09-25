@@ -17,6 +17,4 @@ export interface AuthContextType {
   isAuthenticated: boolean
 }
 
-export interface UseAuthReturn extends AuthContextType {
-  // 追加のメソッドが必要な場合はここに定義
-}
+export type UseAuthReturn = AuthContextType
