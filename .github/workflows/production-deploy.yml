@@ -22,31 +22,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Debug Cloudflare API Token
-        run: |
-          echo "--- Start API Token Debug ---"
-          TOKEN="${{ secrets.CLOUDFLARE_API_TOKEN }}"
-          echo "Token length: ${#TOKEN}"
-          echo "Token (first 10): '${TOKEN:0:10}'"
-          echo "Token (last 10): '${TOKEN: -10}'"
-          if [[ "$TOKEN" == *$'\n'* ]]; then
-            echo "🔴 Token contains newline characters (\n)"
-          else
-            echo "✅ No newline (\n) detected"
-          fi
-          if [[ "$TOKEN" == *$'\r'* ]]; then
-            echo "🔴 Token contains carriage return (\r)"
-          else
-            echo "✅ No carriage return (\r) detected"
-          fi
-          # Show hex of ends to detect invisible chars safely
-          printf "First 4 bytes hex: "
-          printf '%s' "${TOKEN:0:4}" | hexdump -v -e '/1 "%02X"' || true
-          echo
-          printf "Last 4 bytes hex:  "
-          printf '%s' "${TOKEN: -4}" | hexdump -v -e '/1 "%02X"' || true
-          echo
-          echo "--- End API Token Debug ---"
 
       - name: Lint
         run: npm run lint
@@ -112,35 +87,24 @@ jobs:
       - name: Deploy Workers Production
         working-directory: ./apps/workers
         run: |
-          echo " Checking Cloudflare authentication..."
-          echo "Wrangler version: $(npx wrangler --version)"
-          # Normalize token to avoid hidden characters breaking Authorization header
+          echo "Checking Cloudflare authentication and deploying Workers..."
+          # Minimal normalization to avoid hidden characters breaking Authorization header (no logging)
           if [ -n "${CLOUDFLARE_API_TOKEN:-}" ]; then
             # Remove CR/LF, then trim leading/trailing whitespace
             TRIMMED=$(printf '%s' "$CLOUDFLARE_API_TOKEN" | tr -d '\r\n' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
             # Strip optional surrounding quotes if the secret was saved with them (safe Bash patterns)
             if [[ $TRIMMED == \"* ]]; then TRIMMED=${TRIMMED#\"}; fi   # leading "
             if [[ $TRIMMED == *\" ]]; then TRIMMED=${TRIMMED%\"}; fi   # trailing "
-            if [[ $TRIMMED == \'* ]]; then TRIMMED=${TRIMMED#\'}; fi     # leading '
-            if [[ $TRIMMED == *\' ]]; then TRIMMED=${TRIMMED%\'}; fi     # trailing '
+            if [[ $TRIMMED == \\'* ]]; then TRIMMED=${TRIMMED#\\'}; fi     # leading '
+            if [[ $TRIMMED == *\\' ]]; then TRIMMED=${TRIMMED%\\'}; fi     # trailing '
             export CLOUDFLARE_API_TOKEN="$TRIMMED"
-            echo "Token length after normalize: ${#CLOUDFLARE_API_TOKEN}"
           fi
 
           if npx wrangler whoami; then
-            echo " Authentication successful, deploying..."
+            echo "Authentication OK. Deploying..."
             npx wrangler deploy --env production
           else
-            echo " Cloudflare authentication failed."
-            echo "Token format: ${CLOUDFLARE_API_TOKEN:0:10}..."
-            echo ""
-            echo "🔧 Troubleshooting steps:"
-            echo "1. Verify API Token has User Memberships:Read permission"
-            echo "2. Verify API Token has User Details:Read permission"
-            echo "3. Check token expiration date"
-            echo "4. Use 'Edit Cloudflare Workers' template for token creation"
-            echo ""
-            echo "Skipping deployment to avoid blocking."
+            echo "Cloudflare authentication failed. Skipping deployment."
             exit 1
           fi
         env:

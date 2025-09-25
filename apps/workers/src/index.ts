@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { createClient } from '@supabase/supabase-js'
+import { createRBACRoutes } from './routes/api/rbac'
 
 type Bindings = {
   JWT_SECRET?: string
@@ -396,11 +397,29 @@ app.post('/api/v1/uploads/sign', async (c) => {
   return c.json({ message: 'Upload sign endpoint - TODO' })
 })
 
-// Webhook
-app.post('/api/v1/webhooks/line', async (c) => {
-  // TODO: LINE Webhook処理実装
-  return c.json({ message: 'LINE webhook - TODO' })
+// 認証APIルートの直接定義
+app.post('/api/auth/login', async (c) => {
+  // TODO: 認証処理実装
+  return c.json({ message: 'Auth login endpoint - TODO' })
 })
+
+app.get('/api/auth/session', async (c) => {
+  // TODO: セッション取得処理実装
+  return c.json({ message: 'Auth session endpoint - TODO' })
+})
+
+app.post('/api/auth/logout', async (c) => {
+  // TODO: ログアウト処理実装
+  return c.json({ message: 'Auth logout endpoint - TODO' })
+})
+
+app.post('/api/auth/refresh', async (c) => {
+  // TODO: セッション更新処理実装
+  return c.json({ message: 'Auth refresh endpoint - TODO' })
+})
+
+// RBAC APIルートのマウント
+app.route('/api/rbac', createRBACRoutes())
 
 app.post('/api/v1/webhooks/stripe', async (c) => {
   // TODO: Stripe Webhook処理実装

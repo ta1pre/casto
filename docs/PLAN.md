@@ -1,5 +1,7 @@
 # Casto 開発計画＆MVPチェックリスト
 
+> **現在進行中のタスク一覧は `docs/tasks/` ディレクトリ内を参照してください。特に `docs/tasks/ACTIVE_TASKS.md` に運用ルールがまとまっています。**
+
 このドキュメントは、MVP（Minimum Viable Product）開発に向けた作業計画とチェックリストを管理します。
 
 ## MVPスコープ
@@ -31,6 +33,9 @@
   - [ ] `/packages/shared` にZodスキーマを定義 (APIリクエスト/レスポンス、DBモデル)
   - [ ] APIクライアントの雛形を作成
   - [ ] 権限管理用のEnumや定数を定義
+- [ ] **1-5. レビュー資料運用ルール**
+  - [ ] レビュー資料は `docs/reviews/` に集約し、命名は `<domain>_<topic>_<YYYYMMDD>.md` を基本とする
+  - [ ] タスク完了時は該当タスクファイルに資料パスを追記し、`docs/DECISIONS.md` 等と整合させる
 
 ### 2. 認証基盤の実装
 - [ ] **2-1. LINEログイン (LIFF)**
