@@ -1,4 +1,6 @@
 import React from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
 import { useAuth } from '@/hooks/useAuth'
 
 export function Header() {
@@ -34,7 +36,7 @@ export function Header() {
           display: 'flex',
           gap: '1rem'
         }}>
-          <a
+          <Link
             href="/"
             style={{
               color: 'white',
@@ -47,8 +49,8 @@ export function Header() {
             onMouseOut={(e) => (e.target as HTMLElement).style.backgroundColor = 'transparent'}
           >
             ホーム
-          </a>
-          <a
+          </Link>
+          <Link
             href="/liff"
             style={{
               color: 'white',
@@ -61,7 +63,7 @@ export function Header() {
             onMouseOut={(e) => (e.target as HTMLElement).style.backgroundColor = 'transparent'}
           >
             応募者ページ
-          </a>
+          </Link>
         </nav>
       </div>
 
@@ -82,12 +84,12 @@ export function Header() {
               gap: '0.5rem'
             }}>
               {user.pictureUrl && (
-                <img
+                <Image
                   src={user.pictureUrl}
                   alt="Profile"
+                  width={32}
+                  height={32}
                   style={{
-                    width: '32px',
-                    height: '32px',
                     borderRadius: '50%',
                     objectFit: 'cover'
                   }}
@@ -128,7 +130,7 @@ export function Header() {
             display: 'flex',
             gap: '0.5rem'
           }}>
-            <a
+            <Link
               href="/login"
               style={{
                 backgroundColor: 'white',
@@ -143,7 +145,7 @@ export function Header() {
               onMouseOut={(e) => (e.target as HTMLElement).style.backgroundColor = 'white'}
             >
               ログイン
-            </a>
+            </Link>
           </div>
         )}
       </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { useAuth } from '@/hooks/useAuth'
 
 declare global {
@@ -34,7 +35,7 @@ export default function LiffPage() {
 
   useEffect(() => {
     initializeLiff()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const initializeLiff = async () => {
     try {
@@ -179,12 +180,12 @@ export default function LiffPage() {
           <h2 style={{ marginBottom: '1rem' }}>ログイン中</h2>
 
           {liffProfile?.pictureUrl && (
-            <img
+            <Image
               src={liffProfile.pictureUrl}
               alt="Profile"
+              width={80}
+              height={80}
               style={{
-                width: '80px',
-                height: '80px',
                 borderRadius: '50%',
                 marginBottom: '1rem'
               }}
