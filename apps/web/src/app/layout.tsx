@@ -1,5 +1,8 @@
+import React from 'react'
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/providers/AuthProvider";
+import { Header } from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "Casto - オーディション管理アプリ",
@@ -14,7 +17,10 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className="antialiased">
-        {children}
+        <AuthProvider>
+          <Header />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
