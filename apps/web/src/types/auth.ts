@@ -11,6 +11,7 @@ export interface User {
   email?: string | null
   lineUserId?: string | null
   displayName?: string | null
+  name?: string | null
   provider: 'email' | 'line'
   role: AuthRole
   tokenVersion?: number
