@@ -12,7 +12,7 @@
 
 - **大きな方針を知りたい**: `PURPOSE.md` (目的) → `SPEC.md` (仕様) の順で読むのがおすすめです。
 - **技術的な実装を知りたい**: `ARCHITECTURE.md` (技術設計) を参照してください。
-- **タスクの進捗を確認したい**: `PLAN.md` (開発計画) を見てください。
+- **タスクの進捗を確認したい**: `PLAN.md` (開発計画) を見てください。詳細なタスク管理は [`tasks/`](./tasks/) ディレクトリを参照してください。
 - **最新の仕様変更や決定事項を知りたい**: `DECISIONS.md` (変更・決定ログ) を確認してください。日々の細かい決定はここに時系列で記録されます。
 - **未解決の課題を知りたい**: `QUESTIONS.md` (未決事項リスト) を確認してください。
 
@@ -26,12 +26,15 @@
 | [**`SPEC.md`**](./docs/SPEC.md)            | 何を作るか（機能要件、ユーザーフロー、仕様）       |
 | [**`ARCHITECTURE.md`**](./docs/ARCHITECTURE.md) | どう作るか（技術スタック、設計方針、データモデル） |
 | [**`PLAN.md`**](./docs/PLAN.md)            | どう進めるか（開発計画、作業チェックリスト）       |
-| [**`DECISIONS.md`**](./docs/DECISIONS.md)    | 変更・決定の履歴（日々の細かい決定事項）           |
-| [**`QUESTIONS.md`**](./docs/QUESTIONS.md)    | 未解決の課題・疑問リスト                           |
-| [**`DEPLOYMENT_STRATEGY.md`**](./docs/DEPLOYMENT_STRATEGY.md) | デプロイ戦略・CI/CD設計                            |
-| [**`DEPLOYMENT_GUIDE.md`**](./docs/DEPLOYMENT_GUIDE.md) | デプロイ手順・環境構築ガイド                       |
-| [**`CLOUDFLARE_DEV_SETUP.md`**](./docs/CLOUDFLARE_DEV_SETUP.md) | 開発環境セットアップ（完成済み）                   |
-| [**`ローカル開発環境について.md`**](./docs/ローカル開発環境について.md) | Docker統合開発環境の注意事項                       |
+| [**`DECISIONS.md`**](./docs/operations/DECISIONS.md)    | 変更・決定の履歴（日々の細かい決定事項）           |
+| [**`QUESTIONS.md`**](./docs/operations/QUESTIONS.md)    | 未解決の課題・疑問リスト                           |
+| [**`DEPLOYMENT_STRATEGY.md`**](./docs/deployment/STRATEGY.md) | デプロイ戦略・CI/CD設計                            |
+| [**`DEPLOYMENT_GUIDE.md`**](./docs/deployment/GUIDE.md) | デプロイ手順・環境構築ガイド                       |
+| [**`DEVELOPMENT.md`**](./docs/setup/DEVELOPMENT.md) | 開発環境構築ガイド                                 |
+| [**`ローカル開発環境について.md`**](./docs/setup/LOCAL_DEVELOPMENT.md) | Docker統合開発環境の注意事項                       |
+| [**`CLOUDFLARE_DEV_SETUP.md`**](./docs/setup/CLOUDFLARE_DEV_SETUP.md) | 開発環境セットアップ（完成済み）                   |
+| [**`SYSTEM_GUIDE.md`**](./docs/operations/SYSTEM_GUIDE.md) | システム運用ガイド                                 |
+| [**`USER_DOMAIN_RULES.md`**](./docs/operations/DOMAIN_RULES.md) | ユーザー・権限・ドメイン設計ルール                 |
 
 ---
 
@@ -100,6 +103,7 @@ casto/
 │   ├── shared/       # 共通型定義・ユーティリティ
 │   └── ui/           # 共通UIコンポーネント
 ├── docs/             # プロジェクトドキュメント
+├── tasks/            # タスク管理
 ├── .github/
 │   └── workflows/    # CI/CD設定
 └── supabase/         # データベーススキーマ
