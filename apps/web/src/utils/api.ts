@@ -34,7 +34,7 @@ interface ApiFetchOptions extends RequestInit {
   parseJson?: boolean
 }
 
-export async function apiFetch<T = any>(path: string, options: ApiFetchOptions = {}): Promise<T> {
+export async function apiFetch<T = unknown>(path: string, options: ApiFetchOptions = {}): Promise<T> {
   const {
     headers,
     parseJson = true,
@@ -55,7 +55,7 @@ export async function apiFetch<T = any>(path: string, options: ApiFetchOptions =
     return response as unknown as T
   }
 
-  const body = await response.json().catch(() => null)
+  const body = (await response.json().catch(() => null)) as unknown
 
   if (!response.ok) {
     throw new ApiError('API request failed', response.status, body)

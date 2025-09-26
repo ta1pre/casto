@@ -3,6 +3,12 @@ import type { NextRequest } from 'next/server'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '')
 
+interface SessionUser {
+  id: string
+  role?: string | null
+  provider?: 'line' | 'email' | null
+}
+
 interface RouteRule {
   pattern: RegExp
   requiredProvider?: 'line' | 'email'
@@ -32,10 +38,14 @@ const ROUTE_RULES: RouteRule[] = [
   }
 ]
 
-const SESSION_CACHE = new Map<string, { timestamp: number; user: any | null }>()
+const SESSION_CACHE = new Map<string, { timestamp: number; user: SessionUser | null }>()
 const SESSION_CACHE_TTL = 5 * 1000
 
-async function fetchSession(request: NextRequest) {
+interface SessionResponse {
+  user: SessionUser | null
+}
+
+async function fetchSession(request: NextRequest): Promise<SessionUser | null> {
   if (!API_BASE_URL) {
     return null
   }
@@ -66,7 +76,7 @@ async function fetchSession(request: NextRequest) {
       return null
     }
 
-    const data = await response.json()
+    const data = (await response.json()) as SessionResponse
     SESSION_CACHE.set(cacheKey, { timestamp: now, user: data.user })
     return data.user
   } catch (error) {
@@ -79,7 +89,7 @@ function matchRule(pathname: string) {
   return ROUTE_RULES.find((rule) => rule.pattern.test(pathname))
 }
 
-function lacksRole(user: any, rule: RouteRule) {
+function lacksRole(user: SessionUser | null, rule: RouteRule) {
   if (!rule.requiredRoles || !user?.role) {
     return false
   }
