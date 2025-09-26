@@ -1,20 +1,37 @@
+export type AuthRole =
+  | 'applicant'
+  | 'fan'
+  | 'organizer'
+  | 'manager'
+  | 'admin'
+  | 'crowdfunding'
+
 export interface User {
   id: string
-  email?: string
-  name?: string
-  displayName?: string
+  email?: string | null
+  lineUserId?: string | null
+  displayName?: string | null
   provider: 'email' | 'line'
-  role: 'applicant' | 'fan' | 'organizer' | 'manager'
-  pictureUrl?: string
-  statusMessage?: string
+  role: AuthRole
+  tokenVersion?: number
+  createdAt?: string
+  updatedAt?: string
+  pictureUrl?: string | null
+  statusMessage?: string | null
 }
 
 export interface AuthContextType {
   user: User | null
-  login: (user: User) => void
-  logout: () => void
   isLoading: boolean
   isAuthenticated: boolean
+  loginWithLine: (idToken: string) => Promise<User>
+  requestMagicLink: (params: { email: string; role?: AuthRole; redirectUrl?: string }) => Promise<{
+    token: string
+    magicLinkUrl?: string
+  }>
+  verifyMagicLink: (token: string) => Promise<User>
+  logout: () => Promise<void>
+  refreshSession: () => Promise<User | null>
 }
 
 export type UseAuthReturn = AuthContextType

@@ -2,54 +2,105 @@
 
 import React, { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import type { AuthRole } from '@/types/auth'
+
+const ROLES: AuthRole[] = ['organizer', 'manager', 'applicant', 'fan', 'crowdfunding', 'admin']
 
 export default function LoginPage() {
-  const { login } = useAuth()
-  const [isLoading, setIsLoading] = useState(false)
-  const [loginMethod, setLoginMethod] = useState<'email' | 'line'>('email')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const {
+    user,
+    isLoading,
+    requestMagicLink,
+    verifyMagicLink,
+    refreshSession,
+    logout
+  } = useAuth()
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const [email, setEmail] = useState('')
+  const [role, setRole] = useState<AuthRole>('organizer')
+  const [redirectUrl, setRedirectUrl] = useState('')
+  const [requestStatus, setRequestStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [requestMessage, setRequestMessage] = useState<string | null>(null)
+  const [issuedToken, setIssuedToken] = useState<string | null>(null)
+  const [issuedMagicLinkUrl, setIssuedMagicLinkUrl] = useState<string | undefined>()
+  const [verifyToken, setVerifyToken] = useState('')
+  const [verifyStatus, setVerifyStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [verifyMessage, setVerifyMessage] = useState<string | null>(null)
+  const [sessionMessage, setSessionMessage] = useState<string | null>(null)
+
+  const handleRequestMagicLink = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !password) {
-      alert('メールアドレスとパスワードを入力してください')
+    if (!email) {
+      setRequestStatus('error')
+      setRequestMessage('メールアドレスを入力してください')
       return
     }
 
-    setIsLoading(true)
-    try {
-      // 実際の認証処理はここに実装
-      // 今回はデモとして固定のユーザー情報でログイン
-      const mockUser = {
-        id: 'demo-user-' + Date.now(),
-        email: email,
-        name: email.split('@')[0],
-        provider: 'email' as const,
-        role: 'applicant' as const
-      }
+    setRequestStatus('loading')
+    setRequestMessage(null)
+    setIssuedToken(null)
+    setIssuedMagicLinkUrl(undefined)
 
-      login(mockUser)
-      alert('ログインしました！')
+    try {
+      const result = await requestMagicLink({ email, role, redirectUrl: redirectUrl || undefined })
+      setIssuedToken(result.token)
+      setIssuedMagicLinkUrl(result.magicLinkUrl)
+      setRequestStatus('success')
+      setRequestMessage('Magic Linkトークンを発行しました（メール送信は未実装です）')
+      setVerifyToken(result.token)
     } catch (error) {
-      console.error('Login failed:', error)
-      alert('ログインに失敗しました')
-    } finally {
-      setIsLoading(false)
+      console.error('Failed to request magic link:', error)
+      setRequestStatus('error')
+      setRequestMessage('Magic Linkの発行に失敗しました')
     }
   }
 
-  const handleQuickLogin = (role: 'applicant' | 'organizer') => {
-    const testUser = {
-      id: `test-${role}-${Date.now()}`,
-      email: `test.${role}@example.com`,
-      name: `テスト${role === 'applicant' ? '応募者' : '主催者'}`,
-      displayName: `テスト${role === 'applicant' ? '応募者' : '主催者'}`,
-      provider: 'email' as const,
-      role: role
+  const handleVerifyMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!verifyToken) {
+      setVerifyStatus('error')
+      setVerifyMessage('トークンを入力してください')
+      return
     }
-    login(testUser)
-    alert(`${role === 'applicant' ? '応募者' : '主催者'}としてログインしました！`)
+
+    setVerifyStatus('loading')
+    setVerifyMessage(null)
+
+    try {
+      const verifiedUser = await verifyMagicLink(verifyToken)
+      setVerifyStatus('success')
+      setVerifyMessage(`ログインしました: ${verifiedUser.displayName ?? verifiedUser.email ?? verifiedUser.id}`)
+    } catch (error) {
+      console.error('Failed to verify magic link:', error)
+      setVerifyStatus('error')
+      setVerifyMessage('トークンの検証に失敗しました')
+    }
+  }
+
+  const handleRefreshSession = async () => {
+    setSessionMessage('セッションを確認しています...')
+    try {
+      const refreshed = await refreshSession()
+      if (refreshed) {
+        setSessionMessage(`セッション更新完了: ${refreshed.displayName ?? refreshed.email ?? refreshed.id}`)
+      } else {
+        setSessionMessage('セッションは存在しません')
+      }
+    } catch (error) {
+      console.error('Failed to refresh session:', error)
+      setSessionMessage('セッション取得に失敗しました')
+    }
+  }
+
+  const handleLogout = async () => {
+    setSessionMessage('ログアウトしています...')
+    try {
+      await logout()
+      setSessionMessage('ログアウトしました')
+    } catch (error) {
+      console.error('Failed to logout:', error)
+      setSessionMessage('ログアウトに失敗しました')
+    }
   }
 
   return (
@@ -66,7 +117,7 @@ export default function LoginPage() {
         padding: '3rem',
         borderRadius: '8px',
         boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-        maxWidth: '400px',
+        maxWidth: '520px',
         width: '100%'
       }}>
         <h1 style={{
@@ -75,202 +126,217 @@ export default function LoginPage() {
           color: '#1976d2',
           fontSize: '2rem'
         }}>
-          Casto ログイン
+          メール認証テスト（Magic Link）
         </h1>
 
-        <div style={{
-          display: 'flex',
-          marginBottom: '2rem',
-          border: '1px solid #ddd',
-          borderRadius: '4px',
-          overflow: 'hidden'
-        }}>
-          <button
-            onClick={() => setLoginMethod('email')}
-            style={{
-              flex: 1,
-              padding: '0.75rem',
-              border: 'none',
-              backgroundColor: loginMethod === 'email' ? '#1976d2' : 'transparent',
-              color: loginMethod === 'email' ? 'white' : '#666',
-              cursor: 'pointer',
-              fontSize: '0.9rem'
-            }}
-          >
-            メールログイン
-          </button>
-          <button
-            onClick={() => setLoginMethod('line')}
-            style={{
-              flex: 1,
-              padding: '0.75rem',
-              border: 'none',
-              backgroundColor: loginMethod === 'line' ? '#1976d2' : 'transparent',
-              color: loginMethod === 'line' ? 'white' : '#666',
-              cursor: 'pointer',
-              fontSize: '0.9rem'
-            }}
-          >
-            LINEログイン
-          </button>
-        </div>
-
-        {loginMethod === 'email' ? (
-          <form onSubmit={handleEmailLogin}>
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{
-                display: 'block',
-                marginBottom: '0.5rem',
-                fontWeight: '500',
-                color: '#333'
-              }}>
-                メールアドレス
-              </label>
+        <section style={{ marginBottom: '2.5rem' }}>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>1. Magic Link トークン発行</h2>
+          <form onSubmit={handleRequestMagicLink} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <span style={{ fontWeight: 600 }}>メールアドレス</span>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="organizer@example.com"
+                required
                 style={{
-                  width: '100%',
                   padding: '0.75rem',
                   border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '1rem',
-                  boxSizing: 'border-box'
+                  borderRadius: '4px'
                 }}
-                placeholder="your@email.com"
-                required
               />
-            </div>
+            </label>
 
-            <div style={{ marginBottom: '2rem' }}>
-              <label style={{
-                display: 'block',
-                marginBottom: '0.5rem',
-                fontWeight: '500',
-                color: '#333'
-              }}>
-                パスワード
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <span style={{ fontWeight: 600 }}>ロール</span>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value as AuthRole)}
                 style={{
-                  width: '100%',
                   padding: '0.75rem',
                   border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '1rem',
-                  boxSizing: 'border-box'
+                  borderRadius: '4px'
                 }}
-                placeholder="パスワード"
-                required
+              >
+                {ROLES.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <span style={{ fontWeight: 600 }}>リダイレクトURL（任意）</span>
+              <input
+                type="url"
+                value={redirectUrl}
+                onChange={(e) => setRedirectUrl(e.target.value)}
+                placeholder="https://example.com/login?token=..."
+                style={{
+                  padding: '0.75rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px'
+                }}
               />
-            </div>
+            </label>
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={requestStatus === 'loading'}
               style={{
-                width: '100%',
-                padding: '0.75rem',
-                backgroundColor: isLoading ? '#ccc' : '#1976d2',
+                padding: '0.75rem 1.5rem',
+                backgroundColor: requestStatus === 'loading' ? '#ccc' : '#1976d2',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
-                fontSize: '1rem',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                marginBottom: '1rem'
+                cursor: requestStatus === 'loading' ? 'not-allowed' : 'pointer'
               }}
             >
-              {isLoading ? 'ログイン中...' : 'ログイン'}
+              {requestStatus === 'loading' ? '発行中...' : 'Magic Linkを発行'}
             </button>
           </form>
-        ) : (
-          <div>
+
+          {requestMessage && (
             <p style={{
-              textAlign: 'center',
-              marginBottom: '2rem',
-              color: '#666',
-              lineHeight: '1.5'
+              marginTop: '0.75rem',
+              color: requestStatus === 'error' ? '#c62828' : '#2e7d32'
             }}>
-              LINEアプリ内で認証を行います。<br />
-              応募者の方は自動的にログインされます。
+              {requestMessage}
             </p>
+          )}
+
+          {issuedToken && (
+            <div style={{
+              marginTop: '1rem',
+              backgroundColor: '#f6f9ff',
+              border: '1px solid #bbdefb',
+              borderRadius: '4px',
+              padding: '1rem'
+            }}>
+              <p style={{ marginBottom: '0.5rem', fontWeight: 600 }}>発行トークン（検証用にコピーしてください）</p>
+              <code style={{ wordBreak: 'break-all' }}>{issuedToken}</code>
+              {issuedMagicLinkUrl && (
+                <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
+                  Magic Link URL: <code>{issuedMagicLinkUrl}</code>
+                </p>
+              )}
+            </div>
+          )}
+        </section>
+
+        <section style={{ marginBottom: '2.5rem' }}>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>2. Magic Link トークン検証</h2>
+          <form onSubmit={handleVerifyMagicLink} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <span style={{ fontWeight: 600 }}>トークン</span>
+              <textarea
+                value={verifyToken}
+                onChange={(e) => setVerifyToken(e.target.value)}
+                rows={3}
+                placeholder="発行されたトークンを貼り付けてください"
+                style={{
+                  padding: '0.75rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontFamily: 'monospace'
+                }}
+              />
+            </label>
 
             <button
-              onClick={() => handleQuickLogin('applicant')}
+              type="submit"
+              disabled={verifyStatus === 'loading'}
               style={{
-                width: '100%',
-                padding: '0.75rem',
-                backgroundColor: '#00c300',
+                padding: '0.75rem 1.5rem',
+                backgroundColor: verifyStatus === 'loading' ? '#ccc' : '#1976d2',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
-                fontSize: '1rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem'
+                cursor: verifyStatus === 'loading' ? 'not-allowed' : 'pointer'
               }}
             >
-              <span>LINEでログイン（テスト用）</span>
+              {verifyStatus === 'loading' ? '検証中...' : 'トークンを検証してログイン'}
             </button>
-          </div>
-        )}
+          </form>
 
-        <div style={{
-          marginTop: '2rem',
-          paddingTop: '1rem',
-          borderTop: '1px solid #eee',
-          textAlign: 'center'
-        }}>
-          <p style={{
+          {verifyMessage && (
+            <p style={{
+              marginTop: '0.75rem',
+              color: verifyStatus === 'error' ? '#c62828' : '#2e7d32'
+            }}>
+              {verifyMessage}
+            </p>
+          )}
+        </section>
+
+        <section style={{ marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>3. セッション状態</h2>
+          <div style={{
+            border: '1px solid #ddd',
+            borderRadius: '4px',
+            padding: '1rem',
+            backgroundColor: '#f9f9f9',
+            fontFamily: 'monospace',
             fontSize: '0.9rem',
-            color: '#666',
-            margin: 0,
-            marginBottom: '1rem'
+            maxHeight: '200px',
+            overflow: 'auto'
           }}>
-            デモ環境ではテスト用アカウントでログインできます
-          </p>
+            <pre style={{ margin: 0 }}>
+              {isLoading
+                ? 'セッションを確認中...'
+                : JSON.stringify(user ?? { message: '未ログインです' }, null, 2)}
+            </pre>
+          </div>
+
           <div style={{
             display: 'flex',
-            gap: '0.5rem',
-            justifyContent: 'center',
+            gap: '0.75rem',
+            marginTop: '1rem',
             flexWrap: 'wrap'
           }}>
             <button
-              onClick={() => handleQuickLogin('applicant')}
+              onClick={handleRefreshSession}
               style={{
                 padding: '0.5rem 1rem',
                 backgroundColor: '#1976d2',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '0.9rem'
+                cursor: 'pointer'
               }}
             >
-              テスト応募者としてログイン
+              セッション再取得
             </button>
             <button
-              onClick={() => handleQuickLogin('organizer')}
+              onClick={handleLogout}
               style={{
                 padding: '0.5rem 1rem',
                 backgroundColor: '#dc004e',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '0.9rem'
+                cursor: 'pointer'
               }}
             >
-              テスト主催者としてログイン
+              ログアウト
             </button>
           </div>
-        </div>
+
+          {sessionMessage && (
+            <p style={{ marginTop: '0.75rem', color: '#333' }}>{sessionMessage}</p>
+          )}
+        </section>
+
+        <section style={{ fontSize: '0.9rem', color: '#555' }}>
+          <h2 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>📌 利用メモ</h2>
+          <ul style={{ paddingLeft: '1.2rem', lineHeight: 1.6 }}>
+            <li>Magic Linkメール送信は今後実装予定のため、発行トークンをコピーして手動で検証してください。</li>
+            <li>LIFF経由のログインは `/liff` ページでテストできます。</li>
+            <li>ログイン状態はページ上部のヘッダーにも反映されます。</li>
+          </ul>
+        </section>
       </div>
     </div>
   )

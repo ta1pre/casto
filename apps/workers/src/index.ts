@@ -83,10 +83,10 @@ async function attachUserContext(c: Context<AppBindings>, next: () => Promise<vo
 
 // CORS設定
 app.use('*', cors({
-  origin: '*', // 開発段階では全て許可
+  origin: (origin) => origin ?? '*',
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
-  credentials: false, // credentialsをfalseに変更
+  credentials: true
 }))
 
 app.use('*', attachUserContext)
@@ -146,6 +146,20 @@ async function findUserByLineId(client: ReturnType<typeof createSupabaseClient>,
     .from('users')
     .select('*')
     .eq('line_user_id', lineUserId)
+    .maybeSingle()
+
+  if (error) {
+    throw error
+  }
+
+  return (data as SupabaseUserRow | null) ?? null
+}
+
+async function findUserById(client: ReturnType<typeof createSupabaseClient>, id: string) {
+  const { data, error } = await client
+    .from('users')
+    .select('*')
+    .eq('id', id)
     .maybeSingle()
 
   if (error) {
@@ -760,6 +774,30 @@ app.post('/api/v1/auth/email/verify', async (c) => {
 app.post('/api/v1/auth/logout', (c) => {
   clearAuthCookie(c)
   return c.json({ ok: true })
+})
+
+app.get('/api/v1/auth/session', async (c) => {
+  try {
+    const sessionUser = c.get('user')
+
+    if (!sessionUser) {
+      return c.json({ user: null }, 401)
+    }
+
+    const supabase = createSupabaseClient(c)
+    const user = await findUserById(supabase, sessionUser.id)
+
+    if (!user) {
+      return c.json({ user: null }, 404)
+    }
+
+    return c.json({
+      user: serializeUserResponse(user)
+    })
+  } catch (error) {
+    console.error('Session fetch failed', error)
+    return c.json({ error: 'Failed to fetch session' }, 500)
+  }
 })
 
 // オーディション関連

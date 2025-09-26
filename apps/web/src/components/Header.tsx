@@ -8,8 +8,12 @@ import { useAuth } from '@/hooks/useAuth'
 export function Header() {
   const { user, logout, isAuthenticated } = useAuth()
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error('Failed to logout from header:', error)
+    }
   }
 
   return (
@@ -98,7 +102,7 @@ export function Header() {
                 />
               )}
               <span>
-                {user.displayName || user.name || user.email}
+                {user.displayName || user.email || 'ログイン中ユーザー'}
               </span>
               <span style={{
                 fontSize: '0.8rem',
