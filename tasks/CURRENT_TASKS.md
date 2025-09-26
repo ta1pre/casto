@@ -28,10 +28,26 @@
 - **期限**: 2025-02-07
 - **状況**: 設計完了、実装中
 - **詳細**:
-  - [ ] LINE LIFF 認証フローの実装
-  - [ ] Email Magic Link認証の実装
-  - [ ] JWTトークン管理の実装
-  - [ ] ロールベースアクセス制御の実装
+  - [ ] Workers認証基盤の構築（JWT・セッション管理）
+    - [ ] `createJWT`/`verifyJWT`ユーティリティの実装
+    - [ ] HTTPOnly Cookieベースのセッション管理実装
+    - [ ] 認証ミドルウェアでの`user`コンテキスト展開
+  - [ ] LINE認証エンドポイント(`POST /api/v1/auth/line/verify`)
+    - [ ] LINE IDトークン検証ロジックの実装
+    - [ ] ユーザー作成/更新とロール付与
+    - [ ] JWT生成とCookie発行
+  - [ ] メール認証エンドポイント
+    - [ ] Magic Link送信処理(`POST /api/v1/auth/email/request`)
+    - [ ] Magic Link検証処理(`POST /api/v1/auth/email/verify`)
+    - [ ] トークン発行・セッション確立
+  - [ ] Next.js連携
+    - [ ] `middleware.ts`でのディレクトリ別アクセス制御
+    - [ ] `AuthProvider`のセッション同期（Cookie→状態管理）
+    - [ ] ヘッダーでの認証状態表示の統一
+  - [ ] ロールベースアクセス制御
+    - [ ] 役割/権限マスタの設計反映
+    - [ ] Workers APIでのロール検証共通ヘルパー
+    - [ ] 新規ロール追加手順のドキュメント化
 
 ### 4. LINE LIFF 設定
 - **担当**: 開発チーム
