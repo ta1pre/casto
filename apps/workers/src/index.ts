@@ -90,7 +90,7 @@ const ADDITIONAL_ALLOWED_ORIGINS = new Set([
 
 // CORS設定
 app.use('*', cors({
-  origin: (origin) => {
+  origin: (origin: string | undefined) => {
     if (!origin) {
       return DEFAULT_ALLOWED_ORIGIN
     }
