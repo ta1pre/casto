@@ -31,6 +31,8 @@ next-env.d.ts
 
 # IDE
 .vscode/
+.idea/
+!.idea/vcs.xml
 *.iws
 *.iml
 *.ipr
