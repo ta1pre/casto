@@ -18,6 +18,7 @@ declare global {
         pictureUrl?: string
         statusMessage?: string
       }>
+      isInClient?: () => boolean
     }
   }
 }
@@ -35,13 +36,13 @@ export default function LiffPage() {
   const [isLiffInitialized, setIsLiffInitialized] = useState(false)
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [isLineClient, setIsLineClient] = useState<boolean | null>(null)
 
   useEffect(() => {
     initializeLiff()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
-    // セッションのみ保持されている場合の同期
     if (user && !liffProfile) {
       void refreshSession()
     }
@@ -49,15 +50,25 @@ export default function LiffPage() {
 
   const synchronizeLineSession = useCallback(async () => {
     if (!window.liff) {
+      console.error('window.liff is not defined')
       return
     }
 
+    setIsAuthenticating(true)
     try {
-      setIsAuthenticating(true)
-      const idToken = window.liff.getIDToken?.()
+      const inClient = typeof window.liff.isInClient === 'function' ? window.liff.isInClient() : null
+      if (inClient !== null) {
+        setIsLineClient(inClient)
+      }
 
+      if (inClient === false) {
+        setErrorMessage('LINEアプリ内でページを開いてください。PCブラウザの場合は下のボタンからLINEログイン画面を開いてください。')
+        return
+      }
+
+      const idToken = window.liff.getIDToken?.()
       if (!idToken) {
-        // IDトークンが取得できない場合は再ログイン
+        setErrorMessage('LINE IDトークンが取得できませんでした。ログインし直してください。')
         window.liff.login()
         return
       }
@@ -76,15 +87,12 @@ export default function LiffPage() {
 
   const initializeLiff = async () => {
     try {
-      // LIFF SDKが既に読み込まれているかチェック
       if (!window.liff) {
-        // LIFF SDKをCDNから読み込み
         const script = document.createElement('script')
         script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js'
-        script.onload = async () => {
-          // スクリプトが読み込まれたら、グローバルにliffが利用可能になる
+        script.onload = () => {
           setTimeout(() => {
-            initializeLiffAfterLoad()
+            void initializeLiffAfterLoad()
           }, 100)
         }
         document.head.appendChild(script)
@@ -103,15 +111,23 @@ export default function LiffPage() {
         return
       }
 
-      // LIFF IDは環境変数から取得
       const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
       if (!liffId) {
         console.error('LIFF ID is not set. Please set NEXT_PUBLIC_LINE_LIFF_ID or NEXT_PUBLIC_LIFF_ID')
+        setErrorMessage('LIFF IDが設定されていません。環境変数を確認してください。')
         return
       }
 
       await window.liff.init({ liffId })
       setIsLiffInitialized(true)
+
+      const inClient = typeof window.liff.isInClient === 'function' ? window.liff.isInClient() : null
+      if (inClient !== null) {
+        setIsLineClient(inClient)
+        if (inClient === false) {
+          setErrorMessage('PCブラウザからアクセス中です。LINEログインを完了した後、このページを再読み込みしてください。')
+        }
+      }
 
       if (window.liff.isLoggedIn()) {
         await synchronizeLineSession()
@@ -122,7 +138,6 @@ export default function LiffPage() {
           console.warn('Failed to load LIFF profile:', profileError)
         }
       } else {
-        // 既存セッションがある場合に備えて同期
         void refreshSession()
       }
     } catch (error) {
@@ -137,6 +152,9 @@ export default function LiffPage() {
         console.error('LIFF SDK is not loaded')
         return
       }
+
+      setErrorMessage(null)
+
       if (!window.liff.isLoggedIn()) {
         window.liff.login()
         return
