@@ -1,254 +1,114 @@
 # casto: 開発環境構築ガイド
 
-## 現在の状況（2025-09-22時点）
+casto プロジェクトの開発環境は **ローカル Docker Compose** と **クラウド常設リソース** を組み合わせたハイブリッド構成です。本ドキュメントでは、開発に必要な前提・起動手順・クラウド連携の扱いを最新の状態に合わせて整理します。[TR][RP]
 
-### ✅ 構築済み
-- Turborepモノレポ基盤
-- `/apps/web` (Next.js 15.5.3)
-- `/apps/workers` (Cloudflare Workers雛形)
-- `/packages/shared`, `/packages/ui` ディレクトリ
+## 🧩 コンポーネント構成
 
-### ❌ 未構築・不足部分
-- データベース接続設定（外部環境の実体はわからない）
-- 環境変数管理（本番/ステージングの最終値はわからない）
-- ローカル開発サーバーの統合
-- 本番デプロイ設定
+- **フロントエンド**: `services/casto/apps/web/`（Next.js 15.5.3）
+- **API**: Cloudflare Workers（開発用エンドポイント = `casto-workers-dev.casto-api.workers.dev`）
+- **データベース**: Supabase（本番と同一インスタンス。ローカル DB は使用しません）
+- **その他**: Traefik + Cloudflare Tunnel（ルーティング／外部公開）
 
----
+## ✅ 前提ツール
 
-## ローカル開発環境
+```
+- Docker / Docker Compose
+- Cloudflare Tunnel（`infrastructure/tunnel/config.yml`）
+- （任意）Node.js 18 系ローカル実行環境 ※Docker 内で完結するため必須ではない
+```
 
-### 1. 前提条件
+Cloudflare Workers のデプロイやテストで `wrangler` CLI を利用する場合は、ホストに `npm install -g wrangler` を実施してください。[DM]
+
+## 🚀 ローカル起動手順
+
+1. **ルートディレクトリへ移動**
+   ```bash
+   cd /Users/taichiumeki/dev/
+   ```
+2. **casto コンテナを起動**
+   ```bash
+   docker compose up -d casto
+   ```
+3. **ログ確認（任意）**
+   ```bash
+   docker logs -f casto
+   ```
+4. **アクセス**
+   - ブラウザ: `https://casto.sb2024.xyz/`
+   - curl: `curl -H "Host: casto.sb2024.xyz" http://localhost:80`
+
+停止する場合は `docker compose stop casto` を実行します。`docker compose down casto` はローカルキャッシュ破棄時のみ利用してください。[SF]
+
+## 🔁 キャッシュ再生成フロー
+
+Next.js のビルドキャッシュが破損した場合は、以下の手順でクリーンに復旧できます。
+
 ```bash
-# 必要なツール
-- Node.js 18+
-- npm/yarn
-- Docker (PostgreSQL用)
-- Cloudflare CLI (wrangler)
+docker compose down casto
+rm -rf services/casto/apps/web/.next services/casto/apps/web/node_modules
+docker compose up -d casto
+docker exec casto npm install
 ```
 
-### 2. 初回セットアップ
-```bash
-# 1. 依存関係インストール
-cd /Users/taichiumeki/dev/services/casto
-npm install
+その後 `docker logs casto` で `✓ Ready` を確認し、ブラウザをリロードしてください。[CA]
 
-# 2. Cloudflare CLI インストール
-npm install -g wrangler
+## ☁️ クラウドリソースの扱い
 
-# 3. PostgreSQL (Docker)
-docker run --name casto-postgres \
-  -e POSTGRES_DB=casto_dev \
-  -e POSTGRES_USER=casto \
-  -e POSTGRES_PASSWORD=dev_password \
-  -p 5432:5432 \
-  -d postgres:15
+- **API（Cloudflare Workers）**
+  - 開発環境: `casto-workers-dev.casto-api.workers.dev`
+  - デプロイ: `cd services/casto/apps/workers && npx wrangler deploy --env development`
 
-# 4. 環境変数設定
-cp .env.example .env.local
-```
+- **データベース（Supabase）**
+  - 本番と共用のためローカル DB コンテナは起動しません。
+  - スキーマ変更は Supabase Dashboard で実施。必要に応じて SQL エディタや `psql` で接続します。
 
-### 3. 開発サーバー起動
-```bash
-# 全サービス同時起動
-npm run dev
+- **環境変数管理**
+  - フロントエンド: `.env` は Docker コンテナ内から参照。`NEXT_PUBLIC_API_BASE_URL` 等はクラウド API を指す値を設定。
+  - Workers: `wrangler.toml` と `wrangler secret put` で管理。
+  - Supabase: Dashboard 上でキー管理。
 
-# 個別起動
-npm run dev:web      # Next.js
-npm run dev:workers  # Cloudflare Workers
-```
+クラウド側での変更はステージング環境で検証した上で本番反映してください。[REH][SD]
 
-### 4. 動作確認方法
-- **本番 Web**: https://casto.sb2024.xyz/（存在するかは未確認）
-- **本番 API**: https://casto-workers.casto-api.workers.dev（確認済み）
+## 🛠️ よくある作業
 
-## Docker環境での起動
-```bash
-# ローカル開発サーバーを停止
-pkill -f "next dev"
+- **依存の追加**
+  ```bash
+  # ホスト側のリポジトリで実行
+  cd services/casto
+  npm install <package> --workspace apps/web
+  # その後 docker compose restart casto で再起動
+  ```
 
-# Dockerでcasto起動
-cd /Users/taichiumeki/dev/services/casto
-docker-compose -f docker-compose.dev.yml up -d
+- **Lint / 型チェック**
+  ```bash
+  docker exec casto npm run lint
+  docker exec casto npm run type-check
+  ```
 
-# ログ確認
-docker logs casto-nextjs
+- **テスト**（未整備の場合は整備後に更新する）
+  ```bash
+  docker exec casto npm run test
+  ```
 
-# 停止
-docker-compose -f docker-compose.dev.yml down
-```
+## 🧭 デプロイ関連ハイライト
 
----
+- **Next.js**: Vercel による自動デプロイ（詳細は `docs/deployment/STRATEGY.md`）。
+- **Workers**: GitHub Actions から develop/main ブランチで自動デプロイ。
+- **監視**: Supabase / Cloudflare / Vercel の各ダッシュボードを利用。[ISA]
 
-## 本番環境デプロイ
+## 🧾 変更ログの反映
 
-### 1. Vercel (Next.js Web)
-```bash
-# Vercel CLI インストール
-npm install -g vercel
+- ローカル環境仕様に変更が発生した場合は、`docs/setup/LOCAL_DEVELOPMENT.md` と本ドキュメントを同時更新する。
+- クラウド設定を更新した場合は、`docs/deployment/` や `operations/DECISIONS.md` にも記録する。
 
-# プロジェクト設定
-cd apps/web
-vercel
+## 📚 参考リンク
 
-# 環境変数設定 (Vercel Dashboard)
-- NEXT_PUBLIC_API_BASE_URL
-- NEXT_PUBLIC_LINE_LIFF_ID
-```
-
-### 2. Cloudflare Workers (API)
-```bash
-# Workers設定
-cd apps/workers
-wrangler login
-wrangler deploy
-
-# 環境変数設定
-wrangler secret put JWT_SECRET
-wrangler secret put DATABASE_URL
-wrangler secret put LINE_CHANNEL_SECRET
-wrangler secret put STRIPE_SECRET_KEY
-```
-
-補足: `apps/workers/src/index.ts` に API の実装（`/api/v1/health`, `/api/v1/users` など）が既に存在（確認済み）。
-
-### 3. データベース (本番)
-```bash
-# Supabase推奨
-# 1. https://supabase.com でプロジェクト作成
-# 2. DATABASE_URL を取得
-# 3. スキーマ適用: npm run db:migrate
-```
-
----
-
-## 環境変数管理
-
-### 開発環境 (.env.local)
-```env
-# Database
-DATABASE_URL="わからない（ローカルDB設定不明）"
-
-# LINE
-LINE_CHANNEL_ID="your_dev_channel_id"
-LINE_CHANNEL_SECRET="your_dev_channel_secret"
-LINE_LIFF_ID="your_dev_liff_id"
-
-# Stripe
-STRIPE_PUBLIC_KEY="pk_test_..."
-STRIPE_SECRET_KEY="sk_test_..."
-
-# JWT
-JWT_SECRET="your_dev_jwt_secret"
-
-# API
-NEXT_PUBLIC_API_BASE_URL="わからない（ローカルAPI URL不明）"
-```
-
-### 本番環境
-- **Vercel**: Dashboard > Settings > Environment Variables
-- **Cloudflare**: `wrangler secret put` コマンド
-- **Supabase**: Dashboard > Settings > API
-
----
-
-## 開発ワークフロー
-
-### 1. 機能開発
-```bash
-# 1. ブランチ作成
-git checkout -b feature/auth-system
-
-# 2. 開発
-npm run dev
-# コード編集...
-
-# 3. テスト
-npm run test
-npm run lint
-
-# 4. コミット
-git add .
-git commit -m "feat(auth): implement LINE login"
-
-# 5. プッシュ・PR作成
-git push origin feature/auth-system
-```
-
-### 2. デプロイフロー
-```bash
-# Staging環境
-git push origin develop
-# → 自動デプロイ (Vercel Preview + Cloudflare Workers Preview)
-
-# Production環境
-git push origin main
-# → 自動デプロイ (Vercel Production + Cloudflare Workers Production)
-```
-
----
-
-## トラブルシューティング
-
-### よくある問題
-
-#### 1. Cloudflare Workers が起動しない
-```bash
-# wrangler バージョン確認
-wrangler --version
-
-# ログイン状態確認
-wrangler whoami
-
-# 再ログイン
-wrangler logout
-wrangler login
-```
-
-#### 2. データベース接続エラー
-```bash
-# PostgreSQL コンテナ確認
-docker ps | grep postgres
-
-# 接続テスト
-# わからない（ローカルDB接続方法不明）
-
-# コンテナ再起動
-docker restart casto-postgres
-```
-
-#### 3. Next.js ビルドエラー
-```bash
-# キャッシュクリア
-rm -rf .next
-rm -rf node_modules
-npm install
-
-# TypeScript エラー確認
-npm run type-check
-```
-
----
-
-## 次のステップ
-
-### 優先度 High
-- [ ] Cloudflare Workers の実装完了
-- [ ] データベーススキーマ作成
-- [ ] 認証システム実装
-- [ ] LINE LIFF 設定
-
-### 優先度 Medium  
-- [ ] CI/CD パイプライン構築
-- [ ] 監視・ログ設定
-- [ ] セキュリティ設定強化
-- [ ] パフォーマンス最適化
-
----
-
-## 参考リンク
 - [Turborepo Documentation](https://turbo.build/repo/docs)
-- [Next.js Deployment](https://nextjs.org/docs/deployment)
-- [Cloudflare Workers](https://developers.cloudflare.com/workers/)
-- [Supabase Documentation](https://supabase.com/docs)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Cloudflare Workers Docs](https://developers.cloudflare.com/workers/)
+- [Supabase Docs](https://supabase.com/docs)
 - [LINE Developers](https://developers.line.biz/)
+
+---
+
+最新の運用フローに合わせて継続的にドキュメントを整備してください。[SD]

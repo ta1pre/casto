@@ -36,17 +36,6 @@ export default function LiffPage() {
   const [isLiffInitialized, setIsLiffInitialized] = useState(false)
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [isLineClient, setIsLineClient] = useState<boolean | null>(null)
-
-  useEffect(() => {
-    initializeLiff()
-  }, [])
-
-  useEffect(() => {
-    if (user && !liffProfile) {
-      void refreshSession()
-    }
-  }, [user, liffProfile, refreshSession])
 
   const synchronizeLineSession = useCallback(async () => {
     if (!window.liff) {
@@ -57,9 +46,6 @@ export default function LiffPage() {
     setIsAuthenticating(true)
     try {
       const inClient = typeof window.liff.isInClient === 'function' ? window.liff.isInClient() : null
-      if (inClient !== null) {
-        setIsLineClient(inClient)
-      }
 
       if (inClient === false) {
         setErrorMessage('LINEアプリ内でページを開いてください。PCブラウザの場合は下のボタンからLINEログイン画面を開いてください。')
@@ -85,26 +71,7 @@ export default function LiffPage() {
     }
   }, [loginWithLine])
 
-  const initializeLiff = async () => {
-    try {
-      if (!window.liff) {
-        const script = document.createElement('script')
-        script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js'
-        script.onload = () => {
-          setTimeout(() => {
-            void initializeLiffAfterLoad()
-          }, 100)
-        }
-        document.head.appendChild(script)
-      } else {
-        await initializeLiffAfterLoad()
-      }
-    } catch (error) {
-      console.error('LIFF initialization failed:', error)
-    }
-  }
-
-  const initializeLiffAfterLoad = async () => {
+  const initializeLiffAfterLoad = useCallback(async () => {
     try {
       if (!window.liff) {
         console.error('LIFF SDK is not loaded')
@@ -122,11 +89,8 @@ export default function LiffPage() {
       setIsLiffInitialized(true)
 
       const inClient = typeof window.liff.isInClient === 'function' ? window.liff.isInClient() : null
-      if (inClient !== null) {
-        setIsLineClient(inClient)
-        if (inClient === false) {
-          setErrorMessage('PCブラウザからアクセス中です。LINEログインを完了した後、このページを再読み込みしてください。')
-        }
+      if (inClient === false) {
+        setErrorMessage('PCブラウザからアクセス中です。LINEログインを完了した後、このページを再読み込みしてください。')
       }
 
       if (window.liff.isLoggedIn()) {
@@ -144,7 +108,36 @@ export default function LiffPage() {
       console.error('LIFF initialization failed:', error)
       setErrorMessage('LIFFの初期化に失敗しました。環境設定を確認してください。')
     }
-  }
+  }, [refreshSession, synchronizeLineSession])
+
+  const initializeLiff = useCallback(async () => {
+    try {
+      if (!window.liff) {
+        const script = document.createElement('script')
+        script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js'
+        script.onload = () => {
+          setTimeout(() => {
+            void initializeLiffAfterLoad()
+          }, 100)
+        }
+        document.head.appendChild(script)
+      } else {
+        await initializeLiffAfterLoad()
+      }
+    } catch (error) {
+      console.error('LIFF initialization failed:', error)
+    }
+  }, [initializeLiffAfterLoad])
+
+  useEffect(() => {
+    void initializeLiff()
+  }, [initializeLiff])
+
+  useEffect(() => {
+    if (user && !liffProfile) {
+      void refreshSession()
+    }
+  }, [user, liffProfile, refreshSession])
 
   const handleLogin = async () => {
     try {

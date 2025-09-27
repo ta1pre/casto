@@ -1,81 +1,97 @@
-# ⚠️ ローカル開発環境について
+# ⚙️ ローカル開発環境仕様（casto）
 
-## 🚫 このディレクトリで直接起動しないでください
+casto フロントエンドは `/Users/taichiumeki/dev/` 直下の Docker Compose で統合管理されており、ローカル開発では **Next.js のみ** をホストします。API と DB はクラウド常設で動作しているため、ローカルで同等のサービスを用意する必要はありません。[SF][RP][TR]
 
-このcastoプロジェクトは、**上位階層のDocker環境で統合管理**されています。
+## ✅ ローカルで提供される機能
 
-### ❌ やってはいけないこと
+- `services/casto/apps/web/` の Next.js アプリ
+- Traefik を介したリバースプロキシ（`casto.sb2024.xyz` でアクセス）
+- Cloudflare Tunnel クライアント（外部 HTTPS → ローカルへの転送）
 
-```bash
-# このディレクトリで直接実行しないでください
-npm run dev
-npm run dev:web
-npm start
-```
+## ☁️ クラウド常設の機能
 
-### ✅ 正しい起動方法
+- **API**: `casto-workers-dev.casto-api.workers.dev`（Cloudflare Workers）
+- **DB**: Supabase（本番 DB を共用）
 
-**メインのDocker環境から起動してください：**
+フロントエンドは常にクラウド上の API/DB に接続します。ローカル用の API/DB を起動したり、エミュレータを用意する必要はありません。[DM]
 
-```bash
-# /Users/taichiumeki/dev/ ディレクトリで実行
-cd /Users/taichiumeki/dev/
-docker-compose up -d casto
-```
-
-## 🏗️ アーキテクチャ
+## 🧭 ディレクトリ構成（抜粋）
 
 ```
 /Users/taichiumeki/dev/
-├── docker-compose.yml          # ← メインのDocker設定
+├── docker-compose.yml          # ルートの統合 Docker 設定
 ├── services/
-│   └── casto/                  # ← このディレクトリ
-│       ├── apps/web/           # Next.jsアプリ
-│       ├── Dockerfile.dev      # Docker設定
-│       └── docs/               # このファイル
+│   └── casto/
+│       ├── Dockerfile.dev      # casto コンテナ（Next.js dev server）
+│       ├── apps/web/           # フロントエンド
+│       └── docs/               # ドキュメント
 └── infrastructure/
-    └── tunnel/config.yml       # Cloudflare Tunnel設定
+    └── tunnel/config.yml       # Cloudflare Tunnel 設定
 ```
 
-## 🌐 アクセス方法
+## 🚀 起動・停止手順
 
-- **外部アクセス**: https://casto.sb2024.xyz
-- **ローカルテスト**: `curl -H "Host: casto.sb2024.xyz" https://localhost:443`
+1. **起動**
+   ```bash
+   cd /Users/taichiumeki/dev/
+   docker compose up -d casto
+   ```
+2. **ログ確認**
+   ```bash
+   docker logs -f casto
+   ```
+3. **停止**
+   ```bash
+   docker compose stop casto
+   ```
 
-## 🔧 開発時の注意点
+`casto` コンテナ起動時に `npm run dev:web` が自動実行され、Next.js 開発サーバーがポート 3000 で待ち受けます。Traefik 経由で `https://casto.sb2024.xyz/` からアクセスできます。[RP]
 
-1. **Docker環境必須**: Traefik、Cloudflare Tunnel連携のため
-2. **ポート競合回避**: 直接起動すると他のサービスと競合
-3. **統合管理**: 全サービス（hqmahjong、tokyoestate等）と統一管理
+## 🔒 禁止事項
 
-## 🐛 トラブルシューティング
+- `services/casto/` 直下で `npm run dev` / `npm run dev:web` / `npm start` を実行しない。
+- ローカルで独自の API / DB を立ち上げない（クラウドと衝突します）。
 
-### 勝手にNext.jsが起動してしまった場合
+誤って Next.js を直接起動した場合は以下で終了→再起動してください。
 
 ```bash
-# プロセス確認
 ps aux | grep -i next
-
-# プロセス停止
-kill [PID]
-
-# 正しい方法で再起動
-cd /Users/taichiumeki/dev/
-docker-compose restart casto
+kill <PID>
+docker compose restart casto
 ```
 
-### ポート51231等で起動してしまった場合
+## 🌐 動作確認
 
-これは通常、IDEやエディタの機能によるものです：
-- VSCode/Windsurf等のNext.js自動起動機能を無効化
-- `.vscode/settings.json`で自動起動を制御
+- **ブラウザ**: `https://casto.sb2024.xyz/`
+- **ローカルホスト経由**: `curl -H "Host: casto.sb2024.xyz" http://localhost:80`
+- **API 健全性**: `https://casto-workers-dev.casto-api.workers.dev/api/v1/health`
+
+API/DB はクラウド側で提供されるため、障害発生時は Cloudflare Workers と Supabase のログを確認してください。[REH]
+
+## 🧹 キャッシュ復旧手順
+
+```
+docker compose down casto
+rm -rf services/casto/apps/web/.next services/casto/apps/web/node_modules
+docker compose up -d casto
+docker exec casto npm install
+```
+
+再起動後に `docker logs casto` で `✓ Ready` が出力されれば復旧完了です。`.next` が破損した場合もこの手順で解消できます。[CA]
+
+## 🔗 クラウド側の変更
+
+- **API デプロイ**: `services/casto/apps/workers/` で開発 → `npx wrangler deploy --env development`
+- **DB 変更**: Supabase Dashboard でスキーマ・RLS を編集。ローカルから参照する場合は Supabase 提供の接続文字列を利用。
+
+クラウド環境へ影響する変更は、先にステージング環境で検証してから本番反映する運用としてください。[SD]
 
 ## 📚 関連ドキュメント
 
-- [メインREADME](/Users/taichiumeki/dev/README.md)
-- [デプロイ環境](../README.md)
-- [技術仕様書](../docs/)
+- `docs/setup/DEVELOPMENT.md`
+- `docs/deployment/STRATEGY.md`
+- `docs/architecture/system-overview.md`
 
 ---
 
-**重要**: このプロジェクトは本番デプロイ環境（Vercel + Cloudflare Workers）と開発環境（Docker統合管理）が分離されています。ローカルでの直接起動は環境の整合性を損なう可能性があります。
+手順や構成に変更が生じた場合は本ドキュメントを速やかに更新し、最新状態を維持してください。[SD]

@@ -81,9 +81,24 @@ async function attachUserContext(c: Context<AppBindings>, next: () => Promise<vo
   await next()
 }
 
+const DEFAULT_ALLOWED_ORIGIN = 'https://casto.sb2024.xyz'
+const ADDITIONAL_ALLOWED_ORIGINS = new Set([
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  DEFAULT_ALLOWED_ORIGIN
+])
+
 // CORS設定
 app.use('*', cors({
-  origin: (origin) => origin ?? '*',
+  origin: (origin) => {
+    if (!origin) {
+      return DEFAULT_ALLOWED_ORIGIN
+    }
+    if (ADDITIONAL_ALLOWED_ORIGINS.has(origin)) {
+      return origin
+    }
+    return DEFAULT_ALLOWED_ORIGIN
+  },
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true
