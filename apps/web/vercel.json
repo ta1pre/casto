@@ -1,0 +1,36 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["hnd1"],
+  "env": {
+    "NEXT_PUBLIC_APP_ENV": "production",
+    "NEXT_PUBLIC_API_BASE_URL": "https://casto-workers.casto-api.workers.dev"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_APP_ENV": "production",
+      "NEXT_PUBLIC_API_BASE_URL": "https://casto-workers.casto-api.workers.dev"
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}
