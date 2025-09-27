@@ -7,8 +7,7 @@
 ### Vercel関連
 ```
 VERCEL_ORG_ID = team_idrAIQND9CrEn3C7BerMktAl
-VERCEL_PROJECT_ID = prj_Jeuz5fLTh8EyFwDpg5JQFLEdDDBL   # PR/Preview 用（pr-check.yml）
-VERCEL_STAGING_PROJECT_ID = わからない                  # staging-deploy.yml で使用
+VERCEL_PROJECT_ID = prj_Jeuz5fLTh8EyFwDpg5JQFLEdDDBL   # Preview / Development 用（pr-check.yml）
 VERCEL_PRODUCTION_PROJECT_ID = わからない               # production-deploy.yml で使用
 ```
 
@@ -51,9 +50,6 @@ Value: team_idrAIQND9CrEn3C7BerMktAl
 Name: VERCEL_PROJECT_ID
 Value: prj_Jeuz5fLTh8EyFwDpg5JQFLEdDDBL
 
-Name: VERCEL_STAGING_PROJECT_ID
-Value: [staging プロジェクトID]（わからない）
-
 Name: VERCEL_PRODUCTION_PROJECT_ID
 Value: [production プロジェクトID]（わからない）
 
@@ -72,7 +68,6 @@ Value: [Supabase サービスロールキー]（わからない）
 gh secret set VERCEL_TOKEN
 gh secret set VERCEL_ORG_ID --body "team_idrAIQND9CrEn3C7BerMktAl"
 gh secret set VERCEL_PROJECT_ID --body "prj_Jeuz5fLTh8EyFwDpg5JQFLEdDDBL"  
-gh secret set VERCEL_STAGING_PROJECT_ID   # 値はわからない
 gh secret set VERCEL_PRODUCTION_PROJECT_ID # 値はわからない
 gh secret set CLOUDFLARE_API_TOKEN
 gh secret set SUPABASE_URL               # 値はわからない

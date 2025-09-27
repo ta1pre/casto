@@ -92,9 +92,6 @@ account_id = "your_actual_account_id_here"
 [env.development]
 name = "casto-workers-dev"
 
-[env.staging]
-name = "casto-workers-stg"
-
 [env.production]
 name = "casto-workers"
 ```

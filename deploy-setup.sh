@@ -17,7 +17,6 @@ echo "⚡ Vercelセットアップ中..."
 vercel login
 cd apps/web
 vercel --name casto-dev
-vercel --name casto-staging  
 vercel --name casto-production
 cd ../..
 
@@ -25,7 +24,7 @@ cd ../..
 echo "☁️ Cloudflare Workersセットアップ中..."
 wrangler login
 cd apps/workers
-wrangler deploy --env staging
+wrangler deploy --env development
 wrangler deploy --env production
 cd ../..
 

@@ -66,6 +66,9 @@ gh api repos/:owner/:repo/branches/main/protection \
   --method PUT \
   --field required_status_checks='{"strict":true,"contexts":["test"]}' \
   --field enforce_admins=true \
+  --field required_pull_request_reviews='{"required_approving_review_count":1}'
+```
+
 ## 🌐 Phase 2: Vercel (Frontend) セットアップ
 ### 2.1 環境構成
 - Development: `develop` ブランチ（Preview / Dev プロジェクト）
@@ -79,7 +82,7 @@ vercel --name casto-production    # Production（例: web-xi-seven-98.vercel.app
 cd ../..
 ```
 
-### 2.3 繰境変数設定
+### 2.3 環境変数設定
 ```bash
 # Development
 vercel env add NEXT_PUBLIC_API_BASE_URL development   # 例: https://casto-workers-dev.casto-api.workers.dev
@@ -89,7 +92,7 @@ vercel env add NEXT_PUBLIC_WEB_BASE_URL development   # 例: https://casto-dev.v
 vercel env add NEXT_PUBLIC_API_BASE_URL production    # https://casto-workers.casto-api.workers.dev
 vercel env add NEXT_PUBLIC_WEB_BASE_URL production    # https://web-xi-seven-98.vercel.app/
 # 将来: https://casto.io/ へ切替予定
-### 7.1 Vercel Analytics
+```
 1. Vercel Dashboard → Analytics → Enable
 2. Core Web Vitals監視
 3. エラー率監視
