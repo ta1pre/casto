@@ -1,84 +1,83 @@
 # Casto 環境構築ガイド
 
-## 1. GitHub リポジトリ接続
-- **リモート確認**: 既存環境では `https://github.com/ta1pre/casto.git` が remotes (`origin`) に設定済み。
-  ```bash
-  git remote -v
-  ```
-- **新規 clone**:
-  ```bash
-  git clone https://github.com/ta1pre/casto.git
-  cd casto
-  ```
-- **既存プロジェクトで remote 設定を追加したい場合**:
-  ```bash
-  git remote add origin https://github.com/ta1pre/casto.git
-  ```
+## 1. 全体像
 
-## 2. ローカル開発環境 (Docker)
-- **前提ツール**: Docker / Docker Compose, Git, (任意) Node.js 20 以上。
-- **構成**:
-  - `docker-compose.yml` (ルート `/Users/taichiumeki/dev/`): Traefik, Cloudflare Tunnel, 各種アプリ。
-  - `Dockerfile.dev`: `node:20-alpine` ベース。`apps/web` の Next.js dev サーバーを提供。
-- **起動手順**:
+### 1.1 ローカル開発
+- `/Users/taichiumeki/dev/docker-compose.yml` に統合された Docker Compose を利用し、サービス名 `casto` が Next.js 開発サーバーを提供する。
+- ルーティングは Traefik と Cloudflare Tunnel を経由し、開発中も `https://casto.sb2024.xyz/` で確認する。
+- `services/casto/docker-compose.dev.yml` は旧構成で、ローカル API を前提にしているため現在は利用しない。
+
+### 1.2 クラウド/API
+- Cloudflare Workers: `apps/workers/wrangler.toml` の `env.development` / `env.production` で `casto-workers-dev` と `casto-workers` を管理。
+- Supabase: 本番インスタンスを開発・本番共通で使用。RLS などの設定は Supabase Dashboard で行う。
+
+### 1.3 フロントエンド (Vercel)
+- Production: `web-xi-seven-98.vercel.app`（`apps/web/vercel.json` で `NEXT_PUBLIC_API_BASE_URL=https://casto-workers.casto-api.workers.dev`）。
+- Preview/Dev: GitHub PR と `develop` ブランチから自動デプロイ（`pr-check.yml` / `production-deploy.yml`）。
+
+### 1.4 GitHub / CI
+- リポジトリ: `https://github.com/ta1pre/casto.git`。
+- CI ワークフロー: `pr-check.yml`（PR 時に lint/build/preview）、`production-deploy.yml`（`main` push 時に本番デプロイ）。
+
+## 2. 現状の課題と対応タスク
+
+| 優先度 | 課題 | 現状 | 対応案 |
+| --- | --- | --- | --- |
+| ✅ | 機密情報がレポジトリに残存 | `wrangler.toml` 等から平文シークレットを削除済み。Supabase キーも直近で再設定済み。 | 今後は `wrangler secret put` / GitHub Secrets を用いて管理を継続する。追加対応は不要。 |
+| 🔴 | CI で Cloudflare 認証失敗 | `CLOUDFLARE_API_TOKEN` が改行・引用符付きで保存されており、`production-deploy.yml` の `wrangler whoami` が code 6111 を返す。 | GitHub Secrets でトークンを再登録（前後の空白・改行なし）。`./check-token-format.sh` で検証し、必要なら Token を再発行。 |
+| 🟡 | ローカルセットアップスクリプトが実態と不整合 | `setup.sh` が Postgres コンテナ起動を前提にしているが、現在は Supabase 共用運用。 | スクリプト廃止またはドキュメントに「使用禁止」と明記し、将来的に置き換え。 |
+| 🟡 | Vercel 環境値が固定で Preview と Production の区別が不足 | `apps/web/vercel.json` で常に `NEXT_PUBLIC_APP_ENV=production` が指定されている。 | Vercel Dashboard 側で Dev/Preview 用値を設定し、JSON 側の固定値は必要最小限にする。また `VERCEL_PROJECT_ID` の dev/prod 分離を確認。 |
+| 🟢 | ドキュメント間の表現ゆれ | `docs/setup/DEVELOPMENT.md` と本ファイルで表現が重複・角度が異なる。 | ドキュメント刷新時に参照先の統一と差分強調（本ファイルはサマリー）。 |
+
+## 3. ローカル環境セットアップ手順
+
+1. **前提ツールを揃える**
+   - Docker, Docker Compose, Git, `wrangler` CLI（Workers にデプロイする場合）。
+2. **コンテナ起動**
+   ```bash
+   cd /Users/taichiumeki/dev/
+   docker compose up -d casto
+   ```
+3. **ログ確認（任意）**
+   ```bash
+   docker logs -f casto
+   ```
+4. **アクセス**
+   - ブラウザ: `https://casto.sb2024.xyz/`
+   - ローカル確認: `curl -H "Host: casto.sb2024.xyz" http://localhost:80`
+5. **停止/リセット**
+   ```bash
+   docker compose stop casto
+   # キャッシュ破棄が必要な場合
+   docker compose down casto
+   rm -rf services/casto/apps/web/.next services/casto/apps/web/node_modules
+   docker compose up -d casto
+   docker exec casto npm install
+   ```
+6. **禁止事項**
+   - `services/casto/` 直下で `npm run dev` を実行しない。
+   - `setup.sh` は旧手順のため使用しない。
+
+## 4. クラウド環境運用メモ
+
+- **Cloudflare Workers**
   ```bash
-  cd /Users/taichiumeki/dev/
-  docker compose up -d casto
-  docker logs -f casto    # 任意
+  cd services/casto/apps/workers
+  # 開発環境デプロイ
+  CLOUDFLARE_API_TOKEN=... npx wrangler deploy --env development
+  # 本番デプロイ（CI が正常化するまで手動での利用を想定）
+  npx wrangler deploy --env production
   ```
-- **アクセス**: `https://casto.sb2024.xyz/` (Traefik + Cloudflare Tunnel 経由)。
-- **停止**:
-  ```bash
-  docker compose stop casto
-  ```
-- **キャッシュ破棄・再構築**:
-  ```bash
-  docker compose down casto
-  rm -rf services/casto/apps/web/.next services/casto/apps/web/node_modules
-  docker compose build casto
-  docker compose up -d casto
-  docker exec casto npm install
-  ```
+- **Vercel**
+  - GitHub Actions（`production-deploy.yml`）経由で `main` への push が本番デプロイを実行。
+  - Preview は `pr-check.yml` の `amondnet/vercel-action@v25` により作成される。
 
-## 3. Cloudflare Workers
-- **設定ファイル**: `apps/workers/wrangler.toml`
-  - `env.development`: `casto-workers-dev`（`develop` ブランチと連携予定）
-  - `env.production`: `casto-workers`（`main` ブランチと連携）
-- **必要なシークレット / 変数**: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `DATABASE_URL`, `LINE_CHANNEL_SECRET`, `STRIPE_SECRET_KEY`。
-- **ローカルからの手動デプロイ**:
-  ```bash
-  cd /Users/taichiumeki/dev/services/casto/apps/workers
-  export CLOUDFLARE_API_TOKEN=<your_token>
-  npx wrangler deploy --env development   # 開発検証用
-  npx wrangler deploy --env production    # 本番
-  ```
-  - *補足*: Docker コンテナ内で実行する場合は、`docker exec casto` 経由で環境変数を渡すか、`docker compose` の環境設定にトークンを追加すること。
-- **CI/CD**:
-  - `develop` ブランチ→ （準備中）Cloudflare development 環境へデプロイ予定
-  - `main` ブランチ→ `.github/workflows/production-deploy.yml` → `wrangler deploy --env production`
+## 5. チェックリスト
 
-## 4. Vercel (Next.js フロントエンド)
-- **設定ファイル**: `apps/web/vercel.json`
-  - `NEXT_PUBLIC_APP_ENV`, `NEXT_PUBLIC_API_BASE_URL` などを environment 毎に管理。
-- **デプロイ手段**:
-  - GitHub Actions: `develop` → Development (Preview/Dev) プロジェクト (`VERCEL_PROJECT_ID_DEV` など命名ルールはチームで統一)、`main` → Production プロジェクト (`VERCEL_PROJECT_ID`)。
-  - 手動: `cd apps/web && vercel --prod`（要 `VERCEL_TOKEN`）。
-- **環境変数**: Vercel ダッシュボードで `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_WEB_BASE_URL` を Development / Production で設定。
+- [ ] `wrangler.toml` から機密情報を除去し、キーをローテーションした。
+- [ ] GitHub Secrets の `CLOUDFLARE_API_TOKEN` を再登録し、`npx wrangler whoami` が成功する状態を確認した。
+- [ ] Vercel の Dev/Prod プロジェクトで環境変数を整理し、`NEXT_PUBLIC_APP_ENV` の値を確認した。
+- [ ] ローカル開発が `docker compose up -d casto` のみで再現できることを確認した。
+- [ ] 変更内容を `docs/setup/DEVELOPMENT.md` / `docs/deployment/STRATEGY.md` に横展開する計画を立てた。
 
-## 5. Supabase (DB)
-- **利用先**: 本番インスタンスを開発・ステージングと共用。
-- **接続情報**: `wrangler.toml` の環境変数および GitHub Secrets に保存。
-- **変更手順**: Supabase Dashboard でスキーマ・RLS を更新。ローカル DB コンテナは不要。
-
-## 6. 設定まとめ
-| 区分 | 管理場所 | 主な環境変数 / 設定 |
-| ---- | -------- | ------------------- |
-| GitHub | `.github/workflows/*.yml` / Secrets | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (dev/prod), `SUPABASE_*` |
-| Cloudflare Workers | `apps/workers/wrangler.toml` | `env.development` / `env.production`, シークレット各種 |
-| Vercel | `apps/web/vercel.json`, Vercel Dashboard | `NEXT_PUBLIC_APP_ENV`, `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_WEB_BASE_URL` |
-| ローカル Docker | `docker-compose.yml`, `Dockerfile.dev` | Traefik ルーティング、Node ベースイメージ、`casto` サービス |
-
-## 7. 今後の運用メモ
-- Development 環境デプロイは `develop` ブランチへの push をトリガーとする GitHub Actions を利用する（準備中）。
-- ローカルで直接 Cloudflare へデプロイする場合は API トークンを忘れずに注入する。
-- ドキュメント更新時は `docs/setup/LOCAL_DEVELOPMENT.md` / `docs/deployment/*.md` も合わせて見直すこと。
+このサマリーを基点に、関係者へ最新手順の周知とリポジトリのセキュリティ強化を進めてください。

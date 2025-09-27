@@ -13,10 +13,10 @@
 | **Backend** | Cloudflare Workers Dev | https://casto-workers-dev.casto-api.workers.dev | ✅ 動作中 |
 | **Database** | Supabase Production | 本番DB共用 | ✅ 接続済み |
 
-**環境変数設定済み：**
-- `NEXT_PUBLIC_API_BASE_URL=https://casto-workers-dev.casto-api.workers.dev`
-- `ENVIRONMENT=development`
-- 本番Supabaseデータベース接続済み
+**環境変数設定ポリシー：**
+- `NEXT_PUBLIC_API_BASE_URL` など公開可能値は Git 管理下に残してよい。
+- `SUPABASE_*` や `JWT_SECRET` など機密値は Git に含めず、`wrangler secret put` / GitHub Secrets / Vercel Secrets で管理する。
+- 本番 Supabase と同一インスタンスを利用するため、権限管理とキーのローテーションを定期的に行う。
 
 ## 📋 手順
 
@@ -72,12 +72,14 @@ docker-compose up -d casto
 
 ### 環境変数
 
-**共通設定（本番と同じ）:**
-- SUPABASE_URL: 本番Supabaseを使用
-- SUPABASE_SERVICE_ROLE_KEY: 本番キーを使用
+**共通設定（例）:**
+- `SUPABASE_URL`: Supabase プロジェクトの URL（例: `https://<project>.supabase.co`）
+- `SUPABASE_SERVICE_ROLE_KEY`: Supabase サービスロールキー（秘密情報）
 
 **環境別設定:**
-- ENVIRONMENT: "development" / "production"
+- `ENVIRONMENT`: `development` / `preview` / `production`
+
+> **重要:** `SUPABASE_*` を含むすべての秘密値は Git にコミットせず、Cloudflare / GitHub / Vercel のシークレット機能で管理してください。[SFT][IV]
 
 ## 🚀 開発フロー
 
@@ -160,11 +162,11 @@ environment:
 ```toml
 [env.development]
 name = "casto-workers-dev"
-vars = { 
-  ENVIRONMENT = "development", 
-  SUPABASE_URL = "https://sfscmpjplvxtikmifqhe.supabase.co", 
-  SUPABASE_SERVICE_ROLE_KEY = "sb_secret__Lv-HqBCTZt3F7vFBbQsZA_SpUmgdGK" 
-}
+vars = { ENVIRONMENT = "development" }
+
+# 機密値は以下のように登録する
+# npx wrangler secret put SUPABASE_URL --env development
+# npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env development
 ```
 
 ## 🎊 完成記録

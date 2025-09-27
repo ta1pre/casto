@@ -5,7 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 
 [env.development]
 name = "casto-workers-dev"
-vars = { ENVIRONMENT = "development", SUPABASE_URL = "https://sfscmpjplvxtikmifqhe.supabase.co", SUPABASE_SERVICE_ROLE_KEY = "sb_secret__Lv-HqBCTZt3F7vFBbQsZA_SpUmgdGK" }
+vars = { ENVIRONMENT = "development" }
 
 [env.preview]
 name = "casto-workers-preview"
@@ -13,13 +13,11 @@ vars = { ENVIRONMENT = "preview" }
 
 [env.production]
 name = "casto-workers"
-vars = { ENVIRONMENT = "production", SUPABASE_URL = "https://sfscmpjplvxtikmifqhe.supabase.co", SUPABASE_SERVICE_ROLE_KEY = "sb_secret__Lv-HqBCTZt3F7vFBbQsZA_SpUmgdGK" }
+vars = { ENVIRONMENT = "production" }
 
 # Variables (non-secret)
 [vars]
 ENVIRONMENT = "development"
-SUPABASE_URL = "https://sfscmpjplvxtikmifqhe.supabase.co"
-SUPABASE_SERVICE_ROLE_KEY = "sb_secret__Lv-HqBCTZt3F7vFBbQsZA_SpUmgdGK"
 
 # Secrets (use `wrangler secret put` to set)
 # SUPABASE_URL
