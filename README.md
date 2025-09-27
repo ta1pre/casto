@@ -116,12 +116,11 @@ casto/
 | 環境 | Frontend | API | Database |
 |------|----------|-----|----------|
 | **Development** | http://localhost:3000 | http://localhost:8787 | Local PostgreSQL |
-| **Staging** | https://casto-staging.vercel.app | https://api-staging.casto.app | Supabase Staging |
-| **Production** | https://casto.app | https://casto-workers.casto-api.workers.dev | Supabase Production |
+| **Production** | https://web-xi-seven-98.vercel.app/ | https://casto-workers.casto-api.workers.dev | Supabase Production |
 
 ### 自動デプロイ
 - **PR作成**: Preview環境に自動デプロイ
-- **develop ブランチ**: Staging環境に自動デプロイ  
+- **develop ブランチ**: Cloudflare/Vercel development 環境へ自動デプロイ（準備中）  
 - **main ブランチ**: Production環境に自動デプロイ
 
 詳細は [DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md) を参照してください。
@@ -185,7 +184,7 @@ npm run db:stop          # 停止
 
 ### ブランチ戦略
 - `main`: Production環境
-- `develop`: Staging環境  
+- `develop`: Development環境  
 - `feature/*`: 機能開発
 - `fix/*`: バグ修正
 

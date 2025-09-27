@@ -11,10 +11,6 @@ vars = { ENVIRONMENT = "development", SUPABASE_URL = "https://sfscmpjplvxtikmifq
 name = "casto-workers-preview"
 vars = { ENVIRONMENT = "preview" }
 
-[env.staging]
-name = "casto-workers-stg"
-vars = { ENVIRONMENT = "staging" }
-
 [env.production]
 name = "casto-workers"
 vars = { ENVIRONMENT = "production", SUPABASE_URL = "https://sfscmpjplvxtikmifqhe.supabase.co", SUPABASE_SERVICE_ROLE_KEY = "sb_secret__Lv-HqBCTZt3F7vFBbQsZA_SpUmgdGK" }

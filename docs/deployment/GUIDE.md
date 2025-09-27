@@ -66,269 +66,29 @@ gh api repos/:owner/:repo/branches/main/protection \
   --method PUT \
   --field required_status_checks='{"strict":true,"contexts":["test"]}' \
   --field enforce_admins=true \
-  --field required_pull_request_reviews='{"required_approving_review_count":1}' \
-  --field restrictions=null
-```
-
----
-
 ## 🌐 Phase 2: Vercel (Frontend) セットアップ
+### 2.1 環境構成
+- Development: `develop` ブランチ（Preview / Dev プロジェクト）
+- Production: `main` ブランチ（本番プロジェクト）
 
-### 2.1 Vercelプロジェクト作成
-
-#### Development (Preview)
+### 2.2 プロジェクト作成
 ```bash
 cd apps/web
-vercel --name casto-dev
-# ドメイン: casto-dev.vercel.app
+vercel --name casto-dev           # Development（例: casto-dev.vercel.app）
+vercel --name casto-production    # Production（例: web-xi-seven-98.vercel.app）
+cd ../..
 ```
 
-#### Staging
+### 2.3 繰境変数設定
 ```bash
-vercel --name casto-staging
-# ドメイン: casto-staging.vercel.app
-```
+# Development
+vercel env add NEXT_PUBLIC_API_BASE_URL development   # 例: https://casto-workers-dev.casto-api.workers.dev
+vercel env add NEXT_PUBLIC_WEB_BASE_URL development   # 例: https://casto-dev.vercel.app
 
-#### Production
-```bash
-vercel --name casto-production
-# カスタムドメイン: casto.app（存在するかは未確認）
-```
-
-### 2.2 環境変数設定
-
-#### Development
-```bash
-vercel env add NEXT_PUBLIC_API_BASE_URL development
-# 値: わからない（ローカル開発環境のURL不明）
-
-vercel env add NEXT_PUBLIC_WEB_BASE_URL development
-# 値: わからない（ローカル開発環境のURL不明）
-```
-
-#### Staging
-```bash
-vercel env add NEXT_PUBLIC_API_BASE_URL staging
-# 値: わからない（Staging環境のWorkers URLが不明）
-
-vercel env add NEXT_PUBLIC_WEB_BASE_URL staging
-# 値: https://casto-staging.vercel.app（存在するかは未確認）
-```
-
-#### Production
-```bash
-vercel env add NEXT_PUBLIC_API_BASE_URL production
-# 値: https://casto-workers.casto-api.workers.dev
-
-vercel env add NEXT_PUBLIC_WEB_BASE_URL production
-# 値: https://casto.app（存在するかは未確認）
-```
-
-### 2.3 Git連携設定
-1. Vercel Dashboard → Settings → Git
-2. GitHub連携を有効化
-3. ブランチ設定:
-   - `main` → Production
-   - `develop` → Staging
-   - `feature/*` → Preview
-
----
-
-## ⚡ Phase 3: Cloudflare Workers (Backend) セットアップ
-
-### 3.1 Cloudflareアカウント設定
-```bash
-cd apps/workers
-
-# Cloudflareにログイン
-wrangler login
-
-# アカウントID確認
-wrangler whoami
-```
-
-### 3.2 環境別デプロイ
-
-#### Staging環境
-```bash
-# Staging環境にデプロイ
-wrangler deploy --env staging
-
-# カスタムドメイン設定: わからない（設定されているかは未確認）
-```
-
-#### Production環境
-```bash
-# Production環境にデプロイ
-wrangler deploy --env production
-
-# カスタムドメイン設定: わからない（api.casto.appが存在するかは未確認）
-```
-
-### 3.3 Secrets設定
-```bash
-# JWT Secret
-wrangler secret put JWT_SECRET --env staging
-wrangler secret put JWT_SECRET --env production
-
-# Database URL
-wrangler secret put DATABASE_URL --env staging
-wrangler secret put DATABASE_URL --env production
-
-# LINE設定
-wrangler secret put LINE_CHANNEL_SECRET --env staging
-wrangler secret put LINE_CHANNEL_SECRET --env production
-
-# Stripe設定
-wrangler secret put STRIPE_SECRET_KEY --env staging
-wrangler secret put STRIPE_SECRET_KEY --env production
-```
-
----
-
-## 🗄️ Phase 4: Supabase (Database) セットアップ
-
-### 4.1 プロジェクト作成
-
-#### Staging
-1. [Supabase Dashboard](https://supabase.com/dashboard) → New Project
-2. プロジェクト名: `casto-staging`
-3. データベースパスワード設定
-4. リージョン: `Northeast Asia (Tokyo)`
-
-#### Production
-1. New Project
-2. プロジェクト名: `casto-production`
-3. データベースパスワード設定
-4. リージョン: `Northeast Asia (Tokyo)`
-
-### 4.2 データベーススキーマ作成
-```bash
-# Staging環境
-supabase link --project-ref your-staging-project-ref
-supabase db push
-
-# Production環境
-supabase link --project-ref your-production-project-ref
-supabase db push
-```
-
-### 4.3 RLS (Row Level Security) 設定
-```sql
--- 各テーブルでRLSを有効化
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE auditions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE entries ENABLE ROW LEVEL SECURITY;
-
--- ポリシー作成 (例: ユーザーは自分のデータのみアクセス可能)
-CREATE POLICY "Users can view own data" ON users
-  FOR SELECT USING (auth.uid() = id);
-```
-
----
-
-## 🔐 Phase 5: GitHub Secrets 設定
-
-### 5.1 必要なSecrets
-```bash
-# Vercel関連
-gh secret set VERCEL_TOKEN
-gh secret set VERCEL_ORG_ID
-gh secret set VERCEL_PROJECT_ID
-gh secret set VERCEL_STAGING_PROJECT_ID
-gh secret set VERCEL_PRODUCTION_PROJECT_ID
-
-# Cloudflare関連
-gh secret set CLOUDFLARE_API_TOKEN
-```
-
-### 5.2 Secrets取得方法
-
-#### Vercel Token
-1. [Vercel Settings](https://vercel.com/account/tokens) → Create Token
-2. スコープ: Full Account
-3. 有効期限: 1年
-
-#### Vercel Project IDs
-```bash
-# プロジェクトID確認
-vercel ls
-```
-
----
-
-## ⚠️ 注意事項（ヘルスチェックの整合性）
-
-- `.github/workflows/production-deploy.yml` では Web のヘルスチェックとして `https://casto.app/api/health` を参照しています。
-- 本レポジトリ（`apps/web`）内には `/api/health` エンドポイントの実装は見当たりません（確認済み）。
-- Cloudflare Workers 側には `/api/v1/health` が実装されています（確認済み）。
-- 実運用で Web 側に別途ヘルスエンドポイントがあるかは「わからない」。
-- 運用方針に合わせて ①Web に `/api/health` を実装する ②ヘルスチェック先を別URLに変更する ③Workers の `/api/v1/health` を用いる、のいずれかに統一してください。
-
-#### Cloudflare API Token
-1. [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens) → Create Token
-2. テンプレート: Custom token
-3. 権限:
-   - Zone:Zone:Read
-   - Zone:DNS:Edit
-   - Account:Cloudflare Workers:Edit
-
----
-
-## 🧪 Phase 6: デプロイテスト
-
-### 6.1 PR作成テスト
-```bash
-# feature ブランチ作成
-git checkout -b feature/test-deploy
-echo "# Test Deploy" > TEST_DEPLOY.md
-git add TEST_DEPLOY.md
-git commit -m "feat: add test deploy file"
-git push -u origin feature/test-deploy
-
-# PR作成
-gh pr create --title "Test Deploy" --body "Testing CI/CD pipeline"
-```
-
-**期待結果:**
-- ✅ Lint & Type Check 成功
-- ✅ Vercel Preview Deploy 成功
-- ✅ Workers Preview Deploy 成功
-
-### 6.2 Staging デプロイテスト
-```bash
-# PR をdevelopにマージ
-gh pr merge --merge
-
-# develop ブランチでの自動デプロイ確認
-git checkout develop
-git pull origin develop
-```
-
-**期待結果:**
-- ✅ Staging環境に自動デプロイ
-- ✅ https://casto-staging.vercel.app アクセス可能（存在するかは未確認）
-- ❓ Staging API URL: わからない（設定されているかは未確認）
-
-### 6.3 Production デプロイテスト
-```bash
-# develop → main PR作成
-git checkout main
-git pull origin main
-gh pr create --base main --head develop --title "Release v1.0.0" --body "Initial production release"
-
-# PR承認・マージ後、Production環境確認
-```
-
-**期待結果:**
-- ✅ Production環境に自動デプロイ
-- ❓ https://casto.app アクセス可能（存在するかは未確認）
-- ✅ https://casto-workers.casto-api.workers.dev アクセス可能（確認済み）
-
----
-
-## 📊 Phase 7: 監視・アラート設定
-
+# Production
+vercel env add NEXT_PUBLIC_API_BASE_URL production    # https://casto-workers.casto-api.workers.dev
+vercel env add NEXT_PUBLIC_WEB_BASE_URL production    # https://web-xi-seven-98.vercel.app/
+# 将来: https://casto.io/ へ切替予定
 ### 7.1 Vercel Analytics
 1. Vercel Dashboard → Analytics → Enable
 2. Core Web Vitals監視
@@ -421,7 +181,7 @@ supabase db reset
 
 ### CI/CD
 - [ ] PR作成時の自動テスト
-- [ ] develop ブランチの自動Stagingデプロイ
+- [ ] develop ブランチの自動Developmentデプロイ
 - [ ] main ブランチの自動Productionデプロイ
 - [ ] デプロイ失敗時の通知
 
@@ -468,7 +228,7 @@ supabase db reset
 ### 問題発生時の連絡先
 - **緊急時**: Slack #casto-alerts
 - **一般的な問題**: GitHub Issues
-- **セキュリティ問題**: security@casto.app
+- **セキュリティ問題**: security@casto.io（予定ドメイン）
 
 ### 有用なリンク
 - [Vercel Documentation](https://vercel.com/docs)

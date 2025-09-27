@@ -10,29 +10,29 @@ Cloudflare WorkersでSupabaseを使用するために必要な環境変数の設
 - `SUPABASE_SERVICE_ROLE_KEY`: Supabaseのサービスロールキー
 
 ### その他
-- `ENVIRONMENT`: 実行環境（development/staging/production）
+- `ENVIRONMENT`: 実行環境（development / production）
 
 ## 設定方法
 
 ### 1. wrangler CLIでの設定
 
 ```bash
-# プロダクション環境
+# development 環境
 cd apps/workers
+npx wrangler secret put SUPABASE_URL --env development
+npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env development
+
+# production 環境
 npx wrangler secret put SUPABASE_URL --env production
 npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env production
-
-# ステージング環境
-npx wrangler secret put SUPABASE_URL --env staging
-npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env staging
 ```
 
 ### 2. 環境変数の確認
 
 ```bash
 # シークレット一覧の確認
+npx wrangler secret list --env development
 npx wrangler secret list --env production
-npx wrangler secret list --env staging
 ```
 
 ### 3. wrangler.toml設定
@@ -41,10 +41,6 @@ npx wrangler secret list --env staging
 [env.production]
 name = "casto-workers"
 vars = { ENVIRONMENT = "production" }
-
-[env.staging]
-name = "casto-workers-stg"
-vars = { ENVIRONMENT = "staging" }
 
 # Secrets (use `wrangler secret put` to set)
 # SUPABASE_URL

@@ -1,7 +1,7 @@
 # casto: デプロイ環境構築作戦
 
 ## 🎯 目標
-GitHubを起点とした自動デプロイ環境を構築し、dev/staging/production環境への継続的デプロイメントを実現する。
+GitHubを起点とした自動デプロイ環境を構築し、development / production の 2 環境へ継続的デプロイメントを実現する。
 
 ## 📋 事前準備チェックリスト
 
@@ -27,24 +27,21 @@ GitHubを起点とした自動デプロイ環境を構築し、dev/staging/produ
 **選定: Vercel** ✅
 - **理由**: Next.js最適化、自動プレビュー、簡単設定
 - **環境**: 
-  - `dev`: feature branchの自動プレビュー
-  - `staging`: develop branchの自動デプロイ
+  - `development`: feature / develop branchの自動デプロイ（Preview / Dev）
   - `production`: main branchの自動デプロイ
 
 #### Backend (Cloudflare Workers)
 **選定: Cloudflare Workers** ✅
 - **理由**: アーキテクチャ設計通り、グローバルエッジ、低レイテンシ
 - **環境**:
-  - `dev`: ローカル開発 (wrangler dev)
-  - `staging`: staging環境 (wrangler deploy --env staging)
+  - `development`: ローカルチェック (wrangler dev / deploy --env development)
   - `production`: 本番環境 (wrangler deploy --env production)
 
 #### Database
 **選定: Supabase** ✅
 - **理由**: PostgreSQL、RLS、リアルタイム機能
 - **環境**:
-  - `dev`: ローカルSupabase (supabase start)
-  - `staging`: Supabase staging project
+  - `development`: ローカル Supabase or shared dev instance
   - `production`: Supabase production project
 
 #### Storage
@@ -53,18 +50,18 @@ GitHubを起点とした自動デプロイ環境を構築し、dev/staging/produ
 - **環境**: 環境別バケット
 
 ---
-
 ## 🔄 CI/CDパイプライン設計
 
 ### GitHub Actions ワークフロー
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Development   │    │     Staging     │    │   Production    │
-│                 │    │                 │    │                 │
-│ feature/* → PR  │───▶│ develop branch  │───▶│  main branch    │
-│ Auto Preview    │    │ Auto Deploy     │    │ Manual Deploy   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────┐    ┌─────────────────┐
+│   Development   │    │   Production    │
+│                 │    │                 │
+│ feature/* → PR  │───▶│  main branch    │
+│ Auto Preview    │    │ Auto Deploy     │
+│ (develop push)  │    │ Manual Override │
+└─────────────────┘    └─────────────────┘
 ```
 
 ### ワークフロー詳細
@@ -78,15 +75,7 @@ GitHubを起点とした自動デプロイ環境を構築し、dev/staging/produ
   - Vercel Preview Deploy
   - Workers Preview Deploy
 
-#### 2. Staging Deploy (develop branch)
-- **トリガー**: develop branchへのpush
-- **実行内容**:
-  - 全テスト実行
-  - Vercel Staging Deploy
-  - Workers Staging Deploy
-  - E2E Tests (staging環境)
-
-#### 3. Production Deploy (main branch)
+#### 2. Production Deploy (main branch)
 - **トリガー**: main branchへのpush (手動承認)
 - **実行内容**:
   - Production Build
@@ -116,22 +105,14 @@ SUPABASE_URL=わからない（ローカルSupabase URL不明）
 SUPABASE_ANON_KEY=local_anon_key
 ```
 
-#### Staging
-```bash
-# Vercel Environment Variables
-NEXT_PUBLIC_API_BASE_URL=https://api-staging.casto.app
-NEXT_PUBLIC_WEB_BASE_URL=https://staging.casto.app
-SUPABASE_URL=https://staging-project.supabase.co
-SUPABASE_ANON_KEY=staging_anon_key
-```
-
 #### Production
 ```bash
 # Vercel Environment Variables
 NEXT_PUBLIC_API_BASE_URL=https://casto-workers.casto-api.workers.dev
-NEXT_PUBLIC_WEB_BASE_URL=https://casto.app
+NEXT_PUBLIC_WEB_BASE_URL=https://web-xi-seven-98.vercel.app/
 SUPABASE_URL=https://production-project.supabase.co
 SUPABASE_ANON_KEY=production_anon_key
+# 将来: NEXT_PUBLIC_WEB_BASE_URL を https://casto.io/ へ切替予定
 ```
 
 ---
@@ -159,9 +140,9 @@ SUPABASE_ANON_KEY=production_anon_key
    ```
 
 3. **環境別プロジェクト作成**
-   - Vercel: 3プロジェクト (dev/staging/production)
-   - Supabase: 2プロジェクト (staging/production)
-   - Cloudflare: Workers環境設定
+   - Vercel: 2プロジェクト (development / production)
+   - Supabase: 1プロジェクト（production。本番と共用する場合は dev 用 DB を別リージョンに作成）
+   - Cloudflare: Workers development / production 環境設定
 
 ### Phase 2: CI/CD構築 (2-3日)
 1. **GitHub Actions設定**
@@ -177,8 +158,8 @@ SUPABASE_ANON_KEY=production_anon_key
 
 ### Phase 3: 自動化テスト (1日)
 1. **デプロイテスト**
-   - feature branch → PR → Preview
-   - develop → Staging Deploy
+   - feature branch → PR → Preview (development)
+   - develop → Development Deploy
    - main → Production Deploy
 
 2. **ロールバック手順確認**
@@ -224,7 +205,7 @@ SUPABASE_ANON_KEY=production_anon_key
 
 ### デプロイ効率
 - [ ] PR作成からPreview表示まで: 5分以内
-- [ ] develop pushからStaging反映まで: 10分以内
+- [ ] develop pushからDevelopment反映まで: 10分以内
 - [ ] main pushからProduction反映まで: 15分以内
 
 ### 品質保証
@@ -262,11 +243,11 @@ SUPABASE_ANON_KEY=production_anon_key
 
 ### 今日実施
 1. **GitHubリポジトリ作成**
-2. **Vercel初期設定**
+2. **Vercel初期設定（dev / prod）**
 3. **基本ワークフロー作成**
 
 ### 今週実施  
-1. **全環境デプロイテスト**
+1. **Development / Production デプロイテスト**
 2. **CI/CD完全自動化**
 3. **監視設定**
 

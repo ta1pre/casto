@@ -177,7 +177,7 @@ jobs:
         if: needs.health-check.result == 'success'
         run: |
           echo "🚀 Production deployment successful!"
-          echo "Web: https://casto.app"
+          echo "Web: https://web-xi-seven-98.vercel.app/"
           echo "API: https://casto-workers.casto-api.workers.dev"
 
       - name: Notify Failure
