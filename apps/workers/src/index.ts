@@ -8,6 +8,7 @@ type Bindings = {
   STRIPE_SECRET_KEY: string
   CACHE: KVNamespace
   NOTIFICATION_QUEUE: Queue
+  ENVIRONMENT?: string
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
