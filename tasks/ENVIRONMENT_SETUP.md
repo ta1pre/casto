@@ -17,16 +17,20 @@
 
 ### 1.4 GitHub / CI
 - リポジトリ: `https://github.com/ta1pre/casto.git`。
-- CI ワークフロー: `pr-check.yml`（PR 時に lint/build/preview）、`production-deploy.yml`（`main` push 時に本番デプロイ）。
+- CI ワークフロー:
+  - `pr-check.yml`: PR ごとに lint / build / preview を実行。
+  - `development-deploy.yml`: `develop` ブランチへの push と手動実行で開発環境（Vercel Dev / Cloudflare Workers dev）へデプロイ。
+  - `production-deploy.yml`: `main` ブランチへの push で本番環境へデプロイ。
+  - 開発デプロイに必要な GitHub Secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID_DEV`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`。
 
 ## 2. 現状の課題と対応タスク
 
 | 優先度 | 課題 | 現状 | 対応案 |
 | --- | --- | --- | --- |
 | ✅ | 機密情報がレポジトリに残存 | `wrangler.toml` 等から平文シークレットを削除済み。Supabase キーも直近で再設定済み。 | 今後は `wrangler secret put` / GitHub Secrets を用いて管理を継続する。追加対応は不要。 |
-| 🔴 | CI で Cloudflare 認証失敗 | `CLOUDFLARE_API_TOKEN` が改行・引用符付きで保存されており、`production-deploy.yml` の `wrangler whoami` が code 6111 を返す。 | GitHub Secrets でトークンを再登録（前後の空白・改行なし）。`./check-token-format.sh` で検証し、必要なら Token を再発行。 |
+| 🔴 | CI で Cloudflare 認証失敗 | `CLOUDFLARE_API_TOKEN` が改行・引用符付きで保存されており、`production-deploy.yml` / `development-deploy.yml` の `wrangler whoami` が code 6111 を返す。 | GitHub Secrets でトークンを再登録（前後の空白・改行なし）。`./check-token-format.sh` で検証し、必要なら Token を再発行。 |
 | 🟡 | ローカルセットアップスクリプトが実態と不整合 | `setup.sh` が Postgres コンテナ起動を前提にしているが、現在は Supabase 共用運用。 | スクリプト廃止またはドキュメントに「使用禁止」と明記し、将来的に置き換え。 |
-| 🟡 | Vercel 環境値が固定で Preview と Production の区別が不足 | `apps/web/vercel.json` で常に `NEXT_PUBLIC_APP_ENV=production` が指定されている。 | Vercel Dashboard 側で Dev/Preview 用値を設定し、JSON 側の固定値は必要最小限にする。また `VERCEL_PROJECT_ID` の dev/prod 分離を確認。 |
+| 🟡 | Vercel 環境値が固定で Preview と Production の区別が不足 | `apps/web/vercel.json` で常に `NEXT_PUBLIC_APP_ENV=production` が指定されている。 | Vercel Dashboard 側で Dev/Preview 用のプロジェクト・環境変数を整備（`VERCEL_PROJECT_ID_DEV` の設定を含む）。JSON 側の固定値は必要最小限にする。 |
 | 🟢 | ドキュメント間の表現ゆれ | `docs/setup/DEVELOPMENT.md` と本ファイルで表現が重複・角度が異なる。 | ドキュメント刷新時に参照先の統一と差分強調（本ファイルはサマリー）。 |
 
 ## 3. ローカル環境セットアップ手順
