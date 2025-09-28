@@ -131,6 +131,14 @@ npm run db:stop          # 停止
 
 ---
 
+## ✉️ メール運用 (Email Operations)
+
+- **Resend** をすべてのトランザクションメール（Magic Link、通知、受領確認など）の送受信基盤として利用します。`RESEND_API_KEY` は `.env.local` に設定し、環境ごとに Resend プロジェクトを分離してください。
+- メールテンプレートや送信ドメインの管理は Resend ダッシュボードで行います。開発用サンドボックスドメインを用意し、本番には認証済みドメインを割り当ててください。
+- 受信 webhook を利用する場合は Cloudflare Workers に `/api/v1/webhooks/resend`（予定）を追加し、Resend Inbound Routes から転送します。詳細な手順は `docs/` 配下の設計ドキュメントを参照してください。
+
+---
+
 ## 🤝 コントリビューション (Contributing)
 
 1. **Issue作成**: 機能要望・バグ報告

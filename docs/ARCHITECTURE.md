@@ -22,6 +22,7 @@
   - LIFF: 公式LINEのメニュー/Flexから`/liff/*`を起動（応募・結果確認・投票等）
   - Messaging: セグメント通知、AIチャット（Webhook→Workers処理→返信）
 - **決済 (閲覧課金)**: Stripe想定（成功/失敗WebhookはWorkersで受信→Queues→DB反映）
+- **メール配信**: Resend（Magic Linkや重要通知をWorkers経由で送信、テンプレート管理はResend側）
 
 ---
 
@@ -117,6 +118,7 @@
 ## 8. 環境とシークレット
 - `dev/stg/prod`は完全分離
 - LIFF ID／LINE Channel ID/Secret／Messaging Webhook URL
+- Resend APIキー・送信ドメイン（環境ごとに分離）
 - API_BASE_URL／WEB_BASE_URL（環境ごと）
 - DB接続（Postgres）／R2バケット名
 - Stripeキー（公開/秘密）

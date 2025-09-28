@@ -22,6 +22,7 @@ casto プロジェクトの開発環境と GitHub 運用フローをまとめて
 - Node.js 20 以降
 - npm (同梱)
 - Git / GitHub CLI (`gh`)
+- Resend CLI（メールテンプレート管理が必要な場合）
 
 ## ローカル環境セットアップ
 
@@ -42,6 +43,23 @@ casto プロジェクトの開発環境と GitHub 運用フローをまとめて
    ```bash
    npm run dev
    ```
+
+### Resend のセットアップ
+
+1. Resend CLI をインストール
+   ```bash
+   npm install -g resend
+   ```
+2. APIキーを設定
+   ```bash
+   resend login --api-key $RESEND_API_KEY
+   ```
+3. テンプレートを同期（例）
+   ```bash
+   resend templates list
+   ```
+
+開発環境では Resend のサンドボックスドメインを使用し、本番では認証済みドメインを用意してください。APIキーは `.env.local` の `RESEND_API_KEY` に設定し、環境ごとに発行します。
 
 ## GitHub リポジトリ初期設定
 
