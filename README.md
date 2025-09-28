@@ -19,14 +19,15 @@
 
 | ドキュメント                               | 内容                                               |
 | ------------------------------------------ | -------------------------------------------------- |
-| [**`PURPOSE.md`**](./docs/PURPOSE.md)      | このプロジェクトが何を目指すのか（目的・ゴール）   |
-| [**`SPEC.md`**](./docs/SPEC.md)            | 何を作るか（機能要件、ユーザーフロー、仕様）       |
-| [**`ARCHITECTURE.md`**](./docs/ARCHITECTURE.md) | どう作るか（技術スタック、設計方針、データモデル） |
-| [**`PLAN.md`**](./docs/PLAN.md)            | どう進めるか（開発計画、作業チェックリスト）       |
-| [**`DECISIONS.md`**](./docs/DECISIONS.md)    | 変更・決定の履歴（日々の細かい決定事項）           |
-| [**`QUESTIONS.md`**](./docs/QUESTIONS.md)    | 未解決の課題・疑問リスト                           |
-| [**`DEPLOYMENT_STRATEGY.md`**](./docs/DEPLOYMENT_STRATEGY.md) | デプロイ戦略・CI/CD設計                            |
-| [**`DEPLOYMENT_GUIDE.md`**](./docs/DEPLOYMENT_GUIDE.md) | デプロイ手順・環境構築ガイド                       |
+| [**`PURPOSE.md`**](./docs/PURPOSE.md)      | プロジェクトの目的とゴール                          |
+| [**`SPEC.md`**](./docs/SPEC.md)            | 機能要件・ユーザーフロー・詳細仕様                  |
+| [**`ARCHITECTURE.md`**](./docs/ARCHITECTURE.md) | 技術スタックとシステム設計方針                     |
+| [**`PLAN.md`**](./docs/PLAN.md)            | 開発計画とマイルストーン                            |
+| [**`DECISIONS.md`**](./docs/DECISIONS.md)  | 意思決定と変更履歴                                 |
+| [**`QUESTIONS.md`**](./docs/QUESTIONS.md)  | 未解決の課題・検討事項                              |
+| [**`DEVELOPMENT.md`**](./docs/DEVELOPMENT.md) | ローカル開発手順・GitHub 運用フロー               |
+| [**`CLOUDFLARE_SETUP.md`**](./docs/CLOUDFLARE_SETUP.md) | Cloudflare 環境構築ガイド                      |
+| [**`SUPABASE_SETUP.md`**](./docs/SUPABASE_SETUP.md) | データベース構築手順                              |
 
 ---
 
@@ -49,9 +50,9 @@ npm run dev
 ```
 
 ### アクセスURL
-- **Frontend**: http://localhost:3000
-- **API**: http://localhost:8787
-- **Database**: localhost:5432
+- **Frontend**: https://casto.sb2024.xyz
+- **API**: https://casto.sb2024.xyz/api (ローカル向け Traefik 経由)
+- **Database**: 共有開発用 PostgreSQL 接続情報は `docs/SUPABASE_SETUP.md` を参照
 
 ---
 
@@ -60,33 +61,25 @@ npm run dev
 ```
 casto/
 ├── apps/
-│   ├── web/          # Next.js Frontend
+│   ├── web/          # Next.js フロントエンド
 │   └── workers/      # Cloudflare Workers API
 ├── packages/
 │   ├── shared/       # 共通型定義・ユーティリティ
 │   └── ui/           # 共通UIコンポーネント
 ├── docs/             # プロジェクトドキュメント
+├── tasks/            # タスク管理用ドキュメント
 ├── .github/
-│   └── workflows/    # CI/CD設定
+│   └── workflows/    # CI/CD 設定
 └── supabase/         # データベーススキーマ
 ```
 
 ---
 
-## 🌐 デプロイ環境 (Deployment)
+## 🌐 デプロイ / ホスティング
 
-| 環境 | Frontend | API | Database |
-|------|----------|-----|----------|
-| **Development** | http://localhost:3000 | http://localhost:8787 | Local PostgreSQL |
-| **Staging** | https://casto-staging.vercel.app | https://api-staging.casto.app | Supabase Staging |
-| **Production** | https://casto.app | https://api.casto.app | Supabase Production |
-
-### 自動デプロイ
-- **PR作成**: Preview環境に自動デプロイ
-- **develop ブランチ**: Staging環境に自動デプロイ  
-- **main ブランチ**: Production環境に自動デプロイ
-
-詳細は [DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md) を参照してください。
+- ローカル開発は `npm run dev`（または `npm run dev:web` / `npm run dev:workers`）で起動する環境を利用します。
+- `wrangler dev --remote` を使うことで Cloudflare 側の開発ランタイムに接続できます。手順は `docs/DEVELOPMENT.md` を参照してください。
+- 本番・ステージングの恒常的なデプロイ先は現在再構築中です。決定事項は `docs/PLAN.md` と `docs/DECISIONS.md` で追跡してください。
 
 ---
 
@@ -156,5 +149,4 @@ npm run db:stop          # 停止
 ## 📞 サポート (Support)
 
 - **ドキュメント**: [docs/](./docs/) ディレクトリ
-- **Issue報告**: GitHub Issues
-- **質問・相談**: GitHub Discussions
+- **今やるべきこと**: [tasks/](./tasks/) ディレクトリ

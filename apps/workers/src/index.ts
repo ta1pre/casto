@@ -15,7 +15,7 @@ const app = new Hono<{ Bindings: Bindings }>()
 
 // CORS設定
 app.use('*', cors({
-  origin: ['http://localhost:3000', 'https://casto.sb2024.xyz'],
+  origin: ['https://casto.sb2024.xyz'],
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

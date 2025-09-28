@@ -141,7 +141,7 @@ export default function Home() {
               現在の認証プロバイダー: <strong>{user.provider}</strong>
             </p>
             <p style={{ fontSize: '0.9rem', color: '#666' }}>
-              API: <a href="http://localhost:8787/api/v1/health" target="_blank" rel="noopener" style={{ color: '#1976d2' }}>Health Check</a>
+              API: <a href="https://casto.sb2024.xyz/api/v1/health" target="_blank" rel="noopener" style={{ color: '#1976d2' }}>Health Check</a>
             </p>
             <AuthStatus />
           </div>
@@ -247,7 +247,7 @@ export default function Home() {
         fontSize: '0.9rem',
         color: '#999'
       }}>
-        <p>開発環境 - API: <a href="http://localhost:8787/api/v1/health" target="_blank" rel="noopener">Health Check</a></p>
+        <p>開発環境 - API: <a href="https://casto.sb2024.xyz/api/v1/health" target="_blank" rel="noopener">Health Check</a></p>
       </footer>
     </div>
   );
