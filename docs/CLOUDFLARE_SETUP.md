@@ -20,7 +20,7 @@
 - **非同期処理**: 通知送信・重い処理の順序保証
 
 ### 🗄️ データベースは別サービス
-- **PostgreSQL**: Supabase/Neon/RDS等（Cloudflareではない）
+- **PostgreSQL**: Supabase（Cloudflareではない）
 - **データ永続化**: ユーザー情報、応募データ、課金情報
 
 ---
