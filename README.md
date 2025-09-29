@@ -31,31 +31,6 @@
 
 ---
 
-## 🚀 クイックスタート (Quick Start)
-
-### ローカル開発環境セットアップ
-```bash
-# 1. 依存関係インストール
-npm install
-
-# 2. 環境変数設定
-cp .env.example .env.local
-# .env.local を編集して実際の値を設定
-
-# 3. データベース起動
-npm run db:setup
-
-# 4. 開発サーバー起動
-npm run dev
-```
-
-### アクセスURL
-- **Frontend**: https://casto.sb2024.xyz
-- **API**: https://casto.sb2024.xyz/api (ローカル向け Traefik 経由)
-- **Database**: 共有開発用 PostgreSQL 接続情報は `docs/SUPABASE_SETUP.md` を参照
-
----
-
 ## 🏗️ プロジェクト構成 (Project Structure)
 
 ```
@@ -77,31 +52,11 @@ casto/
 
 ## 🌐 デプロイ / ホスティング
 
-- ローカル開発は `npm run dev`（または `npm run dev:web` / `npm run dev:workers`）で起動する環境を利用します。
-- `wrangler dev --remote` を使うことで Cloudflare 側の開発ランタイムに接続できます。手順は `docs/DEVELOPMENT.md` を参照してください。
+- ローカル開発は Traefik / Cloudflare Tunnel 経由で Docker コンテナを起動します。手順は `docs/DEVELOPMENT.md` を参照してください。
+  - 共通スタック起動: `./infrastructure/scripts/manage.sh start`
+  - casto コンテナ起動: `docker compose -f services/casto/docker-compose.dev.yml up -d`
+  - Workers 開発モード: `cd services/casto && npm run dev:workers`（必要に応じて `wrangler dev --remote`）
 - 本番・ステージングの恒常的なデプロイ先は現在再構築中です。決定事項は `docs/PLAN.md` と `docs/DECISIONS.md` で追跡してください。
-
----
-
-## 🛠️ 開発コマンド (Development Commands)
-
-```bash
-# 開発サーバー起動
-npm run dev              # 全アプリ同時起動
-npm run dev:web          # Frontend のみ
-npm run dev:workers      # API のみ
-
-# ビルド・テスト
-npm run build            # 全アプリビルド
-npm run test             # テスト実行
-npm run lint             # Lint チェック
-npm run type-check       # 型チェック
-
-# データベース
-npm run db:setup         # 初回セットアップ
-npm run db:start         # 起動
-npm run db:stop          # 停止
-```
 
 ---
 
