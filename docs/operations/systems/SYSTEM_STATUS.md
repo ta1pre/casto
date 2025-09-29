@@ -1,68 +1,58 @@
-# 現在のシステム構成状況（2025/09/23 16:57）
+# casto: システム運用リファレンス
 
-## ブランチ構成
+本書は casto の運用における恒久的な確認手順と主要リソースをまとめたリファレンスであり、瞬間的なステータスは記載しない。[SF][RP]
 
-### ローカル環境
-- **現在のブランチ**: `main`（確認済み）
-- **最新コミット**: 86ddee5（2025/09/23 16:25 確認済み）
+## 1. 主要リソース
 
-### GitHub（リモート）
-- **状況**: わからない（確認していない）
+- **Web（開発）**: `https://casto.sb2024.xyz`
+- **Web（本番）**: `https://casto.io`
+- **API（開発）**: `https://casto-workers-dev.casto-api.workers.dev`
+- **API（本番）**: `https://casto-workers.casto-api.workers.dev`
+- **Supabase プロジェクト**: `supabase/` ディレクトリと Supabase Dashboard
 
-## デプロイ環境
+各 URL は `docs/README.md` と `.github/workflows/` の設定と整合させる。[TR]
 
-### 1. Vercel（Webアプリ）
-- **テストページ**: 動作確認済み（2025/09/23 16:35）
-- **詳細ログ機能**: 実装済み・動作確認済み
-- **状態**: 正常動作
+## 2. 健康チェック手順
 
-### 2. Cloudflare Workers（API）
-- **URL**: `https://casto-workers.casto-api.workers.dev`
-- **デプロイ状況**: 2025/09/23 16:42 デプロイ完了
-- **Version ID**: 11ed9638-e0cf-42e4-a04d-22737c2a13c5
-- **Health Check**: `/api/v1/health` - 動作確認済み
-- **DB Test**: `/api/v1/db-test` - 動作確認済み（データベース接続成功）
-- **Users API**: `/api/v1/users` - 動作確認済み（1件のユーザーデータ取得成功）
-- **環境変数**: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY 設定済み
+- **API ヘルス**: `curl -f https://casto-workers.casto-api.workers.dev/api/v1/health`
+- **DB 疎通**: Workers で `supabase db push` を適用後、`/api/v1/db-test` を利用して接続を確認（必要時のみ公開）
+- **Web 動作**: `https://casto.sb2024.xyz` のテストページから API 呼び出しログを確認
 
-## データベース接続状況
+本番・開発どちらもデプロイ後 30 秒程度待ってからヘルスチェックを実施する。[REH]
 
-### Supabase
-- **接続状況**: 正常（2025/09/23 16:43 確認済み）
-- **usersテーブル**: 存在確認済み（1件のレコード存在）
-- **テーブル構造**: id, created_at, updated_at, status, token_version, flags
+## 3. GitHub Actions 運用
 
-## 実行済みアクション（2025/09/23 16:25-16:43）
+- `pr-check.yml`: PR 作成時に Lint/Build/Test、および Vercel・Workers のプレビューを実行
+- `development-deploy.yml`: `develop` ブランチ push で Workers を開発環境へデプロイ
+- `production-deploy.yml`: `main` ブランチ push で Web/Workers 本番デプロイ + ヘルスチェック
 
-### ✅ テストページ詳細ログ機能追加
-- **ファイル**: `apps/web/app/test/page.tsx`
-- **機能**: ブラウザコンソール詳細ログ、リクエスト/レスポンス詳細表示
-- **コミット**: 86ddee5
+各ワークフローで使用する Secrets は `docs/operations/deployment/GITHUB_SECRETS.md` を参照する。[TR]
 
-### ✅ Cloudflare Workers認証問題解決・デプロイ完了
-1. **認証問題解決**
-   - 環境変数クリア
-   - `npx wrangler login` でOAuth認証成功
+## 4. ロールバックガイド
 
-2. **デプロイ実行**
-   - 2025/09/23 16:42 デプロイ完了
-   - Version ID: 11ed9638-e0cf-42e4-a04d-22737c2a13c5
+- **Vercel**: Dashboard → Deployments から対象リリースを選択し「Promote to Production」
+- **Workers**: `npx wrangler deploy --env <env> --version <id>` を利用。`wrangler deployments list` でバージョン ID を取得
+- **Supabase**: マイグレーションは `supabase/migrations/` で管理し、必要に応じて `supabase db diff` でロールバック SQL を生成
 
-3. **データベーステストエンドポイント追加**
-   - `/api/v1/db-test` - データベース接続テスト用
+## 5. 確認すべき項目
 
-### ✅ API動作確認完了
-- **Health Check**: 200 OK
-- **DB Test**: データベース接続成功
-- **Users API**: 1件のユーザーデータ取得成功
+- GitHub Actions の成功/失敗ログ
+- Vercel / Cloudflare Workers のデプロイ結果
+- Supabase Dashboard でのテーブル・RLS 設定
+- Cloudflare Secrets と GitHub Secrets が最新か
 
-## 現在の状況（2025/09/23 16:57）
+いずれか不明な場合は必ず「わからない」と明記し、確認手順を残す。[TR]
 
-- **Vercel**: ✅ 正常動作（詳細ログ機能付きテストページ）
-- **Cloudflare Workers**: ✅ 正常動作（最新版デプロイ済み）
-- **データベース接続**: ✅ 正常動作
-- **API エンドポイント**: ✅ 全て動作確認済み
+## 6. 運用ルール
 
-## GitHub Actions状況
-- **状況**: わからない（確認していない）
-- **手動デプロイ**: 成功済み（ローカル環境から）
+- 作業着手前に `docs/rules.md` と `docs/tasks/` を確認する
+- 既存の設定情報を最大限活用し、重複ドキュメントを作らない
+- 実機で検証できた事実のみを記録し、想定や未検証項目は区別する
+- 変更が発生した場合は関連ドキュメントを同時に更新する
+
+## 7. 関連ドキュメント
+
+- `docs/operations/deployment/STRATEGY.md`: CI/CD とデプロイ運用の詳細
+- `docs/setup/LOCAL_DEVELOPMENT.md`: ローカル開発環境の取り扱い
+- `docs/setup/SUPABASE_SETUP.md`: Supabase セットアップとマイグレーション方針
+- `specs/ARCHITECTURE.md`: システムアーキテクチャ全体像
