@@ -194,4 +194,4 @@ npm run db:stop          # 停止
 
 - **ドキュメント**: [docs/](./docs/) ディレクトリ
 - **Issue報告**: GitHub Issues
-- **質問・相談**: GitHub Discussions
+- **質問・相談**: GitHub Discussionstest: verify development deployment 2025年 9月29日 月曜日 20時17分30秒 JST
