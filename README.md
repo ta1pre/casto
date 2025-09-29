@@ -1,5 +1,8 @@
 # Project: casto
 
+> ⚠️ **重要**: このディレクトリで直接 `npm run dev` を実行しないでください！  
+> 上位階層のDocker環境を使用してください: [ローカル開発環境について](./docs/ローカル開発環境について.md)
+
 「人を集めて選ぶ（オーディション）」を、スマホだけで簡単にできるサービスです。
 このディレクトリは、castoサービスの開発に関する全てのドキュメントとソースコードを管理します。
 
@@ -9,9 +12,83 @@
 
 - **大きな方針を知りたい**: `PURPOSE.md` (目的) → `SPEC.md` (仕様) の順で読むのがおすすめです。
 - **技術的な実装を知りたい**: `ARCHITECTURE.md` (技術設計) を参照してください。
-- **タスクの進捗を確認したい**: `PLAN.md` (開発計画) を見てください。
+- **タスクの進捗を確認したい**: `PLAN.md` (開発計画) を見てください。詳細なタスク管理は [`tasks/`](./tasks/) ディレクトリを参照してください。
 - **最新の仕様変更や決定事項を知りたい**: `DECISIONS.md` (変更・決定ログ) を確認してください。日々の細かい決定はここに時系列で記録されます。
 - **未解決の課題を知りたい**: `QUESTIONS.md` (未決事項リスト) を確認してください。
+
+---
+
+## 📚 主要ドキュメント一覧 (Key Documents)
+
+| ドキュメント                               | 内容                                               |
+| ------------------------------------------ | -------------------------------------------------- |
+| [**`PURPOSE.md`**](./docs/PURPOSE.md)      | このプロジェクトが何を目指すのか（目的・ゴール）   |
+| [**`SPEC.md`**](./docs/SPEC.md)            | 何を作るか（機能要件、ユーザーフロー、仕様）       |
+| [**`ARCHITECTURE.md`**](./docs/ARCHITECTURE.md) | どう作るか（技術スタック、設計方針、データモデル） |
+| [**`PLAN.md`**](./docs/PLAN.md)            | どう進めるか（開発計画、作業チェックリスト）       |
+| [**`DECISIONS.md`**](./docs/operations/DECISIONS.md)    | 変更・決定の履歴（日々の細かい決定事項）           |
+| [**`QUESTIONS.md`**](./docs/operations/QUESTIONS.md)    | 未解決の課題・疑問リスト                           |
+| [**`DEPLOYMENT_STRATEGY.md`**](./docs/deployment/STRATEGY.md) | デプロイ戦略・CI/CD設計                            |
+| [**`DEPLOYMENT_GUIDE.md`**](./docs/deployment/GUIDE.md) | デプロイ手順・環境構築ガイド                       |
+| [**`DEVELOPMENT.md`**](./docs/setup/DEVELOPMENT.md) | 開発環境構築ガイド                                 |
+| [**`ローカル開発環境について.md`**](./docs/setup/LOCAL_DEVELOPMENT.md) | Docker統合開発環境の注意事項                       |
+| [**`CLOUDFLARE_DEV_SETUP.md`**](./docs/setup/CLOUDFLARE_DEV_SETUP.md) | 開発環境セットアップ（完成済み）                   |
+| [**`SYSTEM_GUIDE.md`**](./docs/operations/SYSTEM_GUIDE.md) | システム運用ガイド                                 |
+| [**`USER_DOMAIN_RULES.md`**](./docs/operations/DOMAIN_RULES.md) | ユーザー・権限・ドメイン設計ルール                 |
+
+---
+
+## 🚀 クイックスタート (Quick Start)
+
+### ✅ 開発環境（構築完了済み - 2025-09-23）
+
+**すぐに開発を開始できます：**
+
+| コンポーネント | URL | 状態 |
+|---------------|-----|------|
+| **Frontend** | https://casto.sb2024.xyz | ✅ 動作中 |
+| **API (Dev)** | https://casto-workers-dev.casto-api.workers.dev | ✅ 動作中 |
+| **テストページ** | https://casto.sb2024.xyz/test | ✅ 利用可能 |
+
+### 開発フロー
+```bash
+# 1. APIコード変更
+vim apps/workers/src/index.ts
+
+# 2. 開発用Workerにデプロイ
+cd apps/workers
+npx wrangler deploy --env development
+
+# 3. テスト
+# https://casto.sb2024.xyz/test でAPI動作確認
+
+# 4. 本番デプロイ
+git push → GitHub Actions → 自動デプロイ
+```
+
+### 📖 詳細な開発環境情報
+詳しくは [CLOUDFLARE_DEV_SETUP.md](./docs/CLOUDFLARE_DEV_SETUP.md) を参照してください。
+
+### 従来の手動セットアップ（参考）
+```bash
+# 依存関係インストール
+npm install
+
+# 環境変数設定
+cp .env.example .env.local
+# .env.local を編集して実際の値を設定
+
+# データベース起動
+npm run db:setup
+
+# 開発サーバー起動
+npm run dev
+```
+
+### アクセスURL
+- **Frontend**: http://localhost:3000
+- **API**: http://localhost:8787
+- **Database**: localhost:5432
 
 ---
 
@@ -20,25 +97,55 @@
 ```
 casto/
 ├── apps/
-│   ├── web/          # Next.js フロントエンド
+│   ├── web/          # Next.js Frontend
 │   └── workers/      # Cloudflare Workers API
 ├── packages/
 │   ├── shared/       # 共通型定義・ユーティリティ
 │   └── ui/           # 共通UIコンポーネント
 ├── docs/             # プロジェクトドキュメント
-├── tasks/            # タスク管理用ドキュメント
+├── tasks/            # タスク管理
 ├── .github/
-│   └── workflows/    # CI/CD 設定
+│   └── workflows/    # CI/CD設定
 └── supabase/         # データベーススキーマ
 ```
 
 ---
 
-## 🌐 デプロイ / ホスティング
+## 🌐 デプロイ環境 (Deployment)
 
-- ローカル開発は `npm run dev`（または `npm run dev:web` / `npm run dev:workers`）で起動する環境を利用します。
-- `wrangler dev --remote` を使うことで Cloudflare 側の開発ランタイムに接続できます。手順は `docs/DEVELOPMENT.md` を参照してください。
-- 本番・ステージングの恒常的なデプロイ先は現在再構築中です。決定事項は `docs/PLAN.md` と `docs/DECISIONS.md` で追跡してください。
+| 環境 | Frontend | API | Database |
+|------|----------|-----|----------|
+| **Development** | http://localhost:3000 | http://localhost:8787 | Local PostgreSQL |
+| **Production** | https://web-xi-seven-98.vercel.app/ | https://casto-workers.casto-api.workers.dev | Supabase Production |
+
+### 自動デプロイ
+- **PR作成**: Preview環境に自動デプロイ
+- **develop ブランチ**: Cloudflare/Vercel development 環境へ自動デプロイ（準備中）  
+- **main ブランチ**: Production環境に自動デプロイ
+
+詳細は [DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md) を参照してください。
+
+---
+
+## 🛠️ 開発コマンド (Development Commands)
+
+```bash
+# 開発サーバー起動
+npm run dev              # 全アプリ同時起動
+npm run dev:web          # Frontend のみ
+npm run dev:workers      # API のみ
+
+# ビルド・テスト
+npm run build            # 全アプリビルド
+npm run test             # テスト実行
+npm run lint             # Lint チェック
+npm run type-check       # 型チェック
+
+# データベース
+npm run db:setup         # 初回セットアップ
+npm run db:start         # 起動
+npm run db:stop          # 停止
+```
 
 ---
 
@@ -68,14 +175,6 @@ casto/
 
 ---
 
-## ✉️ メール運用 (Email Operations)
-
-- **Resend** をすべてのトランザクションメール（Magic Link、通知、受領確認など）の送受信基盤として利用します。`RESEND_API_KEY` は `.env.local` に設定し、環境ごとに Resend プロジェクトを分離してください。
-- メールテンプレートや送信ドメインの管理は Resend ダッシュボードで行います。開発用サンドボックスドメインを用意し、本番には認証済みドメインを割り当ててください。
-- 受信 webhook を利用する場合は Cloudflare Workers に `/api/v1/webhooks/resend`（予定）を追加し、Resend Inbound Routes から転送します。詳細な手順は `docs/` 配下の設計ドキュメントを参照してください。
-
----
-
 ## 🤝 コントリビューション (Contributing)
 
 1. **Issue作成**: 機能要望・バグ報告
@@ -85,7 +184,7 @@ casto/
 
 ### ブランチ戦略
 - `main`: Production環境
-- `develop`: Staging環境  
+- `develop`: Development環境  
 - `feature/*`: 機能開発
 - `fix/*`: バグ修正
 
@@ -94,4 +193,5 @@ casto/
 ## 📞 サポート (Support)
 
 - **ドキュメント**: [docs/](./docs/) ディレクトリ
-- **今やるべきこと**: [tasks/](./tasks/) ディレクトリ
+- **Issue報告**: GitHub Issues
+- **質問・相談**: GitHub Discussions

@@ -30,8 +30,8 @@ npm run dev:web
 ```
 
 ### アクセスURL
-- **ローカル開発**: https://casto.sb2024.xyz
-- **ローカル向け API パス**: https://casto.sb2024.xyz/api (Traefik が Workers へ転送)
+- **開発環境**: http://localhost:3000
+- **本番環境**: https://casto.sb2024.xyz
 
 ## 📁 ディレクトリ構造
 
@@ -125,8 +125,8 @@ NEXT_PUBLIC_LINE_LIFF_ID= # LINE LIFF ID
 
 ### 開発環境 (.env.local)
 ```env
-NEXT_PUBLIC_API_BASE_URL=https://casto.sb2024.xyz/api
-NEXT_PUBLIC_WEB_BASE_URL=https://casto.sb2024.xyz
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8787
+NEXT_PUBLIC_WEB_BASE_URL=http://localhost:3000
 ```
 
 ## 🚀 デプロイ

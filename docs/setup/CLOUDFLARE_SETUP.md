@@ -92,12 +92,14 @@ account_id = "your_actual_account_id_here"
 [env.development]
 name = "casto-workers-dev"
 
-[env.staging]
-name = "casto-workers-stg"
-
 [env.production]
 name = "casto-workers"
 ```
+
+### 現状メモ（本レポジトリの状態）
+- `apps/workers/wrangler.toml` には `account_id` の明記は現時点でない（確認済み）。
+- 実運用で `wrangler login` により解決している可能性はあるが、ここでは「わからない」。
+- 明示的に `account_id` を記載すると運用が安定する場合がある（要関係者確認）。
 
 ## 5. R2バケット作成
 

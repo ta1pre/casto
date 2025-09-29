@@ -1,0 +1,26 @@
+# Git attributes for proper line endings and file handling
+* text=auto
+
+# Ensure shell scripts have proper line endings
+*.sh text eol=lf
+
+# Ensure batch files have proper line endings
+*.bat text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+
+# Linguist overrides for better language detection
+*.md linguist-detectable=true
+*.json linguist-detectable=true
+*.ts linguist-detectable=true
+*.tsx linguist-detectable=true
+*.js linguist-detectable=true
+*.jsx linguist-detectable=true

@@ -1,0 +1,25 @@
+FROM node:18-alpine
+
+# 必要なパッケージをインストール
+RUN apk add --no-cache python3 make g++
+
+# 作業ディレクトリを設定
+WORKDIR /app
+
+# package.jsonとpackage-lock.jsonをコピー
+COPY package*.json ./
+
+# 依存関係をインストール（最新のwranglerを使用）
+RUN npm install
+
+# wranglerを最新バージョンに更新
+RUN npm install --save-dev wrangler@latest
+
+# ソースコードをコピー
+COPY . .
+
+# ポート8787を公開
+EXPOSE 8787
+
+# 開発サーバーを起動（npx wranglerを使用）
+CMD ["npx", "wrangler", "dev", "--port", "8787", "--host", "0.0.0.0"]

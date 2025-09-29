@@ -1,3 +1,7 @@
+# ⚠️ WARNING: このディレクトリで直接 npm run dev を実行しないでください
+# 上位階層のDocker環境（/Users/taichiumeki/dev/docker-compose.yml）を使用してください
+# 詳細: docs/ローカル開発環境について.md
+
 # Dependencies
 node_modules/
 npm-debug.log*

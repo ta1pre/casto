@@ -5,6 +5,11 @@ compatibility_flags = ["nodejs_compat"]
 
 [env.development]
 name = "casto-workers-dev"
+vars = { ENVIRONMENT = "development" }
+
+[env.preview]
+name = "casto-workers-preview"
+vars = { ENVIRONMENT = "preview" }
 
 [env.production]
 name = "casto-workers"
@@ -15,18 +20,20 @@ vars = { ENVIRONMENT = "production" }
 ENVIRONMENT = "development"
 
 # Secrets (use `wrangler secret put` to set)
+# SUPABASE_URL
+# SUPABASE_SERVICE_ROLE_KEY
 # JWT_SECRET
 # DATABASE_URL
 # LINE_CHANNEL_SECRET
 # STRIPE_SECRET_KEY
 
-# KV Namespaces
+# KV Namespaces (disabled for development)
 # [[kv_namespaces]]
 # binding = "CACHE"
 # id = "your_kv_namespace_id"
 # preview_id = "your_preview_kv_namespace_id"
 
-# Queues
+# Queues (disabled for development)
 # [[queues.producers]]
 # queue = "notifications"
 # binding = "NOTIFICATION_QUEUE"
