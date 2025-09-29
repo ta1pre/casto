@@ -15,22 +15,6 @@
 
 ---
 
-## 📚 主要ドキュメント一覧 (Key Documents)
-
-| ドキュメント                               | 内容                                               |
-| ------------------------------------------ | -------------------------------------------------- |
-| [**`PURPOSE.md`**](./docs/PURPOSE.md)      | プロジェクトの目的とゴール                          |
-| [**`SPEC.md`**](./docs/SPEC.md)            | 機能要件・ユーザーフロー・詳細仕様                  |
-| [**`ARCHITECTURE.md`**](./docs/ARCHITECTURE.md) | 技術スタックとシステム設計方針                     |
-| [**`PLAN.md`**](./docs/PLAN.md)            | 開発計画とマイルストーン                            |
-| [**`DECISIONS.md`**](./docs/DECISIONS.md)  | 意思決定と変更履歴                                 |
-| [**`QUESTIONS.md`**](./docs/QUESTIONS.md)  | 未解決の課題・検討事項                              |
-| [**`DEVELOPMENT.md`**](./docs/DEVELOPMENT.md) | ローカル開発手順・GitHub 運用フロー               |
-| [**`CLOUDFLARE_SETUP.md`**](./docs/CLOUDFLARE_SETUP.md) | Cloudflare 環境構築ガイド                      |
-| [**`SUPABASE_SETUP.md`**](./docs/SUPABASE_SETUP.md) | データベース構築手順                              |
-
----
-
 ## 🏗️ プロジェクト構成 (Project Structure)
 
 ```
@@ -52,10 +36,8 @@ casto/
 
 ## 🌐 デプロイ / ホスティング
 
-- ローカル開発は Traefik / Cloudflare Tunnel 経由で Docker コンテナを起動します。手順は `docs/DEVELOPMENT.md` を参照してください。
-  - 共通スタック起動: `./infrastructure/scripts/manage.sh start`
-  - casto コンテナ起動: `docker compose -f services/casto/docker-compose.dev.yml up -d`
-  - Workers 開発モード: `cd services/casto && npm run dev:workers`（必要に応じて `wrangler dev --remote`）
+- ローカル開発は `npm run dev`（または `npm run dev:web` / `npm run dev:workers`）で起動する環境を利用します。
+- `wrangler dev --remote` を使うことで Cloudflare 側の開発ランタイムに接続できます。手順は `docs/DEVELOPMENT.md` を参照してください。
 - 本番・ステージングの恒常的なデプロイ先は現在再構築中です。決定事項は `docs/PLAN.md` と `docs/DECISIONS.md` で追跡してください。
 
 ---
