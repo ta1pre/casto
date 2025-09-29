@@ -163,7 +163,7 @@ jobs:
       - name: Check Web Health (Optional)
         run: |
           echo "✅ Web deployment completed successfully"
-          echo "🌐 Web URL: https://web-ta1pre-ta1pres-projects.vercel.app/"
+          echo "🌐 Web URL: https://casto.io"
         continue-on-error: true
 
   notify:
@@ -177,7 +177,7 @@ jobs:
         if: needs.health-check.result == 'success'
         run: |
           echo "🚀 Production deployment successful!"
-          echo "Web: https://web-xi-seven-98.vercel.app/"
+          echo "Web: https://casto.io"
           echo "API: https://casto-workers.casto-api.workers.dev"
 
       - name: Notify Failure

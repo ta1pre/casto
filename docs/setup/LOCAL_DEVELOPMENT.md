@@ -1,58 +1,56 @@
 # ⚙️ ローカル開発環境仕様（casto）
 
-casto フロントエンドは `/Users/taichiumeki/dev/` 直下の Docker Compose で統合管理されており、ローカル開発では **Next.js のみ** をホストします。API と DB はクラウド常設で動作しているため、ローカルで同等のサービスを用意する必要はありません。[SF][RP][TR]
+casto フロントエンドは `/Users/taichiumeki/dev/` 配下の Docker Compose で起動する。Next.js はコンテナ内で実行され、API・DB はクラウド常設環境を利用する。[SF][RP]
 
-## ✅ ローカルで提供される機能
+## ✅ 前提
 
-- `services/casto/apps/web/` の Next.js アプリ
-- Traefik を介したリバースプロキシ（`casto.sb2024.xyz` でアクセス）
-- Cloudflare Tunnel クライアント（外部 HTTPS → ローカルへの転送）
+- Docker / Docker Compose
+- Cloudflare Tunnel クライアント
+- Node.js/NPM（依存追加や `wrangler` 実行に使用）
 
-## ☁️ クラウド常設の機能
+## ☁️ 提供コンポーネント
 
-- **API**: `casto-workers-dev.casto-api.workers.dev`（Cloudflare Workers）
-- **DB**: Supabase（本番 DB を共用）
+- `services/casto/apps/web/`: Next.js アプリ（Traefik 経由で HTTPS 提供）
+- Cloudflare Workers（開発用・本番用環境）
+- Supabase（共有インスタンス）
 
-フロントエンドは常にクラウド上の API/DB に接続します。ローカル用の API/DB を起動したり、エミュレータを用意する必要はありません。[DM]
+ローカルで API や DB を新規起動する運用は行わない。[SF]
 
-## 🧭 ディレクトリ構成（抜粋）
+## 🧭 ディレクトリ抜粋
 
 ```
 /Users/taichiumeki/dev/
-├── docker-compose.yml          # ルートの統合 Docker 設定
-├── services/
-│   └── casto/
-│       ├── Dockerfile.dev      # casto コンテナ（Next.js dev server）
-│       ├── apps/web/           # フロントエンド
-│       └── docs/               # ドキュメント
-└── infrastructure/
-    └── tunnel/config.yml       # Cloudflare Tunnel 設定
+├── docker-compose.yml
+└── services/
+    └── casto/
+        ├── Dockerfile.dev
+        ├── apps/web/
+        └── docs/
 ```
 
-## 🚀 起動・停止手順
+## 🚀 起動手順
 
-1. **起動**
+1. ルートディレクトリへ移動
    ```bash
    cd /Users/taichiumeki/dev/
+   ```
+2. `casto` コンテナを起動
+   ```bash
    docker compose up -d casto
    ```
-2. **ログ確認**
+3. ログ確認（任意）
    ```bash
    docker logs -f casto
    ```
-3. **停止**
-   ```bash
-   docker compose stop casto
-   ```
 
-`casto` コンテナ起動時に `npm run dev:web` が自動実行され、Next.js 開発サーバーがポート 3000 で待ち受けます。Traefik 経由で `https://casto.sb2024.xyz/` からアクセスできます。[RP]
+アクセス時は Traefik により `https://casto.sb2024.xyz/` にリバースプロキシされる。[CA]
 
-## 🔒 禁止事項
+停止は `docker compose stop casto`、再起動は `docker compose restart casto` を使用する。[SF]
 
-- `services/casto/` 直下で `npm run dev` / `npm run dev:web` / `npm start` を実行しない。
-- ローカルで独自の API / DB を立ち上げない（クラウドと衝突します）。
+## 🔒 運用ルール
 
-誤って Next.js を直接起動した場合は以下で終了→再起動してください。
+- `services/casto/` 直下で `npm run dev` や `npm start` を実行しない。
+- Next.js をホスト側で誤って起動した場合はプロセスを終了し、コンテナを再起動する。
 
 ```bash
 ps aux | grep -i next
@@ -60,38 +58,42 @@ kill <PID>
 docker compose restart casto
 ```
 
-## 🌐 動作確認
+## 🧹 キャッシュ復旧
 
-- **ブラウザ**: `https://casto.sb2024.xyz/`
-- **ローカルホスト経由**: `curl -H "Host: casto.sb2024.xyz" http://localhost:80`
-- **API 健全性**: `https://casto-workers-dev.casto-api.workers.dev/api/v1/health`
+Next.js ビルドキャッシュが破損した場合の再生成手順。
 
-API/DB はクラウド側で提供されるため、障害発生時は Cloudflare Workers と Supabase のログを確認してください。[REH]
-
-## 🧹 キャッシュ復旧手順
-
-```
+```bash
 docker compose down casto
 rm -rf services/casto/apps/web/.next services/casto/apps/web/node_modules
 docker compose up -d casto
 docker exec casto npm install
 ```
 
-再起動後に `docker logs casto` で `✓ Ready` が出力されれば復旧完了です。`.next` が破損した場合もこの手順で解消できます。[CA]
+`docker logs casto` で `✓ Ready` が確認できれば復旧完了。[CA]
 
-## 🔗 クラウド側の変更
+## 🔗 クラウドリソース連携
 
-- **API デプロイ**: `services/casto/apps/workers/` で開発 → `npx wrangler deploy --env development`
-- **DB 変更**: Supabase Dashboard でスキーマ・RLS を編集。ローカルから参照する場合は Supabase 提供の接続文字列を利用。
+- Workers: `services/casto/apps/workers/` で開発し、`npx wrangler deploy --env <environment>` でデプロイ
+- Supabase: Dashboard でスキーマ/RLS を更新し、必要に応じて `supabase db push` を使用
+- 環境変数: Docker Compose、Wrangler Secrets、GitHub Secrets を併用する
 
-クラウド環境へ影響する変更は、先にステージング環境で検証してから本番反映する運用としてください。[SD]
+## 🧰 よく使うコマンド
 
-## 📚 関連ドキュメント
+```bash
+# 依存追加（ホスト側）
+cd services/casto
+npm install <package> --workspace apps/web
+docker compose restart casto
 
-- `docs/setup/DEVELOPMENT.md`
-- `docs/deployment/STRATEGY.md`
-- `docs/architecture/system-overview.md`
+# Lint / 型チェック / テスト
+docker exec casto npm run lint
+docker exec casto npm run type-check
+docker exec casto npm run test
+```
 
----
+## 📚 参考ドキュメント
 
-手順や構成に変更が生じた場合は本ドキュメントを速やかに更新し、最新状態を維持してください。[SD]
+- `operations/deployment/STRATEGY.md`
+- `operations/DECISIONS.md`
+
+構成変更時は本ドキュメントを更新する。[TR]

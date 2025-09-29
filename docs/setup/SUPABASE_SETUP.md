@@ -7,21 +7,8 @@
 - **環境変数テンプレート**: `.env.example`（開発用 `DATABASE_URL` 等を参照）
 - **CLI**: Supabase CLI が利用可能（`supabase` コマンド）
 
-## 2. スキーマ（確定事項）
-以下のテーブルと設定はマイグレーションにより作成されます。
-- `users`
-- `user_handles`
-- `user_roles`
-- `auditions`
-- `entries`
-- `payments`
-- `notifications`
-- `audit_logs`
-
-補足:
-- RLS はマイグレーション内で有効化されています。
-- 基本ポリシー（`users` の SELECT/UPDATE 自分自身のみ）は含まれます。
-- 主要インデックスと `updated_at` 自動更新トリガーを含みます。
+## 2. マイグレーション方針
+スキーマは `supabase/migrations/` 配下の SQL で管理し、確定済みの定義のみをコミットする。テーブル一覧やポリシーの詳細はマイグレーションファイル内を参照する。[SF][TR]
 
 ## 3. セットアップ（CLI）
 プロジェクト作成とリンクは Supabase CLI で行います。実際の Project Ref は各自の環境のものを使用してください。

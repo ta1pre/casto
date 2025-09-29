@@ -24,8 +24,8 @@
    - ロール追加手順をタスクとドキュメントで標準化。
 
 ## 3. 実装タスクとの紐付け
-- `tasks/CURRENT_TASKS.md`「認証システム実装」の小項目に詳細タスクを記載済み。
-- 進行管理: `Workers認証基盤 → LINE認証 → メール認証 → Next.js連携 → RBAC`の順で対応。
+- 進行中タスクの管理は `tasks/TODO.md` に統合。認証関連の未完了項目が存在する場合は必ず追記する。
+- 進行管理の推奨順序: `Workers認証基盤 → LINE認証 → メール認証 → Next.js連携 → RBAC`。
 
 ## 4. 残課題
 - LINE Developers Consoleのテスト用LIFF ID確保（タスク4参照）。
@@ -33,7 +33,7 @@
 - `tokenVersion`によるリボーク、及び高リスク操作時の二要素導入タイミング。
 
 ## 5. 参照ドキュメント
-- `docs/ARCHITECTURE.md` セクション3「認証／セッション」
-- `docs/PLAN.md` セクション3「応募・閲覧フロー」
+- `specs/ARCHITECTURE.md` セクション3「認証／セッション」
+- `specs/ROADMAP.md` セクション3「応募・閲覧フロー」
 - `apps/web/src/providers/AuthProvider.tsx`
 - `apps/workers/src/index.ts`
