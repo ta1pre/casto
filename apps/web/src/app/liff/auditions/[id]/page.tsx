@@ -33,17 +33,27 @@ interface RecentAudition {
   viewedAt: string
 }
 
-export default function AuditionDetailPage({ params }: { params: { id: string } }) {
+export default function AuditionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { user, isLoading, error } = useLiffAuth()
   const [audition, setAudition] = useState<Audition | null>(null)
   const [isLoadingAudition, setIsLoadingAudition] = useState(true)
   const [auditionError, setAuditionError] = useState<string | null>(null)
+  const [auditionId, setAuditionId] = useState<string | null>(null)
+
+  // paramsの解決
+  useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params
+      setAuditionId(resolvedParams.id)
+    }
+    void resolveParams()
+  }, [params])
 
   // オーディション情報の取得
   useEffect(() => {
     const fetchAudition = async () => {
-      if (!user) return
+      if (!user || !auditionId) return
 
       try {
         setIsLoadingAudition(true)
@@ -51,7 +61,7 @@ export default function AuditionDetailPage({ params }: { params: { id: string } 
 
         // TODO: 実際のAPI実装後に置き換え
         const response = await apiFetch<{ audition: Audition }>(
-          `/api/v1/auditions/${params.id}`
+          `/api/v1/auditions/${auditionId}`
         )
         
         setAudition(response.audition)
@@ -60,7 +70,7 @@ export default function AuditionDetailPage({ params }: { params: { id: string } 
         saveToRecentAuditions(response.audition)
 
         // DB保存（非同期・バックグラウンド）
-        saveToHistory(params.id).catch(err => {
+        saveToHistory(auditionId).catch(err => {
           console.error('Failed to save history:', err)
         })
       } catch (err: unknown) {
@@ -83,10 +93,10 @@ export default function AuditionDetailPage({ params }: { params: { id: string } 
       }
     }
 
-    if (user) {
+    if (user && auditionId) {
       void fetchAudition()
     }
-  }, [user, params.id, router])
+  }, [user, auditionId, router])
 
   // localStorageに閲覧履歴を保存
   const saveToRecentAuditions = (audition: Audition) => {
