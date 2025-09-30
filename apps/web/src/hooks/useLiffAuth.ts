@@ -57,12 +57,20 @@ export function useLiffAuth(): UseLiffAuthReturn {
     if (!window.liff) {
       console.error('[useLiffAuth] window.liff is not defined')
       setError('LIFF SDKが読み込まれていません')
+      setIsAuthenticating(false)
       return
     }
 
     console.log('[useLiffAuth] Starting LINE session synchronization...')
     setIsAuthenticating(true)
     setError(null)
+
+    // タイムアウト処理：10秒以内に完了しない場合はエラーとする
+    const timeoutId = setTimeout(() => {
+      console.error('[useLiffAuth] Authentication timeout')
+      setError('認証処理がタイムアウトしました')
+      setIsAuthenticating(false)
+    }, 10000)
 
     try {
       // LINEアプリ内かどうかの確認
@@ -104,8 +112,10 @@ export function useLiffAuth(): UseLiffAuthReturn {
       setError(null)
     } catch (err) {
       console.error('[useLiffAuth] Failed to synchronize LINE session:', err)
-      setError('LINE認証に失敗しました。再度お試しください。')
+      const errorMessage = err instanceof Error ? err.message : 'LINE認証に失敗しました'
+      setError(errorMessage)
     } finally {
+      clearTimeout(timeoutId)
       setIsAuthenticating(false)
     }
   }, [loginWithLine])
@@ -138,7 +148,11 @@ export function useLiffAuth(): UseLiffAuthReturn {
         // ログイン済みの場合は認証を実行
         if (isLoggedIn && !user) {
           console.log('[useLiffAuth] Triggering synchronizeLineSession...')
-          await synchronizeLineSession()
+          try {
+            await synchronizeLineSession()
+          } catch (err) {
+            console.error('[useLiffAuth] synchronizeLineSession failed in init:', err)
+          }
         }
         return
       }
@@ -178,7 +192,11 @@ export function useLiffAuth(): UseLiffAuthReturn {
           // ログイン済みの場合は認証を実行
           if (isLoggedIn && !user) {
             console.log('[useLiffAuth] Triggering synchronizeLineSession...')
-            await synchronizeLineSession()
+            try {
+              await synchronizeLineSession()
+            } catch (err) {
+              console.error('[useLiffAuth] synchronizeLineSession failed in dynamic load:', err)
+            }
           }
         }, 100)
       }

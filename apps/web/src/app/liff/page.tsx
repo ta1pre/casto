@@ -16,8 +16,9 @@ interface Audition {
 }
 
 export default function LiffHomePage() {
-  const { user, isLoading, error, liffProfile, logout } = useLiffAuth()
+  const { user, isLoading, error, liffProfile, logout, isLiffReady } = useLiffAuth()
   const [recentAuditions, setRecentAuditions] = useState<Audition[]>([])
+  const [showContent, setShowContent] = useState(false)
 
   // 最近見たオーディションの取得
   useEffect(() => {
@@ -34,26 +35,53 @@ export default function LiffHomePage() {
     }
   }, [user])
 
-  if (isLoading) {
-    return <LoadingScreen message="読み込み中..." />
+  // タイムアウト処理：5秒経過したら強制的にコンテンツ表示
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      console.log('[LiffHomePage] Timeout: forcing content display')
+      setShowContent(true)
+    }, 5000)
+
+    if (user || error) {
+      clearTimeout(timer)
+      setShowContent(true)
+    }
+
+    return () => clearTimeout(timer)
+  }, [user, error])
+
+  // 初期ローディング（LIFF準備中）
+  if (!isLiffReady && !showContent) {
+    return <LoadingScreen message="LINEアプリの準備中..." />
   }
 
-  if (error) {
-    return <ErrorScreen message={error} />
+  // 認証処理中かつタイムアウト前
+  if (isLoading && !showContent) {
+    return <LoadingScreen message="認証処理中..." />
   }
 
-  if (!user) {
-    return <ErrorScreen message="認証に失敗しました" />
-  }
+  // エラーがある場合は表示（ただしコンテンツも表示可能にする）
+  const hasError = error || (!user && showContent)
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* エラーバナー */}
+      {hasError && (
+        <div className="bg-yellow-50 border-b border-yellow-200 p-3">
+          <div className="max-w-7xl mx-auto px-4">
+            <p className="text-sm text-yellow-800">
+              ⚠️ {error || '認証処理が完了していません。一部機能が制限されます。'}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ヘッダー */}
       <header className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-900">casto</h1>
           <div className="flex items-center gap-3">
-            {liffProfile?.pictureUrl && (
+            {user && liffProfile?.pictureUrl && (
               <Image
                 src={liffProfile.pictureUrl}
                 alt="プロフィール"
@@ -63,7 +91,7 @@ export default function LiffHomePage() {
               />
             )}
             <span className="text-sm text-gray-700">
-              {user.displayName ?? liffProfile?.displayName ?? 'ゲスト'}
+              {user?.displayName ?? liffProfile?.displayName ?? 'ゲスト'}
             </span>
           </div>
         </div>
@@ -134,20 +162,27 @@ export default function LiffHomePage() {
         </section>
 
         {/* デバッグ情報 */}
-        {process.env.NODE_ENV === 'development' && (
-          <section className="mt-8 p-4 bg-gray-100 rounded-lg">
-            <h3 className="font-bold mb-2">デバッグ情報</h3>
-            <pre className="text-xs overflow-auto">
-              {JSON.stringify({ user, liffProfile }, null, 2)}
-            </pre>
+        <section className="mt-8 p-4 bg-gray-100 rounded-lg">
+          <h3 className="font-bold mb-2">デバッグ情報</h3>
+          <div className="text-xs space-y-2 mb-4">
+            <p>• LIFF Ready: {isLiffReady ? '✅' : '❌'}</p>
+            <p>• Is Loading: {isLoading ? '🔄' : '✅'}</p>
+            <p>• User: {user ? '✅' : '❌'}</p>
+            <p>• Error: {error || 'なし'}</p>
+            <p>• Show Content: {showContent ? '✅' : '❌'}</p>
+          </div>
+          <pre className="text-xs overflow-auto bg-white p-2 rounded mb-2">
+            {JSON.stringify({ user, liffProfile }, null, 2)}
+          </pre>
+          {user && (
             <button
               onClick={logout}
-              className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
             >
               ログアウト
             </button>
-          </section>
-        )}
+          )}
+        </section>
       </main>
     </div>
   )
