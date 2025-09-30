@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useAuth } from './useAuth'
 
 declare global {
@@ -43,10 +43,22 @@ interface UseLiffAuthReturn {
     envLiffIdConfigured: boolean
     hasWindowLiff: boolean
     readyState: DocumentReadyState | undefined
+    scriptLoadState: 'pending' | 'loaded' | 'error'
+    lastLiffCheckAt: string | null
+    lastLiffCheckReason: string | null
+    idTokenSnippet: string | null
+    profileFetchedAt: string | null
+    liffInitStartedAt: string | null
+    liffInitCompletedAt: string | null
+    lastLoginAttemptAt: string | null
+    lastLoginSuccessAt: string | null
+    authUserLoadedAt: string | null
   }
   reinitializeLiff: () => Promise<void>
+  refreshSession: ReturnType<typeof useAuth>['refreshSession']
 }
 
+const getTimestamp = () => new Date().toISOString()
 /**
  * LIFF認証用の共通フック
  * - LIFF SDKの自動読み込み・初期化
@@ -54,7 +66,7 @@ interface UseLiffAuthReturn {
  * - 認証状態の管理
  */
 export function useLiffAuth(): UseLiffAuthReturn {
-  const { user, loginWithLine, logout: authLogout, isLoading: authLoading } = useAuth()
+  const { user, loginWithLine, logout: authLogout, isLoading: authLoading, refreshSession } = useAuth()
   const [isLiffReady, setIsLiffReady] = useState(false)
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const [liffProfile, setLiffProfile] = useState<LiffProfile | null>(null)
@@ -67,14 +79,44 @@ export function useLiffAuth(): UseLiffAuthReturn {
   const [readyState, setReadyState] = useState<DocumentReadyState | undefined>(
     typeof document !== 'undefined' ? document.readyState : undefined
   )
+  const [scriptLoadState, setScriptLoadState] = useState<'pending' | 'loaded' | 'error'>(
+    typeof window !== 'undefined' && !!window.liff ? 'loaded' : 'pending'
+  )
+  const [lastLiffCheckAt, setLastLiffCheckAt] = useState<string | null>(null)
+  const [lastLiffCheckReason, setLastLiffCheckReason] = useState<string | null>(null)
+  const [idTokenSnippet, setIdTokenSnippet] = useState<string | null>(null)
+  const [profileFetchedAt, setProfileFetchedAt] = useState<string | null>(null)
+  const [liffInitStartedAt, setLiffInitStartedAt] = useState<string | null>(null)
+  const [liffInitCompletedAt, setLiffInitCompletedAt] = useState<string | null>(null)
+  const [lastLoginAttemptAt, setLastLoginAttemptAt] = useState<string | null>(null)
+  const [lastLoginSuccessAt, setLastLoginSuccessAt] = useState<string | null>(null)
+  const [authUserLoadedAt, setAuthUserLoadedAt] = useState<string | null>(null)
+  const previousUserIdRef = useRef<string | null>(null)
 
   const addLog = useCallback((message: string) => {
-    const timestamp = new Date().toLocaleTimeString()
-    setDebugLogs(prev => [...prev.slice(-19), `[${timestamp}] ${message}`])
+    const ts = new Date().toLocaleTimeString()
+    setDebugLogs(prev => [...prev.slice(-19), `[${ts}] ${message}`])
   }, [])
+
+  const updateWindowLiff = useCallback(
+    (reason: string) => {
+      const present = typeof window !== 'undefined' && !!window.liff
+      setHasWindowLiff(present)
+      setLastLiffCheckAt(getTimestamp())
+      setLastLiffCheckReason(reason)
+      if (present) {
+        setScriptLoadState('loaded')
+      }
+      addLog(`[window.liff] ${present ? 'present' : 'absent'} (${reason})`)
+      return present
+    },
+    [addLog]
+  )
 
   // LINE認証の実行
   const synchronizeLineSession = useCallback(async () => {
+    updateWindowLiff('synchronizeLineSession:start')
+
     if (!window.liff) {
       console.error('[useLiffAuth] window.liff is not defined')
       setError('LIFF SDKが読み込まれていません')
@@ -117,6 +159,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
       const idToken = window.liff.getIDToken?.()
       console.log('[useLiffAuth] ID Token obtained:', idToken ? 'YES' : 'NO')
       addLog(`ID Token: ${idToken ? 'YES' : 'NO'}`)
+      setIdTokenSnippet(idToken ? `${idToken.slice(0, 4)}...${idToken.slice(-4)}` : null)
       
       if (!idToken) {
         console.warn('[useLiffAuth] No ID token, triggering login')
@@ -132,13 +175,16 @@ export function useLiffAuth(): UseLiffAuthReturn {
       const profile = await window.liff.getProfile()
       console.log('[useLiffAuth] LINE profile:', profile)
       setLiffProfile(profile)
+      setProfileFetchedAt(getTimestamp())
 
       // バックエンドで認証
       console.log('[useLiffAuth] Calling loginWithLine...')
       addLog('Calling loginWithLine')
+      setLastLoginAttemptAt(getTimestamp())
       await loginWithLine(idToken)
       console.log('[useLiffAuth] LINE session synchronized successfully')
       addLog('LINE session synchronized successfully')
+      setLastLoginSuccessAt(getTimestamp())
       
       setError(null)
     } catch (err) {
@@ -149,19 +195,22 @@ export function useLiffAuth(): UseLiffAuthReturn {
     } finally {
       clearTimeout(timeoutId)
       setIsAuthenticating(false)
+      updateWindowLiff('synchronizeLineSession:finally')
     }
-  }, [loginWithLine])
+  }, [loginWithLine, updateWindowLiff])
 
   // LIFF SDKの初期化
   const initializeLiff = useCallback(async () => {
     try {
       console.log('[useLiffAuth] Initializing LIFF SDK...')
       addLog('Initializing LIFF SDK')
+      updateWindowLiff('initializeLiff:start')
       
       // 既にLIFF SDKが読み込まれている場合
       if (window.liff) {
         console.log('[useLiffAuth] LIFF SDK already loaded')
         addLog('LIFF SDK already loaded')
+        setScriptLoadState('loaded')
         const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
         console.log('[useLiffAuth] LIFF ID:', liffId ? 'configured' : 'missing')
         addLog(`LIFF ID: ${liffId ? 'configured' : 'missing'}`)
@@ -174,9 +223,11 @@ export function useLiffAuth(): UseLiffAuthReturn {
 
         console.log('[useLiffAuth] Calling liff.init...')
         addLog('Calling liff.init')
+        setLiffInitStartedAt(getTimestamp())
         await window.liff.init({ liffId })
         console.log('[useLiffAuth] liff.init complete')
         addLog('liff.init complete')
+        setLiffInitCompletedAt(getTimestamp())
         setIsLiffReady(true)
 
         const isLoggedIn = window.liff.isLoggedIn()
@@ -204,10 +255,13 @@ export function useLiffAuth(): UseLiffAuthReturn {
       const script = document.createElement('script')
       script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js'
       script.async = true
+      setScriptLoadState('pending')
       
       script.onload = () => {
         console.log('[useLiffAuth] LIFF SDK script loaded')
         addLog('LIFF SDK script loaded')
+        setScriptLoadState('loaded')
+        updateWindowLiff('dynamicScript:onload')
         setTimeout(async () => {
           if (!window.liff) {
             console.error('[useLiffAuth] window.liff not available after script load')
@@ -228,9 +282,11 @@ export function useLiffAuth(): UseLiffAuthReturn {
 
           console.log('[useLiffAuth] Calling liff.init...')
           addLog('Calling liff.init')
+          setLiffInitStartedAt(getTimestamp())
           await window.liff.init({ liffId })
           console.log('[useLiffAuth] liff.init complete')
           addLog('liff.init complete')
+          setLiffInitCompletedAt(getTimestamp())
           setIsLiffReady(true)
 
           const isLoggedIn = window.liff.isLoggedIn()
@@ -256,6 +312,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
         console.error('[useLiffAuth] LIFF SDK script failed to load')
         setError('LIFF SDKの読み込みに失敗しました')
         addLog('ERROR: LIFF SDK script failed to load')
+        setScriptLoadState('error')
       }
 
       document.head.appendChild(script)
@@ -264,7 +321,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
       setError('LIFFの初期化に失敗しました')
       addLog(`ERROR: LIFF initialization failed: ${err instanceof Error ? err.message : String(err)}`)
     }
-  }, [user, synchronizeLineSession])
+  }, [user, synchronizeLineSession, updateWindowLiff])
 
   // 初回マウント時にLIFFを初期化
   useEffect(() => {
@@ -272,20 +329,63 @@ export function useLiffAuth(): UseLiffAuthReturn {
     if (typeof document !== 'undefined') {
       addLog(`document.readyState: ${document.readyState}`)
       setReadyState(document.readyState)
+
+      const handleReadyStateChange = () => {
+        setReadyState(document.readyState)
+        addLog(`document.readyState changed: ${document.readyState}`)
+      }
+
+      document.addEventListener('readystatechange', handleReadyStateChange)
+
+      return () => {
+        document.removeEventListener('readystatechange', handleReadyStateChange)
+      }
     }
-    setHasWindowLiff(typeof window !== 'undefined' && !!window.liff)
+
+    return () => {}
+  }, [addLog])
+
+  useEffect(() => {
     setEnvLiffIdConfigured(!!(process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID))
+    updateWindowLiff('mount')
+    if (typeof window !== 'undefined' && window.liff) {
+      setScriptLoadState('loaded')
+    }
     void initializeLiff()
-  }, [initializeLiff])
+  }, [initializeLiff, updateWindowLiff])
+
+  useEffect(() => {
+    const currentId = user?.id ?? null
+    if (previousUserIdRef.current !== currentId) {
+      previousUserIdRef.current = currentId
+      if (user) {
+        setAuthUserLoadedAt(getTimestamp())
+        addLog(`Auth user loaded: ${user.id}`)
+      } else {
+        setAuthUserLoadedAt(null)
+        addLog('Auth user cleared')
+      }
+    }
+  }, [user, addLog])
 
   const reinitializeLiff = useCallback(async () => {
     addLog('Manual reinitialize requested')
     setIsLiffReady(false)
     setError(null)
+    setProfileFetchedAt(null)
+    setIdTokenSnippet(null)
+    setLiffInitStartedAt(null)
+    setLiffInitCompletedAt(null)
     setHasWindowLiff(typeof window !== 'undefined' && !!window.liff)
     setEnvLiffIdConfigured(!!(process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID))
+    if (typeof window !== 'undefined' && window.liff) {
+      setScriptLoadState('loaded')
+    } else {
+      setScriptLoadState('pending')
+    }
+    updateWindowLiff('manual reinitialize')
     await initializeLiff()
-  }, [initializeLiff])
+  }, [initializeLiff, updateWindowLiff])
 
   // ログアウト処理
   const handleLogout = useCallback(async () => {
@@ -321,8 +421,19 @@ export function useLiffAuth(): UseLiffAuthReturn {
     diagnostics: {
       envLiffIdConfigured,
       hasWindowLiff,
-      readyState
+      readyState,
+      scriptLoadState,
+      lastLiffCheckAt,
+      lastLiffCheckReason,
+      idTokenSnippet,
+      profileFetchedAt,
+      liffInitStartedAt,
+      liffInitCompletedAt,
+      lastLoginAttemptAt,
+      lastLoginSuccessAt,
+      authUserLoadedAt
     },
-    reinitializeLiff
+    reinitializeLiff,
+    refreshSession
   }
 }
