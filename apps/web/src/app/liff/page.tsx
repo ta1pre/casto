@@ -18,7 +18,6 @@ interface Audition {
 export default function LiffHomePage() {
   const { user, isLoading, error, liffProfile, logout } = useLiffAuth()
   const [recentAuditions, setRecentAuditions] = useState<Audition[]>([])
-  const [popularAuditions, setPopularAuditions] = useState<Audition[]>([])
 
   // 最近見たオーディションの取得
   useEffect(() => {

@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { useLiffAuth } from '@/hooks/useLiffAuth'
 import { LoadingScreen } from '@/components/LoadingScreen'
 import { ErrorScreen } from '@/components/ErrorScreen'
-import { apiFetch } from '@/utils/api'
+import { apiFetch, ApiError } from '@/utils/api'
 
 interface Audition {
   id: string
@@ -22,6 +22,15 @@ interface Audition {
   requirements?: string
   prizes?: string
   contactInfo?: string
+}
+
+interface RecentAudition {
+  id: string
+  title: string
+  thumbnailUrl?: string
+  organizerName: string
+  deadline: string
+  viewedAt: string
 }
 
 export default function AuditionDetailPage({ params }: { params: { id: string } }) {
@@ -54,15 +63,18 @@ export default function AuditionDetailPage({ params }: { params: { id: string } 
         saveToHistory(params.id).catch(err => {
           console.error('Failed to save history:', err)
         })
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to fetch audition:', err)
-        
-        // 404の場合はトップページにリダイレクト
-        if (err.status === 404) {
-          setAuditionError('オーディションが見つかりませんでした')
-          setTimeout(() => {
-            router.push('/liff')
-          }, 2000)
+
+        if (err instanceof ApiError) {
+          if (err.status === 404) {
+            setAuditionError('オーディションが見つかりませんでした')
+            setTimeout(() => {
+              router.push('/liff')
+            }, 2000)
+          } else {
+            setAuditionError('オーディション情報の取得に失敗しました')
+          }
         } else {
           setAuditionError('オーディション情報の取得に失敗しました')
         }
@@ -80,20 +92,22 @@ export default function AuditionDetailPage({ params }: { params: { id: string } 
   const saveToRecentAuditions = (audition: Audition) => {
     try {
       const recent = localStorage.getItem('recentAuditions')
-      let auditions: any[] = recent ? JSON.parse(recent) : []
+      let auditions: RecentAudition[] = recent ? JSON.parse(recent) : []
 
       // 既存のものは削除
-      auditions = auditions.filter(a => a.id !== audition.id)
+      auditions = auditions.filter(auditionEntry => auditionEntry.id !== audition.id)
 
       // 先頭に追加
-      auditions.unshift({
+      const updatedAudition: RecentAudition = {
         id: audition.id,
         title: audition.title,
         thumbnailUrl: audition.thumbnailUrl,
         organizerName: audition.organizerName,
         deadline: audition.deadline,
         viewedAt: new Date().toISOString()
-      })
+      }
+
+      auditions.unshift(updatedAudition)
 
       // 最大10件まで保存
       auditions = auditions.slice(0, 10)
