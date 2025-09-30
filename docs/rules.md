@@ -12,17 +12,15 @@ docs/
 ├── rules.md                    # この運用ルール
 ├── README.md                   # ドキュメント案内（本書の簡易版）
 │
-├── specs/                      # 確定済み仕様・ロードマップ
+├── specs/                      # 確定済み仕様
 │   ├── PURPOSE.md
 │   ├── SPEC.md
-│   ├── ARCHITECTURE.md
-│   └── ROADMAP.md              # （旧PLAN）長期計画・マイルストーン
+│   └── ARCHITECTURE.md
 │
 ├── operations/                 # 運用・保守・決定事項
-│   ├── DECISIONS.md            # 意思決定ログ（旧development/DECISIONS）
+│   ├── DECISIONS.md            # 意思決定ログ
 │   ├── deployment/             # デプロイ手順・戦略・CI/CD
-│   ├── systems/                # システム運用・状況確認
-│   └── questions/              # 未解決事項・調査メモ
+│   └── systems/                # システム運用・ドメインルール
 │
 ├── setup/                      # 環境構築（開発/Cloudflare/GitHubなど）
 ├── features/                   # 機能別ドキュメント（auth / auditions 等）
@@ -32,15 +30,15 @@ docs/
 
 ## 各ディレクトリの役割
 
-### specs/ - 確定済み仕様・ロードマップ
-- プロジェクトの目的・仕様・技術方針・ロードマップを管理
-- `ROADMAP.md` は公開可能な長期計画を記載し、最新状態を維持
+### specs/ - 確定済み仕様
+- プロジェクトの目的・仕様・技術方針を管理
+- 未来の話や予定は記載しない、確定した事実のみ記載
 
 ### operations/ - 運用・保守・意思決定
-- デプロイ、監視、決定事項、未解決課題を管理
-- `deployment/` は CI/CD/デプロイ手順を集約（strategy / guide / secrets 等）
+- デプロイ、監視、決定事項を管理
+- `deployment/` は CI/CD/デプロイ手順を集約（strategy / secrets 等）
+- `systems/` はドメインルールとシステム運用を管理
 - `DECISIONS.md` に意思決定を記録し、参照リンクを最新化
-- `questions/` は未解決事項を追跡し、解決時は該当ドキュメントへ反映
 
 ### setup/ - 環境構築
 - 開発・本番環境の構築手順

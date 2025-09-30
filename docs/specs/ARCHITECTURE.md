@@ -54,46 +54,46 @@
 
 ---
 
-## 4. 主要ユーザーフロー - 2025年9月時点の実装状況
+## 4. 主要ユーザーフロー
 - **4.1 応募 (LINE)**
-  - 公式LINEメニュー or Flex → LIFF起動（`/liff/apply`）※LIFF実装済み
-  - LIFFでLINEログイン→Workers検証→JWT発行→応募フォーム表示※認証システム未実装
-  - 画像/動画はR2署名URLで直PUT→メタ情報だけWorkers APIへ※未実装
-  - 応募完了→公式LINE通知（Workers→Messaging API）※未実装
+  - 公式LINEメニュー or Flex → LIFF起動（`/liff/apply`）
+  - LIFFでLINEログイン→Workers検証→JWT発行→応募フォーム表示
+  - 画像/動画はR2署名URLで直PUT→メタ情報だけWorkers APIへ
+  - 応募完了→公式LINE通知（Workers→Messaging API）
 - **4.2 主催者の閲覧・連絡 (ブラウザ)**
-  - LP（Next）→「主催者登録」→メール入力→Magic Link※未実装
-  - 認証後、`/organizer/*`へ。以降のAPIはJWTで判定※/organizer 未実装
-  - 応募一覧取得: Next→Workers(`/api/v1/entries?auditionId=…`)→DB※未実装
-  - プロフィール課金閲覧（必要時）: Next→Workers→Stripe Checkout→Webhook確定→閲覧解放※未実装
-  - 応募者へ連絡: Workers→公式LINEプッシュ※未実装
+  - LP（Next）→「主催者登録」→メール入力→Magic Link
+  - 認証後、`/organizer/*`へ。以降のAPIはJWTで判定
+  - 応募一覧取得: Next→Workers(`/api/v1/entries?auditionId=…`)→DB
+  - プロフィール課金閲覧（必要時）: Next→Workers→Stripe Checkout→Webhook確定→閲覧解放
+  - 応募者へ連絡: Workers→公式LINEプッシュ
 - **4.3 公式LINE (AIチャット／通知)**
-  - ユーザー発話→LINE Webhook（Workers）→意図判定※未実装
-  - DB参照で即答可能なら同期返信※未実装
-  - それ以外はワークフロー（Queues投入／LLM要約）→返信※未実装
-  - 主催操作に応じたセグメント通知（締切・結果・当日案内）※未実装
+  - ユーザー発話→LINE Webhook（Workers）→意図判定
+  - DB参照で即答可能なら同期返信
+  - それ以外はワークフロー（Queues投入／LLM要約）→返信
+  - 主催操作に応じたセグメント通知（締切・結果・当日案内）
 
 ---
 
-## 5. API設計 (REST例／v1固定) - 2025年9月時点の実装状況
+## 5. API設計 (REST例／v1固定)
 - **認証系**
-  - `POST /auth/line/verify`（LIFF IDトークン→JWT発行）※未実装
-  - `POST /auth/email/request`（Magic Link送信）※未実装
-  - `POST /auth/email/verify`（リンク検証→紐付け＆JWT発行）※未実装
-  - `POST /auth/logout`（tokenVersion更新 or blacklist登録）※未実装
-- **基本機能（実装済み）**
-  - `GET /api/v1/health`（ヘルスチェック）✅ 実装済み
-  - `GET /api/v1/db-test`（データベース接続テスト）✅ 実装済み
-- **応募・閲覧（未実装）**
-  - `GET /auditions/:id`（公開情報）※未実装
-  - `POST /auditions/:id/entries`（応募作成）※未実装
-  - `GET /organizer/auditions/:id/entries`（主催者閲覧）※未実装
-  - `POST /uploads/sign`（R2署名URL発行）※未実装
-- **課金閲覧（未実装）**
-  - `POST /billing/checkout`（Stripe Checkout作成）※未実装
-  - `POST /webhooks/stripe`（結果受信→Queues→確定反映）※未実装
-- **通知・LINE（未実装）**
-  - `POST /notifications/line/push`（セグメントID or userIds）※未実装
-  - `POST /webhooks/line`（Messaging受信→Queues→応答）※未実装
+  - `POST /auth/line/verify`（LIFF IDトークン→JWT発行）
+  - `POST /auth/email/request`（Magic Link送信）
+  - `POST /auth/email/verify`（リンク検証→紐付け＆JWT発行）
+  - `POST /auth/logout`（tokenVersion更新 or blacklist登録）
+- **基本機能**
+  - `GET /api/v1/health`（ヘルスチェック）
+  - `GET /api/v1/db-test`（データベース接続テスト）
+- **応募・閲覧**
+  - `GET /auditions/:id`（公開情報）
+  - `POST /auditions/:id/entries`（応募作成）
+  - `GET /organizer/auditions/:id/entries`（主催者閲覧）
+  - `POST /uploads/sign`（R2署名URL発行）
+- **課金閲覧**
+  - `POST /billing/checkout`（Stripe Checkout作成）
+  - `POST /webhooks/stripe`（結果受信→Queues→確定反映）
+- **通知・LINE**
+  - `POST /notifications/line/push`（セグメントID or userIds）
+  - `POST /webhooks/line`（Messaging受信→Queues→応答）
 
 ---
 
@@ -109,14 +109,13 @@
 
 ---
 
-## 7. ディレクトリ構成 (モノレポ) - 2025年9月時点の実装状況
-- `/apps/web` # Next.js（/liff, /login, /test を実装済み、/organizer, /auth は今後実装予定）
-- `/apps/workers` # Cloudflare Workers（api/v1/* エンドポイントを実装中、webhooks/line, auth/*, uploads/* は今後実装予定）
-- `/packages/shared` # 型・Zodスキーマ・APIクライアント・権限Enum（単一真実）※現在空ディレクトリ
-- `/packages/ui` # 共通UI（MUIテーマ・共通フォーム等）※現在空ディレクトリ
-- `/database` # データベース関連ファイル（現在空）
-- `/supabase` # Supabase設定・マイグレーション（現在空）
-- `/tasks` # タスク管理・進捗追跡
+## 7. ディレクトリ構成 (モノレポ)
+- `/apps/web` # Next.js（フロントエンド）
+- `/apps/workers` # Cloudflare Workers（API・認証・Webhook）
+- `/packages/shared` # 型・Zodスキーマ・APIクライアント・権限Enum（単一真実）
+- `/packages/ui` # 共通UI（MUIテーマ・共通フォーム等）
+- `/supabase` # Supabase設定・マイグレーション
+- `/docs` # ドキュメント管理
 
 ---
 
@@ -142,38 +141,18 @@
 
 ---
 
-## 10. リリース順 - 2025年9月時点の実装状況
-1. **基盤**: モノレポ・3環境・Secrets・DBスキーマ・/packages/shared ✅ 完了
-2. **認証**: /auth/line/verify／/auth/email/*／JWTクッキー／ロールガード 🔄 設計完了、実装中
-3. **応募**: R2署名URL→応募API→主催者閲覧API ⏳ 未実装
-4. **LINE公式**: Webhook受信→自動応答（FAQ）→通知配信 ⏳ 未実装
-5. **課金閲覧**（必要に応じてStripe） ⏳ 未実装
-6. **監視・レート制限・運用ドキュメント** ⏳ 未実装
-
-### 現在の開発フェーズ
-- **完了済み**: プロジェクト基盤構築、技術仕様策定、ドキュメント整備
-- **進行中**: 認証システム実装、基本API開発
-- **今後**: ビジネスロジック実装、決済機能、監視システム
-
----
-
-## 11. 未決事項
+## 10. 未決事項
 - eKYCの導入タイミング（公開／決済／出金）
 - LINEのセグメント設計（タグ・属性の保持方針）
 
 ---
 
-## まとめ - 2025年9月時点の状況
-- **Next.js（Vercel）**＝画面（/liff, /login, /test 実装済み、/organizer, /auth は今後実装）
-- **Cloudflare Workers**＝API/認証/通知（/api/v1/health, /api/v1/db-test 実装済み、その他は設計完了・実装中）
-- **DB**＝PostgreSQL（Supabase設定済み、スキーマ未実装）
-- **ファイル**＝Cloudflare R2（署名URL発行システム未実装）
-- **認証**＝LINE（LIFF）＋メール（Magic Link）設計完了、実装中
+## 11. まとめ
+- **Next.js（Vercel）**＝画面のみ
+- **Cloudflare Workers**＝API/認証/通知
+- **DB**＝PostgreSQL（Supabase）
+- **ファイル**＝Cloudflare R2
+- **認証**＝LINE（LIFF）＋メール（Magic Link）
 - **応募者/ファン**はLINE（LIFF＋公式）で回し、主催者はブラウザ（メール）で管理
 - **判定（認証・権限）**は常にWorkers。Nextは画面だけ
 - **これで、後からクラファン等を"API追加"で横展開可能**
-
-### 📊 実装進捗状況
-- **完了**: 基盤構築、技術仕様策定、ドキュメント整理 ✅
-- **進行中**: 認証システム、基本API開発 🔄
-- **未着手**: ビジネスロジック、決済機能、監視システム ⏳
