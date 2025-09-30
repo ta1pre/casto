@@ -1,254 +1,113 @@
-'use client'
+import { AuditionCard } from "@/components/audition-card"
+import { Calendar, Users } from "lucide-react"
 
-import React from 'react'
-import { useAuth } from '@/hooks/useAuth'
-import { AuthStatus } from '@/components/AuthStatus'
+// サンプルデータ
+const auditions = [
+  {
+    id: "1",
+    title: "2025年春季ドラマ主演オーディション",
+    date: "2025年4月15日",
+    recruitCount: 5,
+    category: "ドラマ",
+    deadline: "2025年3月31日",
+  },
+  {
+    id: "2",
+    title: "新人アイドルグループメンバー募集",
+    date: "2025年5月20日",
+    recruitCount: 10,
+    category: "音楽",
+    deadline: "2025年4月15日",
+  },
+  {
+    id: "3",
+    title: "映画「夏の約束」キャスト募集",
+    date: "2025年6月10日",
+    recruitCount: 3,
+    category: "映画",
+    deadline: "2025年5月25日",
+  },
+  {
+    id: "4",
+    title: "ミュージカル「星降る夜に」出演者オーディション",
+    date: "2025年7月5日",
+    recruitCount: 8,
+    category: "舞台",
+    deadline: "2025年6月20日",
+  },
+  {
+    id: "5",
+    title: "CMタレント募集 - 大手飲料メーカー",
+    date: "2025年4月25日",
+    recruitCount: 2,
+    category: "CM",
+    deadline: "2025年4月10日",
+  },
+  {
+    id: "6",
+    title: "バラエティ番組レギュラー出演者募集",
+    date: "2025年5月15日",
+    recruitCount: 4,
+    category: "バラエティ",
+    deadline: "2025年4月30日",
+  },
+]
 
-export default function Home() {
-  const { user, isAuthenticated } = useAuth()
+export default function AuditionsPage() {
+  return (
+    <div className="min-h-screen bg-background">
+      {/* ヘッダー */}
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-6">
+          <h1 className="text-3xl font-bold text-foreground">オーディション一覧</h1>
+          <p className="text-muted-foreground mt-2">あなたの夢を叶えるチャンスを見つけよう</p>
+        </div>
+      </header>
 
-  if (isAuthenticated && user) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: 'system-ui, sans-serif',
-        padding: '2rem'
-      }}>
-        <main style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
-          <div style={{
-            textAlign: 'center',
-            marginBottom: '3rem'
-          }}>
-            <h1 style={{
-              fontSize: '2.5rem',
-              fontWeight: 'bold',
-              marginBottom: '1rem',
-              color: '#1976d2'
-            }}>
-              ようこそ、{user.displayName || user.name || 'ゲスト'}さん
-            </h1>
-            <p style={{
-              fontSize: '1.1rem',
-              color: '#666'
-            }}>
-              あなたのロール: <strong>{user.role}</strong>
-            </p>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '2rem',
-            marginBottom: '3rem'
-          }}>
-            {user.role === 'organizer' && (
-              <div style={{
-                padding: '2rem',
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                backgroundColor: '#f9f9f9',
-                textAlign: 'center'
-              }}>
-                <h3 style={{ marginBottom: '1rem', color: '#333' }}>主催者ダッシュボード</h3>
-                <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1.5rem' }}>
-                  オーディションの作成・管理
-                </p>
-                <a
-                  href="/organizer"
-                  style={{
-                    display: 'inline-block',
-                    padding: '0.75rem 1.5rem',
-                    backgroundColor: '#dc004e',
-                    color: 'white',
-                    textDecoration: 'none',
-                    borderRadius: '6px',
-                    fontWeight: '500'
-                  }}
-                >
-                  ダッシュボードを開く
-                </a>
+      {/* メインコンテンツ */}
+      <main className="container mx-auto px-4 py-8">
+        {/* 統計情報 */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-primary/10 rounded-lg">
+                <Calendar className="w-6 h-6 text-primary" />
               </div>
-            )}
-
-            {user.role === 'applicant' && (
-              <div style={{
-                padding: '2rem',
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                backgroundColor: '#f9f9f9',
-                textAlign: 'center'
-              }}>
-                <h3 style={{ marginBottom: '1rem', color: '#333' }}>応募者ページ</h3>
-                <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1.5rem' }}>
-                  オーディションの検索・応募
-                </p>
-                <a
-                  href="/liff"
-                  style={{
-                    display: 'inline-block',
-                    padding: '0.75rem 1.5rem',
-                    backgroundColor: '#1976d2',
-                    color: 'white',
-                    textDecoration: 'none',
-                    borderRadius: '6px',
-                    fontWeight: '500'
-                  }}
-                >
-                  応募者ページを開く
-                </a>
+              <div>
+                <p className="text-sm text-muted-foreground">開催予定</p>
+                <p className="text-2xl font-bold text-foreground">{auditions.length}件</p>
               </div>
-            )}
-
-            <div style={{
-              padding: '2rem',
-              border: '1px solid #ddd',
-              borderRadius: '8px',
-              backgroundColor: '#f9f9f9',
-              textAlign: 'center'
-            }}>
-              <h3 style={{ marginBottom: '1rem', color: '#333' }}>プロフィール</h3>
-              <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1.5rem' }}>
-                アカウント情報の管理
-              </p>
-              <a
-                href="/profile"
-                style={{
-                  display: 'inline-block',
-                  padding: '0.75rem 1.5rem',
-                  backgroundColor: '#666',
-                  color: 'white',
-                  textDecoration: 'none',
-                  borderRadius: '6px',
-                  fontWeight: '500'
-                }}
-              >
-                プロフィール編集
-              </a>
             </div>
           </div>
-
-          <div style={{
-            textAlign: 'center',
-            padding: '2rem',
-            backgroundColor: '#e3f2fd',
-            borderRadius: '8px',
-            marginBottom: '2rem'
-          }}>
-            <h3 style={{ marginBottom: '1rem', color: '#1976d2' }}>開発環境情報</h3>
-            <p style={{ marginBottom: '1rem', color: '#666' }}>
-              現在の認証プロバイダー: <strong>{user.provider}</strong>
-            </p>
-            <p style={{ fontSize: '0.9rem', color: '#666' }}>
-              API: <a href="http://localhost:8787/api/v1/health" target="_blank" rel="noopener" style={{ color: '#1976d2' }}>Health Check</a>
-            </p>
-            <AuthStatus />
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-accent/10 rounded-lg">
+                <Users className="w-6 h-6 text-accent" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">総募集人数</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {auditions.reduce((sum, a) => sum + a.recruitCount, 0)}名
+                </p>
+              </div>
+            </div>
           </div>
-        </main>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: 'system-ui, sans-serif',
-      padding: '2rem'
-    }}>
-      <main style={{ textAlign: 'center', maxWidth: '600px' }}>
-        <h1 style={{
-          fontSize: '3rem',
-          fontWeight: 'bold',
-          marginBottom: '1rem',
-          color: '#1976d2'
-        }}>
-          casto
-        </h1>
-        <p style={{
-          fontSize: '1.2rem',
-          marginBottom: '2rem',
-          color: '#666'
-        }}>
-          オーディション開催から終了まで一元管理できるプラットフォーム
-        </p>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '1rem',
-          marginBottom: '2rem'
-        }}>
-          <div style={{
-            padding: '1.5rem',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            backgroundColor: '#f9f9f9'
-          }}>
-            <h3 style={{ marginBottom: '0.5rem', color: '#333' }}>主催者</h3>
-            <p style={{ fontSize: '0.9rem', color: '#666' }}>
-              募集〜当日運営まで一元管理
-            </p>
-          </div>
-          <div style={{
-            padding: '1.5rem',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            backgroundColor: '#f9f9f9'
-          }}>
-            <h3 style={{ marginBottom: '0.5rem', color: '#333' }}>応募者</h3>
-            <p style={{ fontSize: '0.9rem', color: '#666' }}>
-              LINEで簡単応募・結果確認
-            </p>
+          <div className="bg-gradient-to-br from-primary/10 to-accent/10 border border-border rounded-lg p-6">
+            <div>
+              <p className="text-sm text-muted-foreground">新着オーディション</p>
+              <p className="text-2xl font-bold text-foreground">3件</p>
+              <p className="text-xs text-muted-foreground mt-1">過去7日間</p>
+            </div>
           </div>
         </div>
 
-        <div style={{
-          display: 'flex',
-          gap: '1rem',
-          justifyContent: 'center',
-          flexWrap: 'wrap'
-        }}>
-          <a
-            href="/login"
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#1976d2',
-              color: 'white',
-              textDecoration: 'none',
-              borderRadius: '6px',
-              fontWeight: '500'
-            }}
-          >
-            ログインして始める
-          </a>
-          <a
-            href="/liff"
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#dc004e',
-              color: 'white',
-              textDecoration: 'none',
-              borderRadius: '6px',
-              fontWeight: '500'
-            }}
-          >
-            応募者ページ
-          </a>
+        {/* オーディションカードグリッド */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {auditions.map((audition) => (
+            <AuditionCard key={audition.id} audition={audition} />
+          ))}
         </div>
       </main>
-
-      <footer style={{
-        marginTop: '3rem',
-        fontSize: '0.9rem',
-        color: '#999'
-      }}>
-        <p>開発環境 - API: <a href="http://localhost:8787/api/v1/health" target="_blank" rel="noopener">Health Check</a></p>
-      </footer>
     </div>
-  );
+  )
 }

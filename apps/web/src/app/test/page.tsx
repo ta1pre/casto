@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertCircle, CheckCircle2, Info } from "lucide-react"
+import { AuditionCard } from "@/components/audition-card"
 
 interface ApiResponse {
   status?: string
@@ -514,6 +515,43 @@ export default function TestPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* v0生成デザイン: オーディションカード */}
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold mb-6">🎨 v0生成デザイン - オーディションカード</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <AuditionCard
+            audition={{
+              id: "1",
+              title: "2025年春季ドラマ主演オーディション",
+              date: "2025年4月15日",
+              recruitCount: 5,
+              category: "ドラマ",
+              deadline: "2025年3月31日"
+            }}
+          />
+          <AuditionCard
+            audition={{
+              id: "2",
+              title: "映画「未来への扉」エキストラ募集",
+              date: "2025年5月20日",
+              recruitCount: 50,
+              category: "映画",
+              deadline: "2025年4月30日"
+            }}
+          />
+          <AuditionCard
+            audition={{
+              id: "3",
+              title: "CMタレントオーディション2025",
+              date: "2025年6月10日",
+              recruitCount: 3,
+              category: "CM",
+              deadline: "2025年5月15日"
+            }}
+          />
+        </div>
+      </div>
     </div>
   )
 }
