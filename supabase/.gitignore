@@ -1,0 +1,8 @@
+# 自動生成されるファイル
+schema.json
+types.ts
+SCHEMA.md
+
+# Supabase CLI が生成するファイル
+.branches
+.temp

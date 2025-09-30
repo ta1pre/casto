@@ -815,6 +815,123 @@ app.get('/api/v1/auth/session', async (c) => {
   }
 })
 
+// プロフィール関連
+app.get('/api/v1/users/me/profile-status', async (c) => {
+  try {
+    const sessionUser = c.get('user')
+
+    if (!sessionUser) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const supabase = createSupabaseClient(c)
+    
+    // applicant_profilesテーブルから取得
+    const { data: profile, error } = await supabase
+      .from('applicant_profiles')
+      .select('nickname, birthdate, profile_completed_at')
+      .eq('user_id', sessionUser.id)
+      .maybeSingle()
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 = not found
+      throw error
+    }
+
+    // プロフィール必須項目のチェック
+    const missingFields: string[] = []
+    
+    if (!profile?.nickname) {
+      missingFields.push('nickname')
+    }
+    if (!profile?.birthdate) {
+      missingFields.push('birthdate')
+    }
+
+    const isComplete = missingFields.length === 0
+    const totalFields = 2 // nickname, birthdate
+    const completedFields = totalFields - missingFields.length
+    const completionRate = Math.round((completedFields / totalFields) * 100)
+
+    return c.json({
+      isComplete,
+      missingFields,
+      completionRate,
+      profile: profile || null
+    })
+  } catch (error) {
+    console.error('Profile status fetch failed', error)
+    return c.json({ error: 'Failed to fetch profile status' }, 500)
+  }
+})
+
+app.post('/api/v1/users/me/history', async (c) => {
+  try {
+    const sessionUser = c.get('user')
+
+    if (!sessionUser) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const body = await c.req.json<{ auditionId: string; action?: string }>()
+    const supabase = createSupabaseClient(c)
+    
+    // viewing_historyテーブルへUPSERT（既存レコードがあれば更新）
+    const { error } = await supabase
+      .from('viewing_history')
+      .upsert({
+        user_id: sessionUser.id,
+        audition_id: body.auditionId,
+        action: body.action || 'view',
+        viewed_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id,audition_id'
+      })
+
+    if (error) {
+      throw error
+    }
+
+    return c.json({ ok: true })
+  } catch (error) {
+    console.error('History save failed', error)
+    return c.json({ error: 'Failed to save history' }, 500)
+  }
+})
+
+app.get('/api/v1/users/me/recent-auditions', async (c) => {
+  try {
+    const sessionUser = c.get('user')
+
+    if (!sessionUser) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const supabase = createSupabaseClient(c)
+    
+    // viewing_historyから最近見たオーディションを取得（上位10件）
+    const { data, error } = await supabase
+      .from('viewing_history')
+      .select('audition_id, viewed_at, action')
+      .eq('user_id', sessionUser.id)
+      .order('viewed_at', { ascending: false })
+      .limit(10)
+
+    if (error) {
+      throw error
+    }
+
+    // TODO: auditionsテーブルと結合して詳細情報を取得
+    // 現在はaudition_idのみ返却
+    return c.json({ 
+      auditions: data || [],
+      message: 'Audition details will be added when auditions table is implemented'
+    })
+  } catch (error) {
+    console.error('Recent auditions fetch failed', error)
+    return c.json({ error: 'Failed to fetch recent auditions' }, 500)
+  }
+})
+
 // オーディション関連
 app.get('/api/v1/auditions/:id', async (c) => {
   const id = c.req.param('id')
