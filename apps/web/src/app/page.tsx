@@ -1,4 +1,4 @@
-import { AuditionCard } from "@/components/audition-card"
+import { AuditionCard } from "@/components/features/audition"
 import { Calendar, Users } from "lucide-react"
 
 // サンプルデータ

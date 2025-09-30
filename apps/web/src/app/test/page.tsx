@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertCircle, CheckCircle2, Info } from "lucide-react"
-import { AuditionCard } from "@/components/audition-card"
+import { AuditionCard } from "@/components/features/audition"
 
 interface ApiResponse {
   status?: string
