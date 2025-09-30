@@ -55,11 +55,12 @@ export function useLiffAuth(): UseLiffAuthReturn {
   // LINE認証の実行
   const synchronizeLineSession = useCallback(async () => {
     if (!window.liff) {
-      console.error('window.liff is not defined')
+      console.error('[useLiffAuth] window.liff is not defined')
       setError('LIFF SDKが読み込まれていません')
       return
     }
 
+    console.log('[useLiffAuth] Starting LINE session synchronization...')
     setIsAuthenticating(true)
     setError(null)
 
@@ -69,7 +70,10 @@ export function useLiffAuth(): UseLiffAuthReturn {
         ? window.liff.isInClient() 
         : null
 
+      console.log('[useLiffAuth] Is in LINE client:', inClient)
+
       if (inClient === false) {
+        console.warn('[useLiffAuth] Not in LINE client')
         setError('LINEアプリ内でページを開いてください')
         setIsAuthenticating(false)
         return
@@ -77,22 +81,29 @@ export function useLiffAuth(): UseLiffAuthReturn {
 
       // IDトークンの取得
       const idToken = window.liff.getIDToken?.()
+      console.log('[useLiffAuth] ID Token obtained:', idToken ? 'YES' : 'NO')
+      
       if (!idToken) {
+        console.warn('[useLiffAuth] No ID token, triggering login')
         setError('LINE IDトークンが取得できませんでした')
         window.liff.login()
         return
       }
 
       // プロフィール取得
+      console.log('[useLiffAuth] Fetching LINE profile...')
       const profile = await window.liff.getProfile()
+      console.log('[useLiffAuth] LINE profile:', profile)
       setLiffProfile(profile)
 
       // バックエンドで認証
+      console.log('[useLiffAuth] Calling loginWithLine...')
       await loginWithLine(idToken)
+      console.log('[useLiffAuth] LINE session synchronized successfully')
       
       setError(null)
     } catch (err) {
-      console.error('Failed to synchronize LINE session:', err)
+      console.error('[useLiffAuth] Failed to synchronize LINE session:', err)
       setError('LINE認証に失敗しました。再度お試しください。')
     } finally {
       setIsAuthenticating(false)
@@ -102,59 +113,84 @@ export function useLiffAuth(): UseLiffAuthReturn {
   // LIFF SDKの初期化
   const initializeLiff = useCallback(async () => {
     try {
+      console.log('[useLiffAuth] Initializing LIFF SDK...')
+      
       // 既にLIFF SDKが読み込まれている場合
       if (window.liff) {
+        console.log('[useLiffAuth] LIFF SDK already loaded')
         const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
+        console.log('[useLiffAuth] LIFF ID:', liffId ? 'configured' : 'missing')
+        
         if (!liffId) {
           setError('LIFF IDが設定されていません')
           return
         }
 
+        console.log('[useLiffAuth] Calling liff.init...')
         await window.liff.init({ liffId })
+        console.log('[useLiffAuth] liff.init complete')
         setIsLiffReady(true)
 
+        const isLoggedIn = window.liff.isLoggedIn()
+        console.log('[useLiffAuth] Is logged in to LINE:', isLoggedIn)
+        console.log('[useLiffAuth] Current user state:', user ? 'has user' : 'no user')
+
         // ログイン済みの場合は認証を実行
-        if (window.liff.isLoggedIn() && !user) {
+        if (isLoggedIn && !user) {
+          console.log('[useLiffAuth] Triggering synchronizeLineSession...')
           await synchronizeLineSession()
         }
         return
       }
 
       // LIFF SDKを動的に読み込み
+      console.log('[useLiffAuth] Loading LIFF SDK dynamically...')
       const script = document.createElement('script')
       script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js'
       script.async = true
       
       script.onload = () => {
+        console.log('[useLiffAuth] LIFF SDK script loaded')
         setTimeout(async () => {
           if (!window.liff) {
+            console.error('[useLiffAuth] window.liff not available after script load')
             setError('LIFF SDKの読み込みに失敗しました')
             return
           }
 
           const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
+          console.log('[useLiffAuth] LIFF ID:', liffId ? 'configured' : 'missing')
+          
           if (!liffId) {
             setError('LIFF IDが設定されていません')
             return
           }
 
+          console.log('[useLiffAuth] Calling liff.init...')
           await window.liff.init({ liffId })
+          console.log('[useLiffAuth] liff.init complete')
           setIsLiffReady(true)
 
+          const isLoggedIn = window.liff.isLoggedIn()
+          console.log('[useLiffAuth] Is logged in to LINE:', isLoggedIn)
+          console.log('[useLiffAuth] Current user state:', user ? 'has user' : 'no user')
+
           // ログイン済みの場合は認証を実行
-          if (window.liff.isLoggedIn() && !user) {
+          if (isLoggedIn && !user) {
+            console.log('[useLiffAuth] Triggering synchronizeLineSession...')
             await synchronizeLineSession()
           }
         }, 100)
       }
 
       script.onerror = () => {
+        console.error('[useLiffAuth] LIFF SDK script failed to load')
         setError('LIFF SDKの読み込みに失敗しました')
       }
 
       document.head.appendChild(script)
     } catch (err) {
-      console.error('LIFF initialization failed:', err)
+      console.error('[useLiffAuth] LIFF initialization failed:', err)
       setError('LIFFの初期化に失敗しました')
     }
   }, [user, synchronizeLineSession])

@@ -47,6 +47,8 @@ supabase db push --linked
 
 ### ローカル開発
 
+⚠️ **重要：`npm run dev`での直接起動は絶対禁止。Dockerのみを使用すること。**
+
 ```bash
 cd /Users/taichiumeki/dev
 docker compose up -d casto

@@ -41,23 +41,29 @@ const app = new Hono<AppBindings>()
 
 async function attachUserContext(c: Context<AppBindings>, next: () => Promise<void>) {
   const token = getAuthCookie(c)
+  const requestPath = new URL(c.req.url).pathname
+  
+  console.log(`[Workers] attachUserContext for ${requestPath}, token:`, token ? 'present' : 'missing')
+  
   if (!token) {
+    console.log('[Workers] No auth token found in cookies')
     await next()
     return
   }
 
   const jwtSecret = c.env?.JWT_SECRET
   if (!jwtSecret) {
-    console.warn('JWT_SECRET is not configured')
+    console.warn('[Workers] JWT_SECRET is not configured')
     await next()
     return
   }
 
   try {
     const payload = await verifyJWT(token, jwtSecret)
+    console.log('[Workers] JWT verified successfully, payload:', payload)
 
     if (!payload.sub) {
-      console.warn('JWT payload missing subject')
+      console.warn('[Workers] JWT payload missing subject')
       await next()
       return
     }
@@ -68,14 +74,17 @@ async function attachUserContext(c: Context<AppBindings>, next: () => Promise<vo
         ? [payload.roles]
         : []
 
-    c.set('user', {
+    const userContext = {
       id: payload.sub,
       roles,
       provider: payload.provider,
       tokenVersion: payload.tokenVersion
-    })
+    }
+    
+    console.log('[Workers] User context set:', userContext)
+    c.set('user', userContext)
   } catch (error) {
-    console.warn('JWT verification failed', error)
+    console.warn('[Workers] JWT verification failed', error)
   }
 
   await next()
@@ -691,35 +700,45 @@ app.get('/api/v1/users/:id', async (c) => {
 // 認証エンドポイント
 app.post('/api/v1/auth/line/verify', async (c) => {
   try {
+    console.log('[Workers] POST /api/v1/auth/line/verify')
     const body = await c.req.json<{ idToken?: string }>()
     const idToken = body?.idToken
+    console.log('[Workers] ID Token received:', idToken ? 'yes' : 'no')
 
     if (!idToken) {
+      console.log('[Workers] Missing idToken in request body')
       return c.json({ error: 'idToken is required' }, 400)
     }
 
     const channelId = c.env?.LINE_CHANNEL_ID
     if (!channelId) {
-      console.error('LINE_CHANNEL_ID is not configured')
+      console.error('[Workers] LINE_CHANNEL_ID is not configured')
       return c.json({ error: 'LINE channel configuration missing' }, 500)
     }
 
+    console.log('[Workers] Verifying LINE ID token...')
     const tokenInfo = await verifyLineIdToken(idToken, channelId)
+    console.log('[Workers] LINE token verified:', tokenInfo)
+    
     const supabase = createSupabaseClient(c)
 
+    console.log('[Workers] Upserting LINE user...')
     const user = await upsertLineUser(supabase, tokenInfo.sub, {
       name: tokenInfo.name,
       email: tokenInfo.email ?? null,
       picture: tokenInfo.picture
     })
+    console.log('[Workers] User upserted:', user)
 
+    console.log('[Workers] Issuing session...')
     await issueSession(c, user)
+    console.log('[Workers] Session issued successfully')
 
     return c.json({
       user: serializeUserResponse(user)
     })
   } catch (error) {
-    console.error('LINE auth verification failed', error)
+    console.error('[Workers] LINE auth verification failed', error)
     return c.json({ error: 'LINE authentication failed' }, 401)
   }
 })
@@ -793,24 +812,30 @@ app.post('/api/v1/auth/logout', (c) => {
 
 app.get('/api/v1/auth/session', async (c) => {
   try {
+    console.log('[Workers] GET /api/v1/auth/session')
     const sessionUser = c.get('user')
+    console.log('[Workers] Session user from context:', sessionUser)
 
     if (!sessionUser) {
+      console.log('[Workers] No session user, returning 401')
       return c.json({ user: null }, 401)
     }
 
+    console.log('[Workers] Fetching user from database, id:', sessionUser.id)
     const supabase = createSupabaseClient(c)
     const user = await findUserById(supabase, sessionUser.id)
 
     if (!user) {
+      console.log('[Workers] User not found in database, returning 404')
       return c.json({ user: null }, 404)
     }
 
+    console.log('[Workers] User found, returning session:', user)
     return c.json({
       user: serializeUserResponse(user)
     })
   } catch (error) {
-    console.error('Session fetch failed', error)
+    console.error('[Workers] Session fetch failed', error)
     return c.json({ error: 'Failed to fetch session' }, 500)
   }
 })

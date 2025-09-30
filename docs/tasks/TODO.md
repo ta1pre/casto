@@ -58,16 +58,20 @@ docsディレクトリの情報整理を行い、重複を排除して管理し�
 ### Phase 1.5: ローカル開発環境の整備（優先度: 高）🚨
 
 #### 1.5-1. LINEミニアプリのローカル動作確認環境構築
+- [x] デバッグ用のログ追加・確認
+  - `apps/web/src/providers/AuthProvider.tsx` にログ追加
+  - `apps/web/src/hooks/useLiffAuth.ts` にログ追加
+  - `apps/workers/src/index.ts` のセッション/認証エンドポイントにログ追加
+- [x] Cookie設定の改善
+  - `apps/workers/src/lib/auth.ts` で`SameSite`/`Secure`設定を環境に応じて動的に変更
 - [ ] ローカル環境でのLIFF動作確認手順の確立
   - **問題**: `https://casto.sb2024.xyz/liff` で401エラー発生
     - エラー詳細: `casto-workers-dev.casto-api.workers.dev/api/v1/auth/session` が401を返す
-  - デバッグ用のログ追加・確認
   - LIFF SDK初期化とAPI認証の整合性確認
   - ローカル環境でのLINE認証フローのテスト手順作成
   - `.dev.vars` の設定項目の確認・ドキュメント化
   - 開発者向けセットアップガイドの更新
 - [ ] 開発環境のエラーハンドリング改善
-  - 401エラー時の詳細なログ出力
   - 認証失敗時のユーザーフレンドリーなエラー表示
   - デバッグモード時の詳細情報表示
 

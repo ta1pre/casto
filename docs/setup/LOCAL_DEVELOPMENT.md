@@ -49,14 +49,30 @@ casto フロントエンドは `/Users/taichiumeki/dev/` 配下の Docker Compos
 
 ## 🔒 運用ルール
 
-- `services/casto/` 直下で `npm run dev` や `npm start` を実行しない。
-- Next.js をホスト側で誤って起動した場合はプロセスを終了し、コンテナを再起動する。
+### ⚠️ 重要：ローカルでの直接起動は絶対禁止
+
+**絶対にlocalhostで直接起動しないこと。Dockerのみを使用すること。**
+
+- `services/casto/` 直下で `npm run dev` や `npm start` を**絶対に実行しない**
+- `localhost:3000` での起動は**完全に禁止**
+- 全ての開発作業は **Docker Compose経由のみ**で行う
+- Next.js をホスト側で誤って起動した場合は即座にプロセスを終了し、コンテナを再起動する
 
 ```bash
-ps aux | grep -i next
-kill <PID>
+# 誤って起動してしまった場合の緊急停止手順
+pkill -f "npm run dev"
+pkill -f "next dev"
+ps aux | grep -i next  # プロセス確認
+kill <PID>             # 残っているプロセスを停止
 docker compose restart casto
 ```
+
+### なぜlocalhostでの起動を禁止するのか
+
+1. **環境の一貫性**: 全開発者が同一のDocker環境で作業することで、「自分の環境では動く」問題を防ぐ
+2. **リバースプロキシ設定**: Traefikを経由したHTTPS接続が必須のため
+3. **設定の一元管理**: 環境変数やネットワーク設定がDocker Compose内で完結
+4. **デプロイ環境との整合性**: 本番環境に近い構成でのテスト
 
 ## 🧹 キャッシュ復旧
 

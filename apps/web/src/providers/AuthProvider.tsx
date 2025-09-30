@@ -83,19 +83,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const refreshSession = useCallback(async (): Promise<User | null> => {
     try {
+      console.log('[AuthProvider] Fetching session...')
       const response = await apiFetch<{ user: ApiUser | null }>('/api/v1/auth/session', {
         method: 'GET'
       })
 
+      console.log('[AuthProvider] Session fetched:', response)
       const mapped = mapUser(response.user)
       setUser(mapped)
       return mapped
     } catch (error) {
       if (error instanceof ApiError && (error.status === 401 || error.status === 404)) {
+        console.log('[AuthProvider] No session found (401/404), clearing user state')
         setUser(null)
         return null
       }
-      console.error('Failed to refresh session:', error)
+      console.error('[AuthProvider] Failed to refresh session:', error)
       throw error
     }
   }, [])
@@ -103,10 +106,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const initialize = async () => {
       try {
+        console.log('[AuthProvider] Initializing...')
         await refreshSession()
+        console.log('[AuthProvider] Initialization complete')
       } catch (error) {
         // ここではログ出力のみ。UIでの通知は担当ページで対応
-        console.error('Initial session fetch failed:', error)
+        console.error('[AuthProvider] Initial session fetch failed:', error)
       } finally {
         setIsLoading(false)
       }
@@ -116,17 +121,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [refreshSession])
 
   const loginWithLine = useCallback(async (idToken: string): Promise<User> => {
+    console.log('[AuthProvider] Logging in with LINE...')
     const response = await apiFetch<{ user: ApiUser }>('/api/v1/auth/line/verify', {
       method: 'POST',
       body: JSON.stringify({ idToken })
     })
 
+    console.log('[AuthProvider] LINE login response:', response)
     const mapped = mapUser(response.user)
     if (!mapped) {
       throw new Error('LINE認証のレスポンスにユーザー情報が含まれていません')
     }
 
     setUser(mapped)
+    console.log('[AuthProvider] User state updated:', mapped)
     return mapped
   }, [])
 
