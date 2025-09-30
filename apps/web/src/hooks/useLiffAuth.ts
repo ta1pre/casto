@@ -29,6 +29,16 @@ interface LiffProfile {
   statusMessage?: string
 }
 
+type ScriptLoadState = 'pending' | 'appended' | 'loaded' | 'layout-loaded' | 'layout-error' | 'error'
+
+interface LiffScriptEventDetail {
+  source: 'layout'
+  status: 'load' | 'error'
+  hasLiff?: boolean
+  timestamp?: string
+  message?: string
+}
+
 interface UseLiffAuthReturn {
   user: ReturnType<typeof useAuth>['user']
   isLoading: boolean
@@ -43,7 +53,7 @@ interface UseLiffAuthReturn {
     envLiffIdConfigured: boolean
     hasWindowLiff: boolean
     readyState: DocumentReadyState | undefined
-    scriptLoadState: 'pending' | 'loaded' | 'error'
+    scriptLoadState: ScriptLoadState
     lastLiffCheckAt: string | null
     lastLiffCheckReason: string | null
     idTokenSnippet: string | null
@@ -53,12 +63,18 @@ interface UseLiffAuthReturn {
     lastLoginAttemptAt: string | null
     lastLoginSuccessAt: string | null
     authUserLoadedAt: string | null
+    scriptElementCount: number
+    scriptAppendedAt: string | null
+    layoutScriptLoadedAt: string | null
+    layoutScriptErrorAt: string | null
+    layoutScriptHasLiff: boolean | null
   }
   reinitializeLiff: () => Promise<void>
   refreshSession: ReturnType<typeof useAuth>['refreshSession']
 }
 
 const getTimestamp = () => new Date().toISOString()
+const LIFF_SCRIPT_SRC = 'https://static.line-scdn.net/liff/edge/2/sdk.js'
 /**
  * LIFF認証用の共通フック
  * - LIFF SDKの自動読み込み・初期化
@@ -79,9 +95,11 @@ export function useLiffAuth(): UseLiffAuthReturn {
   const [readyState, setReadyState] = useState<DocumentReadyState | undefined>(
     typeof document !== 'undefined' ? document.readyState : undefined
   )
-  const [scriptLoadState, setScriptLoadState] = useState<'pending' | 'loaded' | 'error'>(
-    typeof window !== 'undefined' && !!window.liff ? 'loaded' : 'pending'
-  )
+  const initialScriptState: ScriptLoadState =
+    typeof document !== 'undefined' && document.querySelector(`script[src="${LIFF_SCRIPT_SRC}"]`)
+      ? 'loaded'
+      : 'pending'
+  const [scriptLoadState, setScriptLoadState] = useState<ScriptLoadState>(initialScriptState)
   const [lastLiffCheckAt, setLastLiffCheckAt] = useState<string | null>(null)
   const [lastLiffCheckReason, setLastLiffCheckReason] = useState<string | null>(null)
   const [idTokenSnippet, setIdTokenSnippet] = useState<string | null>(null)
@@ -91,12 +109,34 @@ export function useLiffAuth(): UseLiffAuthReturn {
   const [lastLoginAttemptAt, setLastLoginAttemptAt] = useState<string | null>(null)
   const [lastLoginSuccessAt, setLastLoginSuccessAt] = useState<string | null>(null)
   const [authUserLoadedAt, setAuthUserLoadedAt] = useState<string | null>(null)
+  const [scriptElementCount, setScriptElementCount] = useState<number>(() => {
+    if (typeof document === 'undefined') {
+      return 0
+    }
+    return document.querySelectorAll(`script[src="${LIFF_SCRIPT_SRC}"]`).length
+  })
+  const [scriptAppendedAt, setScriptAppendedAt] = useState<string | null>(null)
+  const [layoutScriptLoadedAt, setLayoutScriptLoadedAt] = useState<string | null>(null)
+  const [layoutScriptErrorAt, setLayoutScriptErrorAt] = useState<string | null>(null)
+  const [layoutScriptHasLiff, setLayoutScriptHasLiff] = useState<boolean | null>(null)
   const previousUserIdRef = useRef<string | null>(null)
 
   const addLog = useCallback((message: string) => {
     const ts = new Date().toLocaleTimeString()
     setDebugLogs(prev => [...prev.slice(-19), `[${ts}] ${message}`])
   }, [])
+
+  const updateScriptMetrics = useCallback(
+    (reason: string) => {
+      if (typeof document === 'undefined') {
+        return
+      }
+      const scripts = document.querySelectorAll(`script[src="${LIFF_SCRIPT_SRC}"]`)
+      setScriptElementCount(scripts.length)
+      addLog(`[script] count=${scripts.length} (${reason})`)
+    },
+    [addLog]
+  )
 
   const updateWindowLiff = useCallback(
     (reason: string) => {
@@ -108,9 +148,10 @@ export function useLiffAuth(): UseLiffAuthReturn {
         setScriptLoadState('loaded')
       }
       addLog(`[window.liff] ${present ? 'present' : 'absent'} (${reason})`)
+      updateScriptMetrics(reason)
       return present
     },
-    [addLog]
+    [addLog, updateScriptMetrics]
   )
 
   // LINE認証の実行
@@ -346,6 +387,10 @@ export function useLiffAuth(): UseLiffAuthReturn {
   }, [addLog])
 
   useEffect(() => {
+    updateScriptMetrics('initial effect')
+  }, [updateScriptMetrics])
+
+  useEffect(() => {
     setEnvLiffIdConfigured(!!(process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID))
     updateWindowLiff('mount')
     if (typeof window !== 'undefined' && window.liff) {
@@ -353,6 +398,44 @@ export function useLiffAuth(): UseLiffAuthReturn {
     }
     void initializeLiff()
   }, [initializeLiff, updateWindowLiff, addLog])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined
+    }
+
+    const handler = (event: Event) => {
+      const custom = event as CustomEvent<LiffScriptEventDetail>
+      const detail = custom.detail
+      if (!detail || detail.source !== 'layout') {
+        return
+      }
+
+      if (detail.status === 'load') {
+        const timestamp = detail.timestamp ?? getTimestamp()
+        setLayoutScriptLoadedAt(timestamp)
+        setLayoutScriptErrorAt(null)
+        setLayoutScriptHasLiff(detail.hasLiff ?? null)
+        setScriptLoadState((prev) => (prev === 'error' ? prev : 'layout-loaded'))
+        addLog(`[layout] script load event (hasLiff=${detail.hasLiff ? 'yes' : 'no'})`)
+        updateScriptMetrics('layout load event')
+      } else if (detail.status === 'error') {
+        const timestamp = detail.timestamp ?? getTimestamp()
+        setLayoutScriptErrorAt(timestamp)
+        setLayoutScriptHasLiff(null)
+        setLayoutScriptLoadedAt(null)
+        setScriptLoadState('layout-error')
+        addLog(`[layout] script error event: ${detail.message ?? 'unknown'}`)
+        updateScriptMetrics('layout error event')
+      }
+    }
+
+    window.addEventListener('liff-script-status', handler as EventListener)
+
+    return () => {
+      window.removeEventListener('liff-script-status', handler as EventListener)
+    }
+  }, [addLog, updateScriptMetrics])
 
   useEffect(() => {
     const currentId = user?.id ?? null
@@ -431,7 +514,12 @@ export function useLiffAuth(): UseLiffAuthReturn {
       liffInitCompletedAt,
       lastLoginAttemptAt,
       lastLoginSuccessAt,
-      authUserLoadedAt
+      authUserLoadedAt,
+      scriptElementCount,
+      scriptAppendedAt,
+      layoutScriptLoadedAt,
+      layoutScriptErrorAt,
+      layoutScriptHasLiff
     },
     reinitializeLiff,
     refreshSession
