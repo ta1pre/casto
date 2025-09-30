@@ -1,96 +1,21 @@
 # TODOリスト
-## 現在の作業の目的
-docsディレクトリの情報整理を行い、重複を排除して管理しやすい構造にする。
 
-## 現在の作業項目
+## 🎯 現在の最優先タスク
+**Phase 1.5: LINEアプリ内での動作確認**
+- LINEアプリで実際にミニアプリを開いて認証フローを確認
+- 詳細は下記Phase 1.5参照
 
-### 🎨 デザインシステム移行（優先度: 最高）
+## 作業方針
+LINEミニアプリ（LIFF）の認証・ユーザーフロー実装に集中。
+デザインシステムは必要に応じてv0で追加。
 
-#### Step 1: 現状調査・MUI削除 ✅
-- [x] 現在のMUI使用箇所の洗い出し
-  - `apps/web/src` 配下の全コンポーネント調査
-  - `package.json` のMUI関連依存関係リスト化
-  - 結果: テストページ2ファイルのみで使用
-- [x] MUI関連パッケージの完全削除
-  - `@mui/material`, `@emotion/react`, `@emotion/styled` 削除完了
-  - `package.json`, `package-lock.json` から削除
-
-#### Step 2: Tailwind CSS + shadcn/ui セットアップ ✅
-- [x] Tailwind CSS導入
-  - `tailwind.config.ts` 設定完了
-  - `postcss.config.mjs` 設定完了
-  - グローバルCSS設定（`app/globals.css`）完了
-- [x] shadcn/ui初期設定
-  - `components.json` 設定完了
-  - `lib/utils.ts` 作成完了
-  - カラーパレット・テーマ設定完了
-- [x] 依存関係インストール
-  - tailwindcss, postcss, autoprefixer
-  - class-variance-authority, clsx, tailwind-merge, lucide-react
-  - tailwindcss-animate
-- [x] v0連携の準備
-  - デザイントークン定義完了
-  - コンポーネント命名規則策定
-
-#### Step 3: デザインシステム・トンマナ定義 ✅
-- [x] デザイントークンの策定
-  - カラーパレット（Primary, Secondary, Accent, Neutral, Semantic）
-  - タイポグラフィ（フォントサイズ、行間、ウェイト）
-  - スペーシング（余白の基準値）
-  - ブレークポイント（レスポンシブ対応）
-  - シャドウ・ボーダー・角丸
-- [x] トンマナルール文書作成
-  - `docs/design/DESIGN_SYSTEM.md` 作成完了
-  - コンポーネント使用ガイドライン
-  - アクセシビリティ基準
-  - アニメーション・インタラクション指針
-  - v0連携ガイド
-- [ ] Figma/デザインツール連携（オプション）
-
-#### Step 4: 基本コンポーネント実装・テスト 🔄
-- [x] shadcn/uiコンポーネントのインストール（実行中）
-  - Button, Input, Card, Alert, Label
-- [ ] 追加コンポーネントのインストール
-  - Dialog, Select, Dropdown, Tabs, etc.
-- [ ] カスタムコンポーネントの作成
-  - 共通レイアウトコンポーネント
-  - ナビゲーション・ヘッダー・フッター
-- [x] テストページの実装
-  - `apps/web/src/app/design-test/page.tsx` 作成完了
-  - 全コンポーネントのショーケース
-  - レスポンシブ動作確認
-  - カラーパレット・タイポグラフィ表示
-
-#### Step 5: 既存ページの段階的移行 🔄
-- [x] テストページの移行完了
-  - `/apps/web/src/app/test/page.tsx` 完全移行
-  - `/apps/web/src/app/test/page-simple.tsx` 削除
-  - MUI → Tailwind + shadcn/ui 完全置き換え
-- [ ] 優先度付け・移行計画策定
-  - LIFFページ（`/liff/*`）を最優先
-  - 管理画面（`/admin/*`, `/host/*`）は後回し
-- [ ] LIFFページの移行
-  - `/liff/page.tsx` (ホーム画面)
-  - `/liff/auditions/[id]/page.tsx` (オーディション詳細)
-  - プロフィール関連ページ（未実装）
-- [ ] 動作確認・デザインQA
-  - Docker環境での動作確認（`/Users/taichiumeki/dev/`）
-  - 各ページのビジュアル確認
-  - インタラクション動作確認
-  - レスポンシブ確認
-
-#### Step 6: 最終調整・ドキュメント整備
-- [ ] パフォーマンス最適化
-  - 未使用CSSの削除（PurgeCSS）
-  - バンドルサイズ確認
-- [ ] ドキュメント更新
-  - README更新（デザインシステム導入の記載）
-  - コンポーネントカタログ作成
-  - 開発者向けガイド更新
-- [ ] レビュー・承認
+## デザインシステム ✅ 完了
+- Tailwind CSS v4 + shadcn/ui 導入完了
+- v0統合ガイドライン作成完了
+- 詳細: `docs/design/DESIGN_SYSTEM.md`, `docs/design/V0_INTEGRATION_GUIDE.md`
 
 ---
-## LINEミニアプリ（LIFF）認証・ユーザーフロー実装
+## LINEミニアプリ（LIFF）実装タスク
 
 ### 設計方針（確定事項）
 - [x] LINE認証必須（middleware.tsの`allowPublic`設定）
@@ -137,37 +62,21 @@ docsディレクトリの情報整理を行い、重複を排除して管理し�
   - ユーザーのオーディション閲覧履歴を記録
   - UPSERT対応（同じユーザー×オーディションは最新のみ保持）
 
-### Phase 1.5: ローカル開発環境の整備（優先度: 高）🚨 ⏸️ ペンディング
+### Phase 1.5: LINEアプリ内動作確認（優先度: 最高）🔥
 
-#### 1.5-1. LINEミニアプリのローカル動作確認環境構築
-- [x] デバッグ用のログ追加・確認
-  - `apps/web/src/providers/AuthProvider.tsx` にログ追加
-  - `apps/web/src/hooks/useLiffAuth.ts` にログ追加
-  - `apps/workers/src/index.ts` のセッション/認証エンドポイントにログ追加
-- [x] Cookie設定の改善
-  - `apps/workers/src/lib/auth.ts` で`SameSite`/`Secure`設定を環境に応じて動的に変更
-- [x] 環境変数の設定完了
-  - `/Users/taichiumeki/dev/.env` に開発用LINE設定追加
-  - `docker-compose.yml` に`NEXT_PUBLIC_LINE_LIFF_ID`追加
-  - Cloudflare Workers Secrets（開発環境）設定完了
-- [x] LINE Developers Console設定確認
-  - 開発用LIFF ID: `2008009031-ZdQbY5YW`
-  - エンドポイントURL: `https://casto.sb2024.xyz/liff`
-  - チャネルID: `2008009031`
-  - チャネルシークレット: `92f007e2d0c35479434aa4e7b4935f45`
-- [x] ブラウザでの動作確認
-  - LIFF SDK正常に初期化
-  - `liff.init`成功
-  - ブラウザからのアクセスで`Is logged in to LINE: false`（正常）
-  - 401エラー（セッションなしのため正常）
-- [ ] **⏸️ ペンディング**: LINEアプリ内での動作確認
+#### 次のステップ
+- [ ] **LINEアプリ内での動作確認**
   - LINEアプリで`https://miniapp.line.me/2008009031-ZdQbY5YW`を開く
   - 自動LINE認証の動作確認
   - Workers APIへのIDトークン送信確認
   - セッション作成の確認
-- [ ] 開発環境のエラーハンドリング改善
-  - 認証失敗時のユーザーフレンドリーなエラー表示
-  - デバッグモード時の詳細情報表示
+  - オーディション詳細ページ表示確認
+
+#### 完了済み ✅
+- デバッグ用ログ追加完了
+- Cookie設定改善完了
+- 環境変数設定完了
+- ブラウザでの動作確認完了
 
 ### Phase 2: プロフィール機能（優先度: 高）
 
@@ -209,19 +118,9 @@ docsディレクトリの情報整理を行い、重複を排除して管理し�
   - `POST /api/v1/auth/refresh` エンドポイント
   - 既存トークンの検証＋新規トークン発行
 
-### Phase 4: 履歴・補助機能（優先度: 中）
+### Phase 4: エラーハンドリング・UX改善（優先度: 中）
 
-#### 4-1. 閲覧履歴機能
-- [ ] Workers API: `POST /api/v1/users/me/history` 実装
-  - 閲覧履歴のDB保存
-  - `viewing_history` テーブル作成（マイグレーション）
-- [ ] Workers API: `GET /api/v1/users/me/recent-auditions` 実装
-  - 最近見たオーディションの取得（上位10件）
-- [ ] フロントエンド: ハイブリッド方式の実装
-  - localStorage優先で即時表示
-  - DB非同期保存でデバイス跨ぎ対応
-
-#### 4-2. エラーハンドリングの強化
+#### 4-1. エラーハンドリングの強化
 - [ ] オーディション不存在時のリダイレクト処理
   - 404時に `/liff/` へ自動リダイレクト
   - ユーザーフレンドリーなエラーメッセージ
