@@ -16,7 +16,7 @@ interface Audition {
 }
 
 export default function LiffHomePage() {
-  const { user, isLoading, error, liffProfile, logout, isLiffReady } = useLiffAuth()
+  const { user, isLoading, error, liffProfile, logout, isLiffReady, debugLogs, clearDebugLogs } = useLiffAuth()
   const [recentAuditions, setRecentAuditions] = useState<Audition[]>([])
   const [showContent, setShowContent] = useState(false)
 
@@ -50,21 +50,34 @@ export default function LiffHomePage() {
     return () => clearTimeout(timer)
   }, [user, error])
 
-  // 初期ローディング（LIFF準備中）
-  if (!isLiffReady && !showContent) {
-    return <LoadingScreen message="LINEアプリの準備中..." />
-  }
-
-  // 認証処理中かつタイムアウト前
-  if (isLoading && !showContent) {
-    return <LoadingScreen message="認証処理中..." />
-  }
-
   // エラーがある場合は表示（ただしコンテンツも表示可能にする）
   const hasError = error || (!user && showContent)
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* ローディングバナー */}
+      {!isLiffReady && !showContent && (
+        <div className="bg-blue-50 border-b border-blue-200 p-3">
+          <div className="max-w-7xl mx-auto px-4">
+            <p className="text-sm text-blue-800 flex items-center gap-2">
+              <span className="inline-block h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
+              LINEアプリの準備中...
+            </p>
+          </div>
+        </div>
+      )}
+
+      {isLoading && !showContent && (
+        <div className="bg-blue-50 border-b border-blue-200 p-3">
+          <div className="max-w-7xl mx-auto px-4">
+            <p className="text-sm text-blue-800 flex items-center gap-2">
+              <span className="inline-block h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
+              認証処理中...
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* エラーバナー */}
       {hasError && (
         <div className="bg-yellow-50 border-b border-yellow-200 p-3">
@@ -174,6 +187,24 @@ export default function LiffHomePage() {
           <pre className="text-xs overflow-auto bg-white p-2 rounded mb-2">
             {JSON.stringify({ user, liffProfile }, null, 2)}
           </pre>
+          <div className="mt-2">
+            <h4 className="font-bold mb-1 text-sm">デバッグログ</h4>
+            <div className="text-xs bg-white p-2 rounded max-h-40 overflow-y-auto border">
+              {debugLogs && debugLogs.length > 0 ? (
+                debugLogs.map((log, i) => (
+                  <div key={i} className="mb-1 font-mono whitespace-pre-wrap">{log}</div>
+                ))
+              ) : (
+                <div className="text-gray-500">ログなし</div>
+              )}
+            </div>
+            <button
+              onClick={clearDebugLogs}
+              className="mt-2 px-3 py-1 bg-gray-600 text-white text-xs rounded"
+            >
+              ログクリア
+            </button>
+          </div>
           {user && (
             <button
               onClick={logout}
