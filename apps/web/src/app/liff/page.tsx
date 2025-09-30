@@ -208,4 +208,5 @@ function KeyValue({ label, value }: { label: string; value: string | null | unde
       <span className="text-gray-500 w-32 shrink-0">{label}</span>
       <span className="text-gray-900 break-all">{value ?? '—'}</span>
     </div>
+  )
 }
