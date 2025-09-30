@@ -16,7 +16,7 @@ interface Audition {
 }
 
 export default function LiffHomePage() {
-  const { user, isLoading, error, liffProfile, logout, isLiffReady, debugLogs, clearDebugLogs } = useLiffAuth()
+  const { user, isLoading, error, liffProfile, logout, isLiffReady, debugLogs, clearDebugLogs, diagnostics, reinitializeLiff } = useLiffAuth()
   const [recentAuditions, setRecentAuditions] = useState<Audition[]>([])
   const [showContent, setShowContent] = useState(false)
 
@@ -183,6 +183,9 @@ export default function LiffHomePage() {
             <p>• User: {user ? '✅' : '❌'}</p>
             <p>• Error: {error || 'なし'}</p>
             <p>• Show Content: {showContent ? '✅' : '❌'}</p>
+            <p>• env LIFF ID configured: {diagnostics.envLiffIdConfigured ? '✅' : '❌'}</p>
+            <p>• window.liff present: {diagnostics.hasWindowLiff ? '✅' : '❌'}</p>
+            <p>• document.readyState: {diagnostics.readyState || 'unknown'}</p>
           </div>
           <pre className="text-xs overflow-auto bg-white p-2 rounded mb-2">
             {JSON.stringify({ user, liffProfile }, null, 2)}
@@ -203,6 +206,12 @@ export default function LiffHomePage() {
               className="mt-2 px-3 py-1 bg-gray-600 text-white text-xs rounded"
             >
               ログクリア
+            </button>
+            <button
+              onClick={() => { void reinitializeLiff() }}
+              className="mt-2 ml-2 px-3 py-1 bg-blue-600 text-white text-xs rounded"
+            >
+              LIFF再初期化
             </button>
           </div>
           {user && (

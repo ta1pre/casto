@@ -39,6 +39,12 @@ interface UseLiffAuthReturn {
   logout: () => Promise<void>
   debugLogs: string[]
   clearDebugLogs: () => void
+  diagnostics: {
+    envLiffIdConfigured: boolean
+    hasWindowLiff: boolean
+    readyState: DocumentReadyState | undefined
+  }
+  reinitializeLiff: () => Promise<void>
 }
 
 /**
@@ -54,6 +60,13 @@ export function useLiffAuth(): UseLiffAuthReturn {
   const [liffProfile, setLiffProfile] = useState<LiffProfile | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [debugLogs, setDebugLogs] = useState<string[]>([])
+  const [envLiffIdConfigured, setEnvLiffIdConfigured] = useState<boolean>(
+    !!(process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID)
+  )
+  const [hasWindowLiff, setHasWindowLiff] = useState<boolean>(typeof window !== 'undefined' && !!window.liff)
+  const [readyState, setReadyState] = useState<DocumentReadyState | undefined>(
+    typeof document !== 'undefined' ? document.readyState : undefined
+  )
 
   const addLog = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString()
@@ -255,7 +268,23 @@ export function useLiffAuth(): UseLiffAuthReturn {
 
   // 初回マウント時にLIFFを初期化
   useEffect(() => {
+    addLog('Hook mounted')
+    if (typeof document !== 'undefined') {
+      addLog(`document.readyState: ${document.readyState}`)
+      setReadyState(document.readyState)
+    }
+    setHasWindowLiff(typeof window !== 'undefined' && !!window.liff)
+    setEnvLiffIdConfigured(!!(process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID))
     void initializeLiff()
+  }, [initializeLiff])
+
+  const reinitializeLiff = useCallback(async () => {
+    addLog('Manual reinitialize requested')
+    setIsLiffReady(false)
+    setError(null)
+    setHasWindowLiff(typeof window !== 'undefined' && !!window.liff)
+    setEnvLiffIdConfigured(!!(process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID))
+    await initializeLiff()
   }, [initializeLiff])
 
   // ログアウト処理
@@ -288,6 +317,12 @@ export function useLiffAuth(): UseLiffAuthReturn {
     error,
     logout: handleLogout,
     debugLogs,
-    clearDebugLogs
+    clearDebugLogs,
+    diagnostics: {
+      envLiffIdConfigured,
+      hasWindowLiff,
+      readyState
+    },
+    reinitializeLiff
   }
 }
