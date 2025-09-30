@@ -20,13 +20,14 @@ const auditionDetails = {
   },
 }
 
-export default function AuditionDetailPage({
+export default async function AuditionDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  const audition = auditionDetails[params.id as keyof typeof auditionDetails] || {
-    id: params.id,
+  const { id } = await params
+  const audition = auditionDetails[id as keyof typeof auditionDetails] || {
+    id: id,
     title: "オーディション詳細",
     date: "2025年4月15日",
     recruitCount: 5,
