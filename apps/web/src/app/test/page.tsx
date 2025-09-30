@@ -1,8 +1,13 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Button, Card, CardContent, Typography, Box, Alert, TextField, MenuItem } from '@mui/material'
-import Grid from '@mui/material/Grid'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { AlertCircle, CheckCircle2, Info } from "lucide-react"
 
 interface ApiResponse {
   status?: string
@@ -42,7 +47,17 @@ export default function TestPage() {
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
 
   if (!API_BASE) {
-    return <Alert severity="error">AAPIベースURLが設定されていません。環境変数 NEXT_PUBLIC_API_BASE_URL を確認してください。</Alert>
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>エラー</AlertTitle>
+          <AlertDescription>
+            APIベースURLが設定されていません。環境変数 NEXT_PUBLIC_API_BASE_URL を確認してください。
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
   }
 
   const testHealthCheck = async () => {
@@ -54,7 +69,6 @@ export default function TestPage() {
     try {
       const response = await fetch(url)
       
-      // レスポンスヘッダーを取得
       const responseHeaders: Record<string, string> = {}
       response.headers.forEach((value, key) => {
         responseHeaders[key] = value
@@ -118,7 +132,6 @@ export default function TestPage() {
     try {
       const response = await fetch(url)
       
-      // レスポンスヘッダーを取得
       const responseHeaders: Record<string, string> = {}
       response.headers.forEach((value, key) => {
         responseHeaders[key] = value
@@ -198,7 +211,6 @@ export default function TestPage() {
         body: requestBody
       })
       
-      // レスポンスヘッダーを取得
       const responseHeaders: Record<string, string> = {}
       response.headers.forEach((value, key) => {
         responseHeaders[key] = value
@@ -259,180 +271,172 @@ export default function TestPage() {
   }
 
   return (
-    <Box sx={{ p: 4, maxWidth: 1200, mx: 'auto' }}>
-      <Typography variant="h4" gutterBottom>
-        🔍 詳細ログ付き接続テスト (更新日時: 2025/09/23 16:20)
-      </Typography>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <h1 className="text-4xl font-bold mb-2">
+        🔍 詳細ログ付き接続テスト
+      </h1>
+      <p className="text-sm text-muted-foreground mb-6">
+        更新日時: 2025/09/30 20:50
+      </p>
       
-      <Alert severity="info" sx={{ mb: 3 }}>
-        <Typography variant="body2">
-          <strong>🚀 デバッグモード有効！</strong><br/>
+      <Alert className="mb-6">
+        <Info className="h-4 w-4" />
+        <AlertTitle className="font-bold">🚀 デバッグモード有効！</AlertTitle>
+        <AlertDescription className="text-sm">
           • ブラウザの開発者ツール（F12）→ コンソールタブで詳細ログを確認できます<br/>
           • リクエスト/レスポンスの詳細情報が画面とコンソールの両方に出力されます<br/>
           • データベース接続エラーの原因を特定するための情報が含まれています
-        </Typography>
+        </AlertDescription>
       </Alert>
       
-      <Grid container spacing={3}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Health Check */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                1. Health Check
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                API基本動作確認だ
-              </Typography>
-              
-              <Button 
-                variant="contained" 
-                onClick={testHealthCheck}
-                disabled={loading}
-                sx={{ mt: 2 }}
-              >
-                {loading ? '実行中...' : 'Health Check'}
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
+        <Card>
+          <CardHeader>
+            <CardTitle>1. Health Check</CardTitle>
+            <CardDescription>API基本動作確認</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              onClick={testHealthCheck}
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? '実行中...' : 'Health Check'}
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Get Users */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                2. Get Users
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Supabaseからユーザー一覧取得
-              </Typography>
-              
-              <Button 
-                variant="contained" 
-                onClick={testGetUsers}
-                disabled={loading}
-                sx={{ mt: 2 }}
-              >
-                {loading ? '実行中...' : 'ユーザー取得'}
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
+        <Card>
+          <CardHeader>
+            <CardTitle>2. Get Users</CardTitle>
+            <CardDescription>Supabaseからユーザー一覧取得</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              onClick={testGetUsers}
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? '実行中...' : 'ユーザー取得'}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
 
-        {/* Create User */}
-        <Grid size={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                3. Create User
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                新規ユーザー作成テスト
-              </Typography>
-              
-              <Grid container spacing={2} sx={{ mt: 1 }}>
-                <Grid size={{ xs: 12, sm: 4 }}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Provider"
-                    value={userForm.provider}
-                    onChange={(e) => setUserForm({...userForm, provider: e.target.value})}
-                  >
-                    <MenuItem value="email">Email</MenuItem>
-                    <MenuItem value="line">LINE</MenuItem>
-                  </TextField>
-                </Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>
-                  <TextField
-                    fullWidth
-                    label="Handle"
-                    value={userForm.handle}
-                    onChange={(e) => setUserForm({...userForm, handle: e.target.value})}
-                    placeholder="test@example.com"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 4 }}>
-                  <TextField
-                    select
-                    fullWidth
-                    label="Role"
-                    value={userForm.role}
-                    onChange={(e) => setUserForm({...userForm, role: e.target.value})}
-                  >
-                    <MenuItem value="applicant">Applicant</MenuItem>
-                    <MenuItem value="fan">Fan</MenuItem>
-                    <MenuItem value="organizer">Organizer</MenuItem>
-                    <MenuItem value="manager">Manager</MenuItem>
-                  </TextField>
-                </Grid>
-              </Grid>
-              
-              <Button 
-                variant="contained" 
-                onClick={testCreateUser}
-                disabled={loading || !userForm.handle}
-                sx={{ mt: 2 }}
+      {/* Create User */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>3. Create User</CardTitle>
+          <CardDescription>新規ユーザー作成テスト</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="provider">Provider</Label>
+              <Select
+                value={userForm.provider}
+                onValueChange={(value) => setUserForm({...userForm, provider: value})}
               >
-                {loading ? '実行中...' : 'ユーザー作成'}
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+                <SelectTrigger id="provider">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="line">LINE</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="handle">Handle</Label>
+              <Input
+                id="handle"
+                value={userForm.handle}
+                onChange={(e) => setUserForm({...userForm, handle: e.target.value})}
+                placeholder="test@example.com"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Select
+                value={userForm.role}
+                onValueChange={(value) => setUserForm({...userForm, role: value})}
+              >
+                <SelectTrigger id="role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="applicant">Applicant</SelectItem>
+                  <SelectItem value="fan">Fan</SelectItem>
+                  <SelectItem value="organizer">Organizer</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <Button 
+            onClick={testCreateUser}
+            disabled={loading || !userForm.handle}
+            className="w-full"
+          >
+            {loading ? '実行中...' : 'ユーザー作成'}
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Results */}
       {result && (
-        <Box sx={{ mt: 3 }}>
-          <Alert severity={result.success ? 'success' : 'error'} sx={{ mb: 2 }}>
-            {result.success ? '✅ 成功！' : '❌ エラー'}
+        <div className="space-y-4">
+          <Alert variant={result.success ? 'default' : 'destructive'}>
+            {result.success ? (
+              <>
+                <CheckCircle2 className="h-4 w-4" />
+                <AlertTitle>成功</AlertTitle>
+                <AlertDescription>操作が正常に完了しました</AlertDescription>
+              </>
+            ) : (
+              <>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>エラー</AlertTitle>
+                <AlertDescription>エラーが発生しました</AlertDescription>
+              </>
+            )}
           </Alert>
 
           {/* Request Details */}
           {result.requestDetails && (
-            <Card sx={{ mb: 2 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom color="primary">
-                  📤 リクエスト詳細
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>URL:</strong> {result.requestDetails.url}
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>Method:</strong> {result.requestDetails.method}
-                </Typography>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-primary">📤 リクエスト詳細</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div>
+                  <p className="text-sm font-medium">URL:</p>
+                  <p className="text-sm text-muted-foreground break-all">{result.requestDetails.url}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Method:</p>
+                  <p className="text-sm text-muted-foreground">{result.requestDetails.method}</p>
+                </div>
                 {result.requestDetails.headers && (
-                  <Box sx={{ mb: 1 }}>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Headers:</strong>
-                    </Typography>
-                    <pre style={{ 
-                      background: '#e3f2fd', 
-                      padding: '8px', 
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      margin: 0
-                    }}>
+                  <div>
+                    <p className="text-sm font-medium mb-1">Headers:</p>
+                    <pre className="bg-muted p-3 rounded-md text-xs overflow-auto">
                       {JSON.stringify(result.requestDetails.headers, null, 2)}
                     </pre>
-                  </Box>
+                  </div>
                 )}
                 {result.requestDetails.body && (
-                  <Box>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      <strong>Body:</strong>
-                    </Typography>
-                    <pre style={{ 
-                      background: '#e3f2fd', 
-                      padding: '8px', 
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      margin: 0
-                    }}>
+                  <div>
+                    <p className="text-sm font-medium mb-1">Body:</p>
+                    <pre className="bg-muted p-3 rounded-md text-xs overflow-auto">
                       {result.requestDetails.body}
                     </pre>
-                  </Box>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -440,87 +444,76 @@ export default function TestPage() {
 
           {/* Response Details */}
           {result.responseDetails && (
-            <Card sx={{ mb: 2 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom color="secondary">
-                  📡 レスポンス詳細
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>Status:</strong> {result.responseDetails.status} {result.responseDetails.statusText}
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  <strong>URL:</strong> {result.responseDetails.url}
-                </Typography>
-                <Box sx={{ mb: 1 }}>
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    <strong>Headers:</strong>
-                  </Typography>
-                  <pre style={{ 
-                    background: '#fff3e0', 
-                    padding: '8px', 
-                    borderRadius: '4px',
-                    fontSize: '12px',
-                    margin: 0,
-                    maxHeight: '200px',
-                    overflow: 'auto'
-                  }}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-secondary">📡 レスポンス詳細</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div>
+                  <p className="text-sm font-medium">Status:</p>
+                  <p className="text-sm text-muted-foreground">
+                    {result.responseDetails.status} {result.responseDetails.statusText}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">URL:</p>
+                  <p className="text-sm text-muted-foreground break-all">{result.responseDetails.url}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium mb-1">Headers:</p>
+                  <pre className="bg-muted p-3 rounded-md text-xs overflow-auto max-h-48">
                     {JSON.stringify(result.responseDetails.headers, null, 2)}
                   </pre>
-                </Box>
+                </div>
               </CardContent>
             </Card>
           )}
 
           {/* Response Data */}
           <Card>
+            <CardHeader>
+              <CardTitle>📄 レスポンスデータ ({result.type})</CardTitle>
+            </CardHeader>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                📄 レスポンスデータ ({result.type})
-              </Typography>
-              <pre style={{ 
-                background: result.success ? '#e8f5e8' : '#ffebee', 
-                padding: '16px', 
-                borderRadius: '4px',
-                overflow: 'auto',
-                fontSize: '14px',
-                maxHeight: '400px'
-              }}>
+              <pre className={`p-4 rounded-md text-sm overflow-auto max-h-96 ${
+                result.success ? 'bg-green-50 dark:bg-green-950' : 'bg-red-50 dark:bg-red-950'
+              }`}>
                 {JSON.stringify(result.data || result.error, null, 2)}
               </pre>
             </CardContent>
           </Card>
-        </Box>
+        </div>
       )}
 
       {/* Status */}
-      <Card sx={{ mt: 3 }}>
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>📋 テスト項目</CardTitle>
+        </CardHeader>
         <CardContent>
-          <Typography variant="h6" gutterBottom>
-            📋 テスト項目
-          </Typography>
-          <Typography component="div">
-            ✅ Cloudflare Workers デプロイ完了<br/>
-            ✅ Supabase データベース接続<br/>
-            🔄 API → Database 通信テスト<br/>
-            🔄 CRUD操作テスト<br/>
-            🔄 エラーハンドリング確認
-          </Typography>
+          <div className="space-y-1 text-sm">
+            <p>✅ Cloudflare Workers デプロイ完了</p>
+            <p>✅ Supabase データベース接続</p>
+            <p>🔄 API → Database 通信テスト</p>
+            <p>🔄 CRUD操作テスト</p>
+            <p>🔄 エラーハンドリング確認</p>
+          </div>
         </CardContent>
       </Card>
 
-      <Card sx={{ mt: 2 }}>
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle>🔗 API Endpoints</CardTitle>
+        </CardHeader>
         <CardContent>
-          <Typography variant="h6" gutterBottom>
-            🔗 API Endpoints
-          </Typography>
-          <Typography component="div" sx={{ fontFamily: 'monospace', fontSize: '0.9em' }}>
-            GET {API_BASE}/api/v1/health<br/>
-            GET {API_BASE}/api/v1/users<br/>
-            POST {API_BASE}/api/v1/users<br/>
-            GET {API_BASE}/api/v1/users/:id
-          </Typography>
+          <div className="space-y-1 text-sm font-mono text-muted-foreground">
+            <p>GET {API_BASE}/api/v1/health</p>
+            <p>GET {API_BASE}/api/v1/users</p>
+            <p>POST {API_BASE}/api/v1/users</p>
+            <p>GET {API_BASE}/api/v1/users/:id</p>
+          </div>
         </CardContent>
       </Card>
-    </Box>
+    </div>
   )
 }
