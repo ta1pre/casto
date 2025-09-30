@@ -55,12 +55,18 @@ export function setAuthCookie(
   maxAgeSeconds = DEFAULT_EXPIRY_SECONDS
 ) {
   const environment = c.env?.ENVIRONMENT ?? 'development'
-  const isSecure = environment !== 'development'
+  const requestUrl = new URL(c.req.url)
+  const isHttps = requestUrl.protocol === 'https:'
+  const hostname = requestUrl.hostname.toLowerCase()
+  const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1'
+
+  const shouldUseSecure = isHttps || environment !== 'development'
+  const sameSite: 'Lax' | 'None' = !isLocalHost && shouldUseSecure ? 'None' : 'Lax'
 
   setCookie(c, AUTH_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: isSecure,
-    sameSite: 'Lax',
+    secure: shouldUseSecure,
+    sameSite,
     path: '/',
     maxAge: maxAgeSeconds
   })

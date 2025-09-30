@@ -48,7 +48,6 @@ docsディレクトリの情報整理を行い、重複を排除して管理し�
   - `viewing_history`テーブルへUPSERT
 - [x] Workers API: `GET /api/v1/users/me/recent-auditions` 実装
   - `viewing_history`から最近見たオーディション取得（上位10件）
-- [x] `applicant_profiles` テーブル作成（マイグレーション）
   - 必須項目: `nickname`, `birthdate`
   - 任意項目: `gender`, `prefecture`, `bio`, `avatar_url`
   - RLS有効化（自分のプロフィールのみ閲覧・編集可能）
@@ -56,11 +55,26 @@ docsディレクトリの情報整理を行い、重複を排除して管理し�
   - ユーザーのオーディション閲覧履歴を記録
   - UPSERT対応（同じユーザー×オーディションは最新のみ保持）
 
+### Phase 1.5: ローカル開発環境の整備（優先度: 高）🚨
+
+#### 1.5-1. LINEミニアプリのローカル動作確認環境構築
+- [ ] ローカル環境でのLIFF動作確認手順の確立
+  - **問題**: `https://casto.sb2024.xyz/liff` で401エラー発生
+    - エラー詳細: `casto-workers-dev.casto-api.workers.dev/api/v1/auth/session` が401を返す
+  - デバッグ用のログ追加・確認
+  - LIFF SDK初期化とAPI認証の整合性確認
+  - ローカル環境でのLINE認証フローのテスト手順作成
+  - `.dev.vars` の設定項目の確認・ドキュメント化
+  - 開発者向けセットアップガイドの更新
+- [ ] 開発環境のエラーハンドリング改善
+  - 401エラー時の詳細なログ出力
+  - 認証失敗時のユーザーフレンドリーなエラー表示
+  - デバッグモード時の詳細情報表示
+
 ### Phase 2: プロフィール機能（優先度: 高）
 
 #### 2-1. プロフィール作成ページ
 - [ ] `apps/web/src/app/liff/profile/new/page.tsx` 実装
-  - ステップ形式のフォーム（基本情報 → 詳細情報）
   - プログレスバー表示
   - バリデーション（クライアント＋サーバー）
   - 完了後のリダイレクト処理（`?return=` パラメータ対応）
