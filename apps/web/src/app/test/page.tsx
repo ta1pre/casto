@@ -103,6 +103,7 @@ export default function TestPage() {
   // コンポーネントマウント時にデータを取得
   useEffect(() => {
     fetchUsers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (!API_BASE) {

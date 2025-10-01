@@ -4,7 +4,7 @@ import { AlertCircle, CheckCircle2 } from "lucide-react"
 
 interface TestResult {
   success: boolean
-  data?: any
+  data?: unknown
   error?: string
   type: string
   requestDetails?: {
