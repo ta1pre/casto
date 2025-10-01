@@ -14,6 +14,7 @@
     "db:setup": "docker run --name casto-postgres -e POSTGRES_DB=casto_dev -e POSTGRES_USER=casto -e POSTGRES_PASSWORD=dev_password -p 5432:5432 -d postgres:15",
     "db:start": "docker start casto-postgres",
     "db:stop": "docker stop casto-postgres",
+    "db:sync": "./supabase/sync",
     "setup": "npm install && npm run db:setup"
   },
   "workspaces": [
@@ -28,6 +29,7 @@
     "npm": ">=8.0.0"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.1.13"
+    "@tailwindcss/postcss": "^4.1.13",
+    "pg": "^8.16.3"
   }
 }

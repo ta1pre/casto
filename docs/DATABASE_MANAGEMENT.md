@@ -1,290 +1,190 @@
 # 📊 データベース管理ガイド
 
-## 🎯 基本方針
+最終更新: 2025-10-01
 
-### マイグレーションファイル = 真実の源
-
-```
-supabase/migrations/*.sql（Git管理）
-  ↓ make migrate
-リモートDB（Supabase）
-  ↓ make generate-schema
-ローカルスキーマ（schema.json, types.ts, SCHEMA.md）
-```
-
-**ポイント:**
-- マイグレーションファイルがすべての変更履歴
-- ローカルスキーマは自動生成（Gitには含めない）
-- 型安全性を保つためにTypeScript型定義を生成
+## 概要
+- **データベース**: Supabase PostgreSQL
+- **管理方針**: `supabase/schema/` でDDLを宣言的に管理し、差分をマイグレーションとして自動生成
+- **自動化**: ローカル・CI/CDともに `npm run db:sync` で同期可能
 
 ---
 
-## 📁 ファイル構成
-
+## ディレクトリ構成
 ```
 supabase/
-├── migrations/                    # Git管理 ✅
-│   ├── 20250130_001_create_users.sql
-│   ├── 20250130_002_create_applicant_profiles.sql
-│   └── 20250130_003_create_viewing_history.sql
-├── schema.json                    # 自動生成（Gitignore）
-├── types.ts                       # 自動生成（Gitignore）
-└── SCHEMA.md                      # 自動生成（Gitignore）
+├── schema/              # DDL定義（ソース・オブ・トゥルース）
+│   └── users.sql       # テーブルごとにファイル分割
+├── migrations/          # 自動生成されたマイグレーション（Git管理対象）
+│   └── YYYYMMDD_HHMMSS_*.sql
+├── sync                 # 同期スクリプト（schema連結 → diff生成）
+└── .temp/               # CLIの一時ファイル（.gitignore対象）
 ```
 
 ---
 
-## 🔄 ワークフロー
+## 運用フロー
 
-### 1. ローカルでテーブル構成を確認
-
-```bash
-# スキーマ生成（最新の状態を取得）
-make generate-schema
-
-# 確認方法1: JSON形式
-cat supabase/schema.json
-
-# 確認方法2: ドキュメント形式
-cat supabase/SCHEMA.md
-
-# 確認方法3: TypeScript型定義
-cat supabase/types.ts
-```
-
-**メリット:**
-- ✅ 毎回DBに接続不要
-- ✅ 型定義でコード補完が効く
-- ✅ ドキュメントとして共有可能
-
----
-
-### 2. 新しいテーブルを追加
-
-```bash
-# 1. マイグレーションファイル作成
-vim supabase/migrations/20250131_001_create_auditions.sql
-
-# 2. 適用
-make migrate
-
-# 3. スキーマ更新
-make generate-schema
-
-# 4. Git管理
-git add supabase/migrations/20250131_001_create_auditions.sql
-git commit -m "feat: add auditions table"
-```
-
-**ポイント:**
-- マイグレーションファイルだけをGit管理
-- スキーマファイルは自動生成なのでGitignore
-
----
-
-### 3. チームメンバーが同期
-
-```bash
-# 1. 最新を取得
-git pull
-
-# 2. マイグレーション適用
-make migrate
-
-# 3. ローカルスキーマ更新
-make generate-schema
-```
-
----
-
-## 📊 マイグレーション管理のベストプラクティス
-
-### ✅ 推奨: 小さく頻繁にマイグレーション
-
-```
-❌ ダメな例:
-migrations/
-└── 20250130_big_update.sql  (500行、10テーブル)
-
-✅ 良い例:
-migrations/
-├── 20250130_001_create_users.sql
-├── 20250130_002_create_profiles.sql
-├── 20250130_003_add_avatar_column.sql
-└── 20250131_001_create_auditions.sql
-```
-
-**理由:**
-- 変更履歴が明確
-- ロールバックしやすい
-- レビューしやすい
-- 競合しにくい
-
----
-
-### ✅ マイグレーションファイルは削除しない
-
-```
-❌ ダメ:
-rm supabase/migrations/20250130_001_create_users.sql
-
-✅ 正しい:
-# 新しいマイグレーションで変更
-vim supabase/migrations/20250131_002_drop_old_column.sql
-```
-
-**理由:**
-- 変更履歴が消える
-- 他のメンバーの環境が壊れる
-- ロールバックできなくなる
-
----
-
-### ✅ 本番適用前にロールバック手順を用意
+### 1. スキーマ変更
+`supabase/schema/` 配下のSQLファイルを編集します。
 
 ```sql
--- 20250131_001_create_auditions.sql
-CREATE TABLE auditions (...);
-
--- ロールバック用（別途作成）
--- 20250131_999_rollback_auditions.sql
-DROP TABLE IF EXISTS auditions CASCADE;
+-- supabase/schema/users.sql
+ALTER TABLE public.users ADD COLUMN phone TEXT;
 ```
 
----
-
-## 🎯 マイグレーションが多くなったら？
-
-### 方法1: スキーマスナップショット（推奨）
-
-定期的に「現在の全体スキーマ」のスナップショットを作成：
+### 2. マイグレーション生成
+環境変数を設定して同期スクリプトを実行します。
 
 ```bash
-# 半年に1回など
-vim supabase/migrations/20250630_000_schema_snapshot.sql
+# .env.local に以下を設定（初回のみ）
+SUPABASE_ACCESS_TOKEN="sbp_..."
+SUPABASE_PROJECT_REF="sfscmpjplvxtikmifqhe"
+SUPABASE_DB_PASSWORD="..."
 
-# 内容: すべてのテーブルのCREATE文
+# 同期実行
+set -a && source .env.local && set +a
+npm run db:sync
 ```
 
-**メリット:**
-- 新規メンバーは最新のスナップショットから開始
-- 古いマイグレーションを参照する必要がない
-- セットアップ時間が短縮
-
----
-
-### 方法2: マイグレーション整理
-
-```
-supabase/migrations/
-├── archive/                      # アーカイブ（参照用）
-│   └── 2025_01_deprecated/
-│       ├── 20250130_001_old.sql
-│       └── 20250130_002_old.sql
-└── 20250630_000_schema_snapshot.sql  # 最新スナップショット
-```
-
----
-
-## 💡 実運用での管理
-
-### 開発環境での運用
+**または**
 
 ```bash
-# 1. 毎朝: 最新を取得
-git pull && make migrate && make generate-schema
-
-# 2. 開発中: スキーマ確認
-cat supabase/SCHEMA.md
-
-# 3. コード書く: 型定義を使用
-import { Database } from './supabase/types';
+./supabase/sync
 ```
 
-### 型定義の活用
+差分があれば `supabase/migrations/<timestamp>.sql` が生成されます。
 
-```typescript
-// apps/workers/src/index.ts
-import { Database } from '../../../supabase/types';
+### 3. レビュー & コミット
+生成されたマイグレーションを確認し、問題なければコミットします。
 
-const supabase = createClient<Database>(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+```bash
+git add supabase/migrations/
+git commit -m "feat(db): add phone column to users"
+```
 
-// 型安全なクエリ
-const { data } = await supabase
-  .from('users')  // 型補完が効く
-  .select('id, email, display_name')  // カラム名も補完される
-  .limit(10);
+### 4. PR作成 & CI確認
+PRを作成すると GitHub Actions が以下を自動実行します：
+- スキーマ同期チェック（未適用の差分がないか検証）
+- マイグレーション生成確認
+
+### 5. 本番適用
+`main` ブランチにマージすると、GitHub Actions が自動的にSupabase本番環境へマイグレーションを適用します。
+
+---
+
+## ローカル開発
+
+### 初回セットアップ
+```bash
+# 1. Supabase CLI インストール（未導入の場合）
+brew install supabase/tap/supabase
+
+# 2. 環境変数設定
+# .env.local を作成して以下を設定:
+SUPABASE_ACCESS_TOKEN="sbp_..."  # https://supabase.com/dashboard/account/tokens
+SUPABASE_PROJECT_REF="sfscmpjplvxtikmifqhe"
+SUPABASE_DB_PASSWORD="..."  # Settings > Database > Database Password
+
+# 3. リンク確立（初回のみ）
+cd supabase
+set -a && source ../.env.local && set +a
+supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+# 成功メッセージ: "Finished supabase link."
+```
+
+**重要**: パスワード認証エラーが出る場合は、Supabaseダッシュボードでデータベースパスワードを再生成してください。
+
+### 日常運用
+```bash
+# スキーマ編集
+vim supabase/schema/users.sql
+
+# 差分生成
+npm run db:sync
+
+# 生成されたマイグレーションを確認
+git diff supabase/migrations/
+
+# コミット & プッシュ
+git add supabase/
+git commit -m "feat(db): update schema"
+git push
 ```
 
 ---
 
-## 🧪 動作確認
+## CI/CD 自動化
 
-### スキーマが正しく生成されるか確認
+### GitHub Secrets 設定
+リポジトリの Settings > Secrets and variables > Actions に以下を追加：
 
-```bash
-# 1. スキーマ生成
-make generate-schema
+- `SUPABASE_ACCESS_TOKEN`: Supabase Personal Access Token
+- `SUPABASE_PROJECT_REF`: プロジェクトID（例: `sfscmpjplvxtikmifqhe`）
+- `SUPABASE_DB_PASSWORD`: データベースパスワード
 
-# 2. ファイル確認
-ls -la supabase/
+### ワークフロー
+`.github/workflows/database-sync.yml` が以下を自動実行：
 
-# 3. 内容確認
-cat supabase/SCHEMA.md
-```
+**PR時**:
+- スキーマ同期チェック
+- 未適用マイグレーション検出
 
----
-
-## 📋 よくある質問
-
-### Q: マイグレーションファイルが100個になったら？
-
-A: スキーマスナップショットを作成して、古いものはアーカイブ。
-   新規メンバーは最新のスナップショットから開始。
-
-### Q: ローカルでスキーマを持ちたくない？
-
-A: `make generate-schema` を毎回実行するか、
-   CI/CDで自動生成してGitに含める選択肢もあります。
-
-### Q: 型定義は必須？
-
-A: なくても動作しますが、型安全性のために強く推奨します。
+**main マージ時**:
+- Supabase本番環境へマイグレーション適用
 
 ---
 
-## 🎉 まとめ
+## トラブルシューティング
 
-### ✅ ローカルでテーブル構成を持つ方法
-
-```bash
-make generate-schema
-```
-
-- `schema.json` - JSON形式
-- `types.ts` - TypeScript型定義
-- `SCHEMA.md` - ドキュメント
-
-### ✅ マイグレーション管理
-
-- 小さく頻繁にマイグレーション
-- マイグレーションファイルは削除しない
-- 半年に1回スキーマスナップショット
-
-### ✅ 実運用
+### `Cannot find project ref` エラー
+リンクが確立されていません。以下を実行してください：
 
 ```bash
-# 朝イチ
-git pull && make migrate && make generate-schema
-
-# 開発中
-cat supabase/SCHEMA.md  # スキーマ確認
-
-# コード書く
-import { Database } from './supabase/types';  # 型安全
+cd supabase
+set -a && source ../.env.local && set +a
+supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
 ```
 
-**完璧な管理体制です！** 🚀
+### 差分が生成されない
+1. リモートDBに既に同じ定義が存在する可能性があります
+2. `supabase db diff --linked --schema public --debug` で詳細ログを確認
+
+### マイグレーション適用に失敗
+1. Supabase Dashboard で手動変更していないか確認
+2. マイグレーションの依存関係を確認（順序が重要）
+3. リモートに存在しないマイグレーションがある場合は修復:
+   ```bash
+   # リモートのマイグレーション履歴を確認
+   supabase migration list --linked
+   
+   # 不要なマイグレーションを reverted に設定
+   supabase migration repair --status reverted <version>
+   
+   # 再度プッシュ
+   supabase db push --linked
+   ```
+
+---
+
+## ベストプラクティス
+
+### ✅ DO
+- DDL変更は必ず `supabase/schema/` で管理
+- `npm run db:sync` で差分を生成してからコミット
+- マイグレーションファイルは手動編集せず、自動生成されたものを使用
+- 破壊的変更（DROP など）は慎重にレビュー
+
+### ❌ DON'T
+- Supabase Dashboard で直接テーブル作成・編集しない
+- `supabase/migrations/` を手動で作成しない
+- 環境変数を `.env.local` 以外に記録しない（セキュリティリスク）
+- `.env.local` を Git にコミットしない
+
+---
+
+## 関連ドキュメント
+- [Supabase セットアップ手順](./setup/SUPABASE_SETUP.md)
+- [アーキテクチャ設計](./specs/ARCHITECTURE.md)
+- [ローカル開発環境](./setup/LOCAL_DEVELOPMENT.md)
+

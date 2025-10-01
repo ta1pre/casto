@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+SCHEMA_DIR="$SCRIPT_DIR/schema"
+OUTPUT_SCHEMA_FILE="$SCRIPT_DIR/schema.sql"
+MIGRATIONS_DIR="$SCRIPT_DIR/migrations"
+CONFIG_FILE="$ROOT_DIR/.supabase/config.toml"
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+MIGRATION_FILE="$MIGRATIONS_DIR/${TIMESTAMP}_users.sql"
+
+ACCESS_TOKEN="${SUPABASE_ACCESS_TOKEN:-}"
+PROJECT_REF="${SUPABASE_PROJECT_REF:-}"
+DB_PASSWORD="${SUPABASE_DB_PASSWORD:-}"
+
+if ! command -v supabase >/dev/null 2>&1; then
+  echo "Supabase CLI が見つかりません。先にインストールして下さい。" >&2
+  exit 1
+fi
+
+if [ -z "$ACCESS_TOKEN" ]; then
+  echo "環境変数 SUPABASE_ACCESS_TOKEN が設定されていません。" >&2
+  exit 1
+fi
+
+if [ -z "$PROJECT_REF" ]; then
+  echo "環境変数 SUPABASE_PROJECT_REF が設定されていません。" >&2
+  exit 1
+fi
+
+supabase login --token "$ACCESS_TOKEN" >/dev/null 2>&1 || {
+  echo "Supabase CLI のログインに失敗しました。" >&2
+  exit 1
+}
+
+if [ ! -f "$CONFIG_FILE" ] || ! grep -Eq "project_ref\s*=\s*\"$PROJECT_REF\"" "$CONFIG_FILE"; then
+  if [ -z "$DB_PASSWORD" ]; then
+    echo "Supabase プロジェクトへのリンクに DB パスワードが必要です。SUPABASE_DB_PASSWORD を設定してください。" >&2
+    exit 1
+  fi
+
+  supabase link --project-ref "$PROJECT_REF" --password "$DB_PASSWORD" >/dev/null 2>&1 || {
+    echo "Supabase プロジェクトのリンクに失敗しました。" >&2
+    exit 1
+  }
+fi
+
+if [ ! -d "$SCHEMA_DIR" ]; then
+  echo "スキーマディレクトリが見つかりません: $SCHEMA_DIR" >&2
+  exit 1
+fi
+
+mkdir -p "$MIGRATIONS_DIR"
+
+find "$SCHEMA_DIR" -type f -name '*.sql' -print0 | sort -z | xargs -0 cat > "$OUTPUT_SCHEMA_FILE"
+
+supabase db diff --linked --schema public --file "$MIGRATION_FILE"
+
+if [ ! -s "$MIGRATION_FILE" ]; then
+  echo "差分はありません。マイグレーションを削除します。"
+  rm -f "$MIGRATION_FILE"
+else
+  echo "マイグレーションを生成しました: $MIGRATION_FILE"
+fi

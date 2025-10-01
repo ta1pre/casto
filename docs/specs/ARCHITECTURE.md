@@ -15,7 +15,7 @@
 - **Cloudflare Workers**: API・認証・Webhookの門番
   - 機能: 共通ID・ロール判定、応募/審査API、課金閲覧API、LINE Webhook受信、署名URL発行（R2直PUT）、通知送信
   - Queues/KVで順序保証・重複排除・短期キャッシュ
-- **DB**: PostgreSQL（Neon/Supabase/RDS 等）
+- **DB**: Supabase
   - 参照/更新はWorkersのみ。Nextは触らない。
 - **ストレージ**: Cloudflare R2（画像・動画）。アップロードは署名URLでフロント直PUT。
 - **公式LINE (Messaging API)＋LIFF**
