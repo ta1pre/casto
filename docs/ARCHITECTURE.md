@@ -72,6 +72,8 @@ features/
   <feature>/
     routes.ts     # API endpoints
     service.ts    # ビジネスロジック
+    test/
+      *.test.ts   # エンドポイント用の最小テスト
 lib/              # 汎用インフラ（auth・supabase等）
 middleware/       # 認証コンテキスト
 types/
@@ -86,6 +88,12 @@ types/
 - **共通ファイル**: 機能名のみ（例: `DataTable.tsx`, `usePagination.ts`）
 - **依存方向**: `<feature>/` → `common/` は可、逆は禁止
 
----
-
-**最終更新**: 2025/10/01
+### フロントエンド ↔ バックエンド連携
+- フロントエンド（Next.js）は `NEXT_PUBLIC_API_BASE_URL` を使って Cloudflare Workers API (`/api/v1/*`) を呼び出す。
+- Workers (`features/<feature>/routes.ts`) が `lib/supabase.ts` の Service Role クライアントを通じて Supabase DB にアクセス。
+- 共通ロジック（認証、DB接続、設定）は `lib/`・`middleware/`・`config/` に集約。
+```mermaid
+flowchart LR
+  A[Next.js client] -- fetch --> B[/api/v1/*]
+  B -- Service Role Key --> C[Supabase]
+```
