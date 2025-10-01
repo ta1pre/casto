@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useAuth } from './useAuth'
+import { ApiError } from '@/utils/api'
 
 declare global {
   interface Window {
@@ -230,9 +231,22 @@ export function useLiffAuth(): UseLiffAuthReturn {
       setError(null)
     } catch (err) {
       console.error('[useLiffAuth] Failed to synchronize LINE session:', err)
-      const errorMessage = err instanceof Error ? err.message : 'LINE認証に失敗しました'
+      const apiError = err instanceof ApiError ? err : null
+      const errorMessage = apiError
+        ? `LINE認証APIが失敗しました (status=${apiError.status})`
+        : err instanceof Error
+          ? err.message
+          : 'LINE認証に失敗しました'
       setError(errorMessage)
-      addLog(`ERROR: synchronizeLineSession failed: ${err instanceof Error ? err.message : String(err)}`)
+      addLog(
+        `ERROR: synchronizeLineSession failed: ${
+          apiError
+            ? `status=${apiError.status} body=${JSON.stringify(apiError.body)}`
+            : err instanceof Error
+              ? err.message
+              : String(err)
+        }`
+      )
     } finally {
       clearTimeout(timeoutId)
       setIsAuthenticating(false)
