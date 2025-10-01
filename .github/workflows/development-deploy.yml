@@ -54,6 +54,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Set Cloudflare Secrets
+        working-directory: ./apps/workers
+        run: |
+          echo "Setting Cloudflare secrets..."
+          echo "$JWT_SECRET" | npx wrangler secret put JWT_SECRET --env development
+          echo "$LINE_CHANNEL_ID" | npx wrangler secret put LINE_CHANNEL_ID --env development
+          echo "$SUPABASE_URL" | npx wrangler secret put SUPABASE_URL --env development
+          echo "$SUPABASE_SERVICE_ROLE_KEY" | npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env development
+          echo "$ALLOWED_ORIGINS" | npx wrangler secret put ALLOWED_ORIGINS --env development
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          LINE_CHANNEL_ID: ${{ secrets.LINE_CHANNEL_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
+
       - name: Deploy Workers Development
         working-directory: ./apps/workers
         run: |
