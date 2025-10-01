@@ -4,6 +4,7 @@ import { cors } from 'hono/cors'
 import { attachUserContext } from './middleware/authContext'
 import healthRoutes from './features/health/routes'
 import usersRoutes from './features/users/routes'
+import authRoutes from './features/auth/routes'
 import { getAllowedOrigins, getPrimaryOrigin } from './config/env'
 import type { AppBindings } from './types'
 
@@ -35,6 +36,7 @@ export function createApp() {
   app.use('*', attachUserContext)
 
   app.route('/api/v1', healthRoutes)
+  app.route('/api/v1', authRoutes)
   app.route('/api/v1', usersRoutes)
 
   app.notFound((c) => {

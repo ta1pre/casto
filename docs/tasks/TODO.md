@@ -64,19 +64,30 @@ LINEミニアプリ（LIFF）の認証・ユーザーフロー実装に集中。
 
 ### Phase 1.5: LINEアプリ内動作確認（優先度: 最高）🔥
 
-#### 次のステップ
-- [ ] **LINEアプリ内での動作確認**
-  - LINEアプリで`https://miniapp.line.me/2008009031-ZdQbY5YW`を開く
-  - 自動LINE認証の動作確認
-  - Workers APIへのIDトークン送信確認
-  - セッション作成の確認
-  - オーディション詳細ページ表示確認
-
 #### 完了済み ✅
 - デバッグ用ログ追加完了
 - Cookie設定改善完了
 - 環境変数設定完了
 - ブラウザでの動作確認完了
+- **LINE認証API実装完了** (`POST /api/v1/auth/line/verify`)
+- **セッション管理API実装完了** (`GET /api/v1/auth/session`, `POST /api/v1/auth/logout`)
+- **ユーザー自動登録ロジック実装完了** (UPSERTによる初回登録・更新対応)
+- **詳細ドキュメント作成完了** (`docs/tasks/LINE_AUTH_IMPLEMENTATION.md`)
+
+#### 次のステップ（デプロイ・動作確認）
+- [ ] **Workers環境変数の設定確認**
+  - `JWT_SECRET`, `LINE_CHANNEL_ID`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+- [ ] **Workersデプロイ（dev環境）**
+  - `cd apps/workers && npm run deploy:dev`
+- [ ] **LINEアプリ内での動作確認**
+  - LINEアプリで`https://miniapp.line.me/2008009031-ZdQbY5YW`を開く
+  - 自動LINE認証の動作確認
+  - Workers APIへのIDトークン送信確認
+  - セッション作成の確認
+  - DBにユーザーが登録されたか確認
+- [ ] **E2Eフロー確認**
+  - 未登録ユーザー → LIFF起動 → 自動登録 → セッション確立
+  - 登録済みユーザー → LIFF起動 → セッション復元
 
 ### Phase 2: プロフィール機能（優先度: 高）
 
