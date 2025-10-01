@@ -291,8 +291,15 @@ export function useLiffAuth(): UseLiffAuthReturn {
         console.log('[useLiffAuth] Current user state:', user ? 'has user' : 'no user')
         addLog(`Is logged in: ${isLoggedIn} | User state: ${user ? 'has user' : 'no user'}`)
 
+        if (!isLoggedIn) {
+          console.log('[useLiffAuth] Not logged in. Triggering liff.login()')
+          addLog('Not logged in -> calling liff.login()')
+          window.liff.login()
+          return
+        }
+
         // ログイン済みの場合は認証を実行
-        if (isLoggedIn && !user) {
+        if (!user) {
           console.log('[useLiffAuth] Triggering synchronizeLineSession...')
           addLog('Triggering synchronizeLineSession (already loaded)')
           try {
@@ -354,8 +361,15 @@ export function useLiffAuth(): UseLiffAuthReturn {
           console.log('[useLiffAuth] Current user state:', user ? 'has user' : 'no user')
           addLog(`Is logged in: ${isLoggedIn} | User state: ${user ? 'has user' : 'no user'}`)
 
+          if (!isLoggedIn) {
+            console.log('[useLiffAuth] Not logged in. Triggering liff.login()')
+            addLog('Not logged in -> calling liff.login()')
+            window.liff.login()
+            return
+          }
+
           // ログイン済みの場合は認証を実行
-          if (isLoggedIn && !user) {
+          if (!user) {
             console.log('[useLiffAuth] Triggering synchronizeLineSession...')
             addLog('Triggering synchronizeLineSession (dynamic load)')
             try {
