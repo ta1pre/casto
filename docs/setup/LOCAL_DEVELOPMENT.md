@@ -93,22 +93,17 @@ docker exec casto npm install
 - Supabase: Dashboard でスキーマ/RLS を更新し、必要に応じて `supabase db push` を使用
 - 環境変数: Docker Compose、Wrangler Secrets、GitHub Secrets を併用する
 
-### ⚠️ Supabase接続の重要な注意事項
+### 環境変数設定
 
-**絶対に `http://localhost` をSupabase URLとして使用しないこと**
+`apps/web/.env.local` に以下を設定:
 
-- ブラウザクライアント（Next.js）では**必ず本番環境のSupabase Project URL**を使用する
-- 正しい形式: `https://your-project-ref.supabase.co`
-- ローカル開発時でも、Supabase Cloudの本番プロジェクトに接続する
-- `http://localhost:54321` はSupabase CLI（`supabase start`）用のURLであり、ブラウザクライアントでは使用不可
-
-環境変数の設定例:
 ```bash
-NEXT_PUBLIC_SUPABASE_URL="https://your-project-ref.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
+NEXT_PUBLIC_API_BASE_URL="https://casto-workers-dev.casto-api.workers.dev"
 ```
 
-参考: https://supabase.com/docs/guides/local-development/overview
+- フロントエンドは Workers API 経由でデータ取得
+- Supabase への直接接続は行わない
+- `.env.local` は `apps/web/` 直下に配置
 
 ## 🧰 よく使うコマンド
 

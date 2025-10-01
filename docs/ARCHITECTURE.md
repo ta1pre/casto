@@ -37,14 +37,14 @@
 
 ## データベース接続
 
-### フロントエンド → Supabase
-- `@supabase/supabase-js` でブラウザから直接接続
-- RLS（Row Level Security）で権限制御
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` 使用
+### フロントエンド → Workers API → Supabase
+- フロントエンドは Workers API 経由でデータ取得
+- Supabase への直接接続は行わない（セキュリティ・権限管理の一元化）
+- `NEXT_PUBLIC_API_BASE_URL` で Workers エンドポイントを参照
 
 ### Workers → Supabase
 - `SUPABASE_SERVICE_ROLE_KEY` でサーバー側から接続
-- RLSをバイパス可能（管理操作用）
+- RLS は `USING (false)` で維持し、Service Role のみ操作可能
 
 ## ディレクトリ構造
 
@@ -64,14 +64,20 @@ lib/              # ユーティリティ
 
 ### API (`apps/workers/src/`)
 ```
+app.ts            # Honoアプリ本体（CORS・ルーティング）
+index.ts          # エントリポイント
+config/
+  env.ts          # 環境設定（development/production）
 features/
   <feature>/
-    routes.ts     # ルート定義
+    routes.ts     # API endpoints
     service.ts    # ビジネスロジック
-    schema.ts     # バリデーション
-lib/              # 共通ライブラリ
-middleware/       # 認証・CORS等
-types.ts          # 型定義
+lib/              # 汎用インフラ（auth・supabase等）
+middleware/       # 認証コンテキスト
+types/
+  index.ts        # 型のre-export
+  bindings.ts     # Hono Bindings
+  supabase.ts     # ドメイン型
 ```
 
 ## 命名規則
