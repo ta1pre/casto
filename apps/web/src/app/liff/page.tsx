@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useLiffAuth } from '@/hooks/useLiffAuth'
+import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
 
 export default function LiffHomePage() {
   const {

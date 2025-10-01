@@ -1,23 +1,43 @@
-# docs/ README
+# 📚 casto ドキュメント
 
-## 使い方
-- **必読**: 作業前に `rules.md` を確認してください。
-- **タスク状況**: 進行中の作業は `tasks/`、完了済みは `tasksarchive/` を参照してください。
+casto プロジェクトの開発ガイドとタスク管理。
 
-## 主なディレクトリ
-- `specs/`: 確定済み仕様（PURPOSE, SPEC, ARCHITECTURE）
-- `operations/`: 運用・決定事項・CI/CD・ドメインルール
-- `setup/`: 環境構築ガイド（Cloudflare, GitHub, Supabase等）
-- `features/`: 機能別ドキュメント（auth等）
-- `tasks/`: 進行中タスク管理
+## 📂 構成
 
-## クイックスタート
-- **[データベース](./setup/DATABASE_QUICKSTART.md)** - 5分でSupabase環境構築
-- **[ローカル開発](./setup/LOCAL_DEVELOPMENT.md)** - 開発環境のセットアップ
-- **[Supabase詳細](./setup/SUPABASE_SETUP.md)** - Supabase完全セットアップ手順
+- **setup/**: 開発環境構築ガイド
+- **tasks/**: タスク管理（進行中・完了・アーカイブ）
+- **CRITICAL_RULES.md**: 絶対に守るべき重要ルール
 
-## データベース管理
-- **[DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md)** - スキーマ管理・マイグレーション運用の完全ガイド
-- **[DATABASE_DEPLOYMENT_SUCCESS.md](./DATABASE_DEPLOYMENT_SUCCESS.md)** - 実際の成功事例と確立した運用フロー
+## 🚀 開発開始
 
-詳細な運用ルールや命名規則は `rules.md` を参照してください。
+1. [ローカル開発環境](./setup/LOCAL_DEVELOPMENT.md) - Docker Compose での起動方法
+2. [重要ルール](./CRITICAL_RULES.md) - 必読の禁止事項
+
+## 📋 タスク管理
+
+- [進行中タスク](./tasks/in-progress/)
+- [完了タスク](./tasks/completed/)
+- [アーカイブ](./tasksarchive/)
+
+## 🏗️ プロジェクト構成
+
+```
+apps/
+  web/          # Next.js フロントエンド
+    src/app/
+      liff/     # LINE ミニアプリ
+      test/     # 開発テストページ
+  workers/      # Cloudflare Workers API
+    src/
+      features/ # 機能別API実装
+      lib/      # 共通ライブラリ
+```
+
+## ✏️ 更新ルール
+
+- 構成変更時は関連ドキュメントを更新
+- タスク完了時は `tasks/completed/` へ移動
+
+---
+
+**最終更新**: 2025/10/01

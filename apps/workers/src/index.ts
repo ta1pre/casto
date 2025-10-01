@@ -2,11 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 
 import { attachUserContext } from './middleware/authContext'
-import healthRoutes from './routes/health'
-import authRoutes from './routes/auth'
-import usersRoutes from './routes/users'
-import meRoutes from './routes/me'
-import auditionsRoutes from './routes/auditions'
+import healthRoutes from './features/health/routes'
 import type { AppBindings } from './types'
 
 const app = new Hono<AppBindings>()
@@ -36,10 +32,6 @@ app.use('*', cors({
 app.use('*', attachUserContext)
 
 app.route('/api/v1', healthRoutes)
-app.route('/api/v1', authRoutes)
-app.route('/api/v1', usersRoutes)
-app.route('/api/v1', meRoutes)
-app.route('/api/v1', auditionsRoutes)
 
 app.notFound((c) => {
   return c.json({ error: 'Not Found' }, 404)

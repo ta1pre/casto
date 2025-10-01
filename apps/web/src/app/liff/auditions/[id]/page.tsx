@@ -4,10 +4,10 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useLiffAuth } from '@/hooks/useLiffAuth'
-import { LoadingScreen } from '@/components/LoadingScreen'
-import { ErrorScreen } from '@/components/ErrorScreen'
-import { apiFetch, ApiError } from '@/utils/api'
+import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
+import { LoadingScreen } from '@/shared/components/LoadingScreen'
+import { ErrorScreen } from '@/shared/components/ErrorScreen'
+import { apiFetch, ApiError } from '@/shared/lib/api'
 
 interface Audition {
   id: string
