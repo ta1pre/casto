@@ -9,7 +9,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { AlertCircle, CheckCircle2, Info, Loader2 } from "lucide-react"
 import { AuditionCard } from "@/components/features/audition"
-import { supabase } from "@/lib/supabase"
+import { createClient } from '@supabase/supabase-js'
+
+// このページは完全にクライアントサイドで動作するため、動的レンダリングを強制
+export const dynamic = 'force-dynamic'
 
 interface User {
   id: string
@@ -62,6 +65,18 @@ export default function TestPage() {
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
 
+  // Supabaseクライアントの初期化（クライアントサイドのみ）
+  const getSupabaseClient = () => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Supabase環境変数が設定されていません。NEXT_PUBLIC_SUPABASE_URLとNEXT_PUBLIC_SUPABASE_ANON_KEYを確認してください。')
+    }
+
+    return createClient(supabaseUrl, supabaseAnonKey)
+  }
+
   // Supabaseからユーザー一覧を取得
   const fetchUsers = async () => {
     try {
@@ -70,6 +85,7 @@ export default function TestPage() {
       
       console.log('🔍 [Supabase] usersテーブルからデータを取得中...')
       
+      const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('users')
         .select('*')
