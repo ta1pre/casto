@@ -181,21 +181,13 @@ export function useLiffAuth(): UseLiffAuthReturn {
     }, 10000)
 
     try {
-      // LINEアプリ内かどうかの確認
+      // LINEアプリ内かどうかの確認（情報のみ、エラーにはしない）
       const inClient = typeof window.liff.isInClient === 'function' 
         ? window.liff.isInClient() 
         : null
 
       console.log('[useLiffAuth] Is in LINE client:', inClient)
       addLog(`Is in LINE client: ${inClient}`)
-
-      if (inClient === false) {
-        console.warn('[useLiffAuth] Not in LINE client')
-        setError('LINEアプリ内でページを開いてください')
-        addLog('WARNING: Not in LINE client')
-        setIsAuthenticating(false)
-        return
-      }
 
       // IDトークンの取得
       const idToken = window.liff.getIDToken?.()
