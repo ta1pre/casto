@@ -1,14 +1,26 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertCircle, CheckCircle2, Info } from "lucide-react"
+import { AlertCircle, CheckCircle2, Info, Loader2 } from "lucide-react"
 import { AuditionCard } from "@/components/features/audition"
+import { supabase } from "@/lib/supabase"
+
+interface User {
+  id: string
+  email: string | null
+  line_user_id: string | null
+  display_name: string | null
+  is_active: boolean
+  token_version: number
+  created_at: string
+  updated_at: string
+}
 
 interface ApiResponse {
   status?: string
@@ -39,6 +51,9 @@ interface TestResult {
 export default function TestPage() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<TestResult | null>(null)
+  const [users, setUsers] = useState<User[]>([])
+  const [usersLoading, setUsersLoading] = useState(true)
+  const [usersError, setUsersError] = useState<string | null>(null)
   const [userForm, setUserForm] = useState({
     provider: 'email',
     handle: '',
@@ -46,6 +61,40 @@ export default function TestPage() {
   })
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
+
+  // Supabaseからユーザー一覧を取得
+  const fetchUsers = async () => {
+    try {
+      setUsersLoading(true)
+      setUsersError(null)
+      
+      console.log('🔍 [Supabase] usersテーブルからデータを取得中...')
+      
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false })
+      
+      if (error) {
+        console.error('❌ [Supabase] エラー:', error)
+        throw error
+      }
+      
+      console.log('✅ [Supabase] 取得成功:', data)
+      setUsers(data || [])
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '不明なエラー'
+      console.error('💥 [Supabase] データ取得失敗:', errorMessage)
+      setUsersError(errorMessage)
+    } finally {
+      setUsersLoading(false)
+    }
+  }
+
+  // コンポーネントマウント時にデータを取得
+  useEffect(() => {
+    fetchUsers()
+  }, [])
 
   if (!API_BASE) {
     return (
@@ -274,21 +323,113 @@ export default function TestPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <h1 className="text-4xl font-bold mb-2">
-        🔍 詳細ログ付き接続テスト
+        🔍 Supabase データベース接続テスト
       </h1>
       <p className="text-sm text-muted-foreground mb-6">
-        更新日時: 2025/09/30 20:50
+        更新日時: 2025/10/01 19:25
       </p>
       
       <Alert className="mb-6">
         <Info className="h-4 w-4" />
-        <AlertTitle className="font-bold">🚀 デバッグモード有効！</AlertTitle>
+        <AlertTitle className="font-bold">🎯 テスト目的</AlertTitle>
         <AlertDescription className="text-sm">
-          • ブラウザの開発者ツール（F12）→ コンソールタブで詳細ログを確認できます<br/>
-          • リクエスト/レスポンスの詳細情報が画面とコンソールの両方に出力されます<br/>
-          • データベース接続エラーの原因を特定するための情報が含まれています
+          • Supabaseデータベースとの直接通信確認<br/>
+          • usersテーブルからのデータ取得・表示<br/>
+          • ブラウザの開発者ツール（F12）→ コンソールタブで詳細ログを確認できます
         </AlertDescription>
       </Alert>
+
+      {/* Users Table Display */}
+      <Card className="mb-6">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>📊 Users テーブル一覧</CardTitle>
+              <CardDescription>Supabaseから直接取得したユーザーデータ</CardDescription>
+            </div>
+            <Button 
+              onClick={fetchUsers}
+              disabled={usersLoading}
+              variant="outline"
+              size="sm"
+            >
+              {usersLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  読込中...
+                </>
+              ) : (
+                '🔄 再読込'
+              )}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {usersLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-muted-foreground">データを取得中...</span>
+            </div>
+          ) : usersError ? (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>エラー</AlertTitle>
+              <AlertDescription>
+                {usersError}
+                <br />
+                <span className="text-xs mt-2 block">
+                  環境変数 NEXT_PUBLIC_SUPABASE_URL と NEXT_PUBLIC_SUPABASE_ANON_KEY を確認してください。
+                </span>
+              </AlertDescription>
+            </Alert>
+          ) : users.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>📭 usersテーブルにデータがありません</p>
+              <p className="text-sm mt-2">下記のフォームから新規ユーザーを作成できます</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-2 font-medium">ID</th>
+                    <th className="text-left p-2 font-medium">Email</th>
+                    <th className="text-left p-2 font-medium">LINE ID</th>
+                    <th className="text-left p-2 font-medium">表示名</th>
+                    <th className="text-left p-2 font-medium">状態</th>
+                    <th className="text-left p-2 font-medium">作成日時</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((user) => (
+                    <tr key={user.id} className="border-b hover:bg-muted/50">
+                      <td className="p-2 font-mono text-xs">{user.id.substring(0, 8)}...</td>
+                      <td className="p-2">{user.email || '-'}</td>
+                      <td className="p-2">{user.line_user_id || '-'}</td>
+                      <td className="p-2">{user.display_name || '-'}</td>
+                      <td className="p-2">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          user.is_active 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        }`}>
+                          {user.is_active ? '✓ 有効' : '✗ 無効'}
+                        </span>
+                      </td>
+                      <td className="p-2 text-xs text-muted-foreground">
+                        {new Date(user.created_at).toLocaleString('ja-JP')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="mt-4 text-sm text-muted-foreground">
+                合計: {users.length} 件
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {/* Health Check */}
