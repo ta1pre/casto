@@ -10,5 +10,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
 /**
  * Supabaseクライアントインスタンス
  * ブラウザ側で使用するクライアント
+ * 
+ * ⚠️ 重要: http://localhost を使用しないこと
+ * - ブラウザクライアントでは本番環境のSupabase Project URLを使用する
+ * - 例: https://your-project-ref.supabase.co
+ * - ローカル開発でもSupabase Cloudの本番プロジェクトに接続する
+ * 
+ * 参考: https://supabase.com/docs/guides/local-development/overview
  */
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
