@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { SupabaseUserRow } from '../types'
+import type { SupabaseUserRow } from '../../types'
 
 export type GenericSupabaseClient = SupabaseClient<any, any, any>
 
