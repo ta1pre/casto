@@ -296,7 +296,10 @@ export function useLiffAuth(): UseLiffAuthReturn {
       const script = document.createElement('script')
       script.src = 'https://static.line-scdn.net/liff/edge/2/sdk.js'
       script.async = true
-      setScriptLoadState('pending')
+      setScriptLoadState('appended')
+      setScriptAppendedAt(getTimestamp())
+      updateScriptMetrics('script appended')
+      addLog(`Script appended to DOM with src: ${script.src}`)
       
       script.onload = () => {
         console.log('[useLiffAuth] LIFF SDK script loaded')
@@ -419,6 +422,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
         setScriptLoadState((prev) => (prev === 'error' ? prev : 'layout-loaded'))
         addLog(`[layout] script load event (hasLiff=${detail.hasLiff ? 'yes' : 'no'})`)
         updateScriptMetrics('layout load event')
+        addLog(`Layout script load: ${detail.message}`)
       } else if (detail.status === 'error') {
         const timestamp = detail.timestamp ?? getTimestamp()
         setLayoutScriptErrorAt(timestamp)
@@ -427,6 +431,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
         setScriptLoadState('layout-error')
         addLog(`[layout] script error event: ${detail.message ?? 'unknown'}`)
         updateScriptMetrics('layout error event')
+        addLog(`Layout script error: ${detail.message}`)
       }
     }
 

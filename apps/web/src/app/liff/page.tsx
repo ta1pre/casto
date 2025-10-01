@@ -26,6 +26,12 @@ export default function LiffHomePage() {
         {/* アクション */}
         <section className="bg-white shadow-sm rounded-lg p-4 space-y-3">
           <h2 className="text-xl font-bold text-gray-900">LIFFステータス</h2>
+          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+            <p className="text-sm text-yellow-800">
+              ⚠️ 注意: このページはパソコンからのアクセスではLIFF SDKが動作しません。LINEアプリ内でのみ正常に動作します。
+              診断情報が空の場合、LINEアプリ内でページを再読み込みしてください。
+            </p>
+          </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <StatusItem label="LIFF Ready" value={isLiffReady} />
             <StatusItem label="Is Loading" value={isLoading} spinner />
@@ -38,7 +44,11 @@ export default function LiffHomePage() {
               text={diagnostics.scriptLoadState}
               isError={diagnostics.scriptLoadState === 'error'}
             />
-            <StatusItem label="ReadyState" text={diagnostics.readyState ?? 'unknown'} />
+            <StatusItem label="scriptElementCount" text={diagnostics.scriptElementCount.toString()} />
+            <StatusItem label="scriptAppendedAt" text={diagnostics.scriptAppendedAt ?? '—'} />
+            <StatusItem label="layoutScriptLoadedAt" text={diagnostics.layoutScriptLoadedAt ?? '—'} />
+            <StatusItem label="layoutScriptErrorAt" text={diagnostics.layoutScriptErrorAt ?? '—'} />
+            <StatusItem label="layoutScriptHasLiff" text={diagnostics.layoutScriptHasLiff?.toString() ?? '—'} />
           </div>
 
           <div className="flex flex-wrap gap-2 pt-2 text-sm">
@@ -101,6 +111,9 @@ export default function LiffHomePage() {
           <TimelineItem label="LINEログイン試行" value={diagnostics.lastLoginAttemptAt} />
           <TimelineItem label="LINEログイン成功" value={diagnostics.lastLoginSuccessAt} />
           <TimelineItem label="アプリ側ユーザー読み込み" value={diagnostics.authUserLoadedAt} />
+          <TimelineItem label="スクリプト追加" value={diagnostics.scriptAppendedAt} />
+          <TimelineItem label="レイアウトスクリプトロード" value={diagnostics.layoutScriptLoadedAt} />
+          <TimelineItem label="レイアウトスクリプトエラー" value={diagnostics.layoutScriptErrorAt} />
         </section>
 
         {/* ユーザー情報 */}

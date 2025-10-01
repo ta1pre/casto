@@ -8,7 +8,7 @@ export default function LiffLayout({ children }: { children: React.ReactNode }) 
     <>
       <Script
         src="https://static.line-scdn.net/liff/edge/2/sdk.js"
-        strategy="beforeInteractive"
+        strategy="afterInteractive"
         onLoad={() => {
           const hasLiff = typeof window !== 'undefined' && Boolean((window as Window & { liff?: unknown }).liff)
           console.log('[LIFF Layout] SDK script loaded, window.liff present:', hasLiff)
@@ -19,7 +19,8 @@ export default function LiffLayout({ children }: { children: React.ReactNode }) 
                   source: 'layout',
                   status: 'load',
                   hasLiff,
-                  timestamp: new Date().toISOString()
+                  timestamp: new Date().toISOString(),
+                  message: `Script loaded, liff present: ${hasLiff}`
                 }
               })
             )
