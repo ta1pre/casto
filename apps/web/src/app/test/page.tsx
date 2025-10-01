@@ -65,23 +65,13 @@ export default function TestPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <h1 className="text-4xl font-bold mb-2">
-        🔍 Workers API 接続テスト
-      </h1>
-      <p className="text-sm text-muted-foreground mb-6">
-        更新日時: 2025/10/01
-      </p>
-      
-      <Alert className="mb-6">
-        <Info className="h-4 w-4" />
-        <AlertTitle className="font-bold">🎯 テスト目的</AlertTitle>
-        <AlertDescription className="text-sm">
-          • Workers API経由でのデータ取得・表示<br/>
-          • usersテーブルのCRUD操作確認<br/>
-          • ブラウザの開発者ツール（F12）→ コンソールタブで詳細ログを確認できます
-        </AlertDescription>
-      </Alert>
+    <div className="container mx-auto px-4 py-8 max-w-5xl space-y-6">
+      <div>
+        <h1 className="text-3xl font-semibold">Workers API テスト</h1>
+        <p className="text-sm text-muted-foreground">
+          `Get Users` と `Create User` の動作確認用ページです。
+        </p>
+      </div>
 
       <UsersTable 
         users={users}
@@ -105,7 +95,7 @@ export default function TestPage() {
 
       <TestResultDisplay result={result} />
 
-      <Card className="mt-6">
+      <Card>
         <CardHeader>
           <CardTitle>🔗 API Endpoints</CardTitle>
         </CardHeader>
