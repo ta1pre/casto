@@ -6,6 +6,9 @@ compatibility_flags = ["nodejs_compat"]
 [env.development]
 name = "casto-workers-dev"
 vars = { ENVIRONMENT = "development" }
+routes = [
+  { pattern = "casto.sb2024.xyz/api/*", zone_name = "sb2024.xyz" }
+]
 
 [env.preview]
 name = "casto-workers-preview"
