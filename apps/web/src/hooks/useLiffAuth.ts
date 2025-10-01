@@ -255,7 +255,8 @@ export function useLiffAuth(): UseLiffAuthReturn {
         const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
         console.log('[useLiffAuth] LIFF ID:', liffId ? 'configured' : 'missing')
         addLog(`LIFF ID: ${liffId ? 'configured' : 'missing'}`)
-        
+        addLog(`LIFF ID value: ${liffId || 'undefined'}`)
+
         if (!liffId) {
           setError('LIFF IDが設定されていません')
           addLog('ERROR: LIFF ID not configured')
@@ -317,7 +318,8 @@ export function useLiffAuth(): UseLiffAuthReturn {
           const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
           console.log('[useLiffAuth] LIFF ID:', liffId ? 'configured' : 'missing')
           addLog(`LIFF ID: ${liffId ? 'configured' : 'missing'}`)
-          
+          addLog(`LIFF ID value: ${liffId || 'undefined'}`)
+
           if (!liffId) {
             setError('LIFF IDが設定されていません')
             addLog('ERROR: LIFF ID not configured')

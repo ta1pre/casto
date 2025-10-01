@@ -38,6 +38,7 @@ export default function LiffHomePage() {
             <StatusItem label="User Authenticated" value={!!user} />
             <StatusItem label="Error" text={error ?? 'なし'} isError={!!error} />
             <StatusItem label="env LIFF ID" value={diagnostics.envLiffIdConfigured} />
+            <StatusItem label="LIFF ID (一部)" text={process.env.NEXT_PUBLIC_LINE_LIFF_ID ? `${process.env.NEXT_PUBLIC_LINE_LIFF_ID.slice(0, 8)}...` : '未設定'} />
             <StatusItem label="window.liff" value={diagnostics.hasWindowLiff} />
             <StatusItem
               label="Script Load"
