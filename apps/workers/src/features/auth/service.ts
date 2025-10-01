@@ -54,8 +54,6 @@ export async function upsertLineUser(
   id: string
   lineUserId: string
   displayName: string
-  pictureUrl: string | null
-  role: string
   tokenVersion: number
 }> {
   const supabase = createSupabaseClient(c)
@@ -66,9 +64,6 @@ export async function upsertLineUser(
       {
         line_user_id: profile.userId,
         display_name: profile.displayName,
-        picture_url: profile.pictureUrl ?? null,
-        auth_provider: 'line',
-        role: 'applicant',
         is_active: true,
         token_version: 0
       },
@@ -77,7 +72,7 @@ export async function upsertLineUser(
         ignoreDuplicates: false
       }
     )
-    .select('id, line_user_id, display_name, picture_url, role, token_version')
+    .select('id, line_user_id, display_name, token_version')
     .single()
 
   if (error || !data) {
@@ -88,8 +83,6 @@ export async function upsertLineUser(
     id: data.id,
     lineUserId: data.line_user_id,
     displayName: data.display_name,
-    pictureUrl: data.picture_url,
-    role: data.role,
     tokenVersion: data.token_version
   }
 }

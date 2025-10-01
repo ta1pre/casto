@@ -75,10 +75,37 @@ LINEミニアプリ（LIFF）の認証・ユーザーフロー実装に集中。
 - **詳細ドキュメント作成完了** (`docs/tasks/LINE_AUTH_IMPLEMENTATION.md`)
 
 #### 次のステップ（デプロイ・動作確認）
-- [ ] **Workers環境変数の設定確認**
-  - `JWT_SECRET`, `LINE_CHANNEL_ID`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+
+**🚨 重要**: 環境変数が未設定のため、現状では認証APIは動作しません。
+
+##### ステップ1: ローカル環境変数設定
+- [ ] **`.dev.vars` ファイルを編集**
+  - ファイルパス: `apps/workers/.dev.vars`
+  - 必須: `JWT_SECRET`, `LINE_CHANNEL_ID`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+  - 詳細手順: `docs/setup/WORKERS_AUTH_SETUP.md`
+
+##### ステップ2: 型チェック
+- [ ] **Workersの型チェック**
+  - `cd apps/workers && npm run type-check`
+  - エラーがないことを確認
+
+##### ステップ3: 本番環境変数設定
+- [ ] **Cloudflare Secretsに設定**
+  ```bash
+  cd apps/workers
+  wrangler secret put JWT_SECRET --env development
+  wrangler secret put SUPABASE_URL --env development
+  wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env development
+  wrangler secret put LINE_CHANNEL_ID --env development
+  wrangler secret put ALLOWED_ORIGINS --env development
+  ```
+
+##### ステップ4: デプロイ
 - [ ] **Workersデプロイ（dev環境）**
   - `cd apps/workers && npm run deploy:dev`
+  - デプロイ先: `https://casto.sb2024.xyz/api/*`
+
+##### ステップ5: 動作確認
 - [ ] **LINEアプリ内での動作確認**
   - LINEアプリで`https://miniapp.line.me/2008009031-ZdQbY5YW`を開く
   - 自動LINE認証の動作確認

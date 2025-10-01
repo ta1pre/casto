@@ -42,7 +42,7 @@ authRoutes.post('/auth/line/verify', async (c) => {
     const token = await createJWT(
       {
         userId: user.id,
-        roles: [user.role],
+        roles: ['applicant'],
         provider: 'line',
         tokenVersion: user.tokenVersion
       },
@@ -57,9 +57,7 @@ authRoutes.post('/auth/line/verify', async (c) => {
         id: user.id,
         lineUserId: user.lineUserId,
         displayName: user.displayName,
-        pictureUrl: user.pictureUrl,
-        provider: 'line',
-        role: user.role
+        provider: 'line'
       }
     })
   } catch (error) {
@@ -89,7 +87,7 @@ authRoutes.get('/auth/session', async (c) => {
     const supabase = createSupabaseClient(c)
     const { data, error } = await supabase
       .from('users')
-      .select('id, email, line_user_id, display_name, picture_url, role, auth_provider, token_version')
+      .select('id, email, line_user_id, display_name, token_version')
       .eq('id', userContext.id)
       .single()
 
@@ -103,9 +101,7 @@ authRoutes.get('/auth/session', async (c) => {
         email: data.email,
         lineUserId: data.line_user_id,
         displayName: data.display_name,
-        pictureUrl: data.picture_url,
-        provider: data.auth_provider,
-        role: data.role,
+        provider: userContext.provider,
         tokenVersion: data.token_version
       }
     })

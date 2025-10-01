@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "wrangler dev --port 8787 --host 0.0.0.0",
     "deploy": "wrangler deploy",
+    "deploy:dev": "wrangler deploy --env development",
+    "deploy:prod": "wrangler deploy --env production",
     "build": "wrangler deploy --dry-run",
+    "tail:dev": "wrangler tail --env development",
+    "tail:prod": "wrangler tail --env production",
     "test": "echo 'No tests configured yet'",
     "type-check": "tsc --noEmit"
   },
