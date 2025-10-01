@@ -313,11 +313,15 @@ function serializeUserResponse(user: SupabaseUserRow) {
 }
 
 async function verifyLineIdToken(idToken: string, channelId: string) {
+  console.log('[Workers] verifyLineIdToken called with channelId:', channelId?.substring(0, 10) + '...')
+  console.log('[Workers] idToken length:', idToken?.length)
+  
   const body = new URLSearchParams({
     id_token: idToken,
     client_id: channelId
   })
 
+  console.log('[Workers] Calling LINE verify API...')
   const response = await fetch('https://api.line.me/oauth2/v2.1/verify', {
     method: 'POST',
     headers: {
@@ -326,17 +330,22 @@ async function verifyLineIdToken(idToken: string, channelId: string) {
     body
   })
 
+  console.log('[Workers] LINE API response status:', response.status)
+  
   if (!response.ok) {
     const errorText = await response.text()
+    console.error('[Workers] LINE API error response:', errorText)
     throw new Error(`LINE verify failed: ${response.status} ${errorText}`)
   }
 
-  return response.json() as Promise<{
+  const result = await response.json() as {
     sub: string
     name?: string
     email?: string
     picture?: string
-  }>
+  }
+  console.log('[Workers] LINE API success, sub:', result.sub)
+  return result
 }
 
 function getMagicLinkKv(c: Context<AppBindings>) {
