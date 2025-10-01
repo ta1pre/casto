@@ -8,7 +8,6 @@ import { Label } from "@/shared/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { AlertCircle, CheckCircle2, Info, Loader2 } from "lucide-react"
-import { createClient } from '@supabase/supabase-js'
 
 // このページは完全にクライアントサイドで動作するため、動的レンダリングを強制
 export const dynamic = 'force-dynamic'
@@ -64,42 +63,38 @@ export default function TestPage() {
 
   const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL
 
-  // Supabaseクライアントの初期化（クライアントサイドのみ）
-  const getSupabaseClient = () => {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Supabase環境変数が設定されていません。NEXT_PUBLIC_SUPABASE_URLとNEXT_PUBLIC_SUPABASE_ANON_KEYを確認してください。')
-    }
-
-    return createClient(supabaseUrl, supabaseAnonKey)
-  }
-
-  // Supabaseからユーザー一覧を取得
+  // Workers API経由でユーザー一覧を取得
   const fetchUsers = async () => {
     try {
       setUsersLoading(true)
       setUsersError(null)
       
-      console.log('🔍 [Supabase] usersテーブルからデータを取得中...')
-      
-      const supabase = getSupabaseClient()
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false })
-      
-      if (error) {
-        console.error('❌ [Supabase] エラー:', error)
-        throw error
+      if (!API_BASE) {
+        throw new Error('APIベースURLが設定されていません')
       }
       
-      console.log('✅ [Supabase] 取得成功:', data)
-      setUsers(data || [])
+      const url = `${API_BASE}/api/v1/users`
+      console.log('🔍 [API] users一覧を取得中...', url)
+
+      const response = await fetch(url, {
+        credentials: 'include'
+      })
+
+      const payload = await response.json()
+
+      if (!response.ok) {
+        console.error('❌ [API] レスポンスエラー:', response.status, payload)
+        const message = typeof payload?.error === 'string' ? payload.error : 'APIエラーが発生しました'
+        throw new Error(message)
+      }
+
+      const usersData = Array.isArray(payload?.users) ? payload.users : []
+
+      console.log('✅ [API] 取得成功:', usersData)
+      setUsers(usersData as User[])
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '不明なエラー'
-      console.error('💥 [Supabase] データ取得失敗:', errorMessage)
+      console.error('💥 [API] データ取得失敗:', errorMessage)
       setUsersError(errorMessage)
     } finally {
       setUsersLoading(false)
@@ -132,7 +127,9 @@ export default function TestPage() {
     console.log('🚀 [Health Check] リクエスト開始:', url)
     
     try {
-      const response = await fetch(url)
+      const response = await fetch(url, {
+        credentials: 'include'
+      })
       
       const responseHeaders: Record<string, string> = {}
       response.headers.forEach((value, key) => {
@@ -195,7 +192,9 @@ export default function TestPage() {
     console.log('🚀 [Get Users] リクエスト開始:', url)
     
     try {
-      const response = await fetch(url)
+      const response = await fetch(url, {
+        credentials: 'include'
+      })
       
       const responseHeaders: Record<string, string> = {}
       response.headers.forEach((value, key) => {
@@ -273,7 +272,8 @@ export default function TestPage() {
       const response = await fetch(url, {
         method: 'POST',
         headers: requestHeaders,
-        body: requestBody
+        body: requestBody,
+        credentials: 'include'
       })
       
       const responseHeaders: Record<string, string> = {}
@@ -393,7 +393,7 @@ export default function TestPage() {
                 {usersError}
                 <br />
                 <span className="text-xs mt-2 block">
-                  環境変数 NEXT_PUBLIC_SUPABASE_URL と NEXT_PUBLIC_SUPABASE_ANON_KEY を確認してください。
+                  環境変数 NEXT_PUBLIC_API_BASE_URL を確認してください。
                 </span>
               </AlertDescription>
             </Alert>
