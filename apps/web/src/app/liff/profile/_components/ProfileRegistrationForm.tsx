@@ -230,6 +230,7 @@ export function ProfileRegistrationForm() {
               const Icon = step.icon
               const isActive = currentStep === step.id
               const isCompleted = currentStep > step.id
+              const isVisited = currentStep >= step.id
               const isDisabled = step.id > 2 && !isBasicInfoValid()
               
               return (
@@ -240,13 +241,11 @@ export function ProfileRegistrationForm() {
                       onClick={() => handleStepClick(step.id)}
                       disabled={isDisabled}
                       className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${
-                        isCompleted
+                        isVisited
                           ? 'bg-foreground border-foreground text-background cursor-pointer hover:opacity-80'
-                          : isActive
-                            ? 'bg-background border-foreground text-foreground'
-                            : isDisabled
-                              ? 'bg-background border-border text-muted-foreground cursor-not-allowed'
-                              : 'bg-background border-border text-muted-foreground cursor-pointer hover:border-foreground/50'
+                          : isDisabled
+                            ? 'bg-background border-border text-muted-foreground cursor-not-allowed'
+                            : 'bg-background border-border text-muted-foreground cursor-pointer hover:border-foreground/50'
                       } ${!isDisabled ? 'active:scale-95' : ''}`}
                       aria-label={`${step.name}に移動`}
                     >
