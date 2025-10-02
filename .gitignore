@@ -154,3 +154,6 @@ playwright/.cache/
 # Cache
 .cache/
 .parcel-cache/
+
+# Design resources
+デザイン素材v0/

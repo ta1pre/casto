@@ -2,8 +2,9 @@
 
 import React from 'react'
 import Script from 'next/script'
+import { LiffLayout as LiffLayoutWrapper } from './_components/LiffLayout'
 
-export default function LiffLayout({ children }: { children: React.ReactNode }) {
+export default function LiffRootLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Script
@@ -42,7 +43,9 @@ export default function LiffLayout({ children }: { children: React.ReactNode }) 
           }
         }}
       />
-      {children}
+      <LiffLayoutWrapper>
+        {children}
+      </LiffLayoutWrapper>
     </>
   )
 }

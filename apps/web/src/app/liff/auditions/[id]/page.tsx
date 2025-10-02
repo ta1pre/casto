@@ -170,18 +170,17 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* ヘッダー */}
-      <header className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="bg-card border-b border-border sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-center relative">
           <button
             onClick={() => router.push('/liff')}
-            className="text-blue-600 hover:text-blue-700"
+            className="absolute left-4 text-primary hover:text-primary/80 font-medium"
           >
             ← 戻る
           </button>
-          <h1 className="text-xl font-bold text-gray-900">casto</h1>
-          <div className="w-12"></div>
+          <h1 className="text-xl font-medium tracking-wide text-foreground">casto</h1>
         </div>
       </header>
 
@@ -197,25 +196,25 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
             className="w-full h-64 object-cover rounded-lg mb-6"
           />
         ) : (
-          <div className="w-full h-64 bg-gray-200 flex items-center justify-center rounded-lg mb-6">
+          <div className="w-full h-64 bg-secondary flex items-center justify-center rounded-lg mb-6">
             <span className="text-6xl">🎭</span>
           </div>
         )}
 
         {/* タイトルと主催者 */}
-        <div className="bg-white rounded-lg p-6 mb-4">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+        <div className="bg-card border border-border rounded-lg p-6 mb-4">
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             {audition.title}
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="text-muted-foreground mb-4">
             主催: {audition.organizerName}
           </p>
 
           {/* 締切情報 */}
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <span className="text-gray-500">応募期間:</span>
-              <span className="font-medium">
+              <span className="text-muted-foreground">応募期間:</span>
+              <span className="font-medium text-foreground">
                 {new Date(audition.applicationStartDate).toLocaleDateString('ja-JP')}
                 {' 〜 '}
                 {new Date(audition.deadline).toLocaleDateString('ja-JP')}
@@ -225,18 +224,18 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
         </div>
 
         {/* 説明 */}
-        <div className="bg-white rounded-lg p-6 mb-4">
-          <h3 className="font-bold text-lg mb-3">オーディション概要</h3>
-          <p className="text-gray-700 whitespace-pre-wrap">
+        <div className="bg-card border border-border rounded-lg p-6 mb-4">
+          <h3 className="font-bold text-lg mb-3 text-foreground">オーディション概要</h3>
+          <p className="text-foreground/80 whitespace-pre-wrap">
             {audition.description}
           </p>
         </div>
 
         {/* 応募条件 */}
         {audition.requirements && (
-          <div className="bg-white rounded-lg p-6 mb-4">
-            <h3 className="font-bold text-lg mb-3">応募条件</h3>
-            <p className="text-gray-700 whitespace-pre-wrap">
+          <div className="bg-card border border-border rounded-lg p-6 mb-4">
+            <h3 className="font-bold text-lg mb-3 text-foreground">応募条件</h3>
+            <p className="text-foreground/80 whitespace-pre-wrap">
               {audition.requirements}
             </p>
           </div>
@@ -244,9 +243,9 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
 
         {/* 賞金・特典 */}
         {audition.prizes && (
-          <div className="bg-white rounded-lg p-6 mb-4">
-            <h3 className="font-bold text-lg mb-3">賞金・特典</h3>
-            <p className="text-gray-700 whitespace-pre-wrap">
+          <div className="bg-card border border-border rounded-lg p-6 mb-4">
+            <h3 className="font-bold text-lg mb-3 text-foreground">賞金・特典</h3>
+            <p className="text-foreground/80 whitespace-pre-wrap">
               {audition.prizes}
             </p>
           </div>
@@ -254,27 +253,27 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
 
         {/* お問い合わせ */}
         {audition.contactInfo && (
-          <div className="bg-white rounded-lg p-6 mb-4">
-            <h3 className="font-bold text-lg mb-3">お問い合わせ</h3>
-            <p className="text-gray-700 whitespace-pre-wrap">
+          <div className="bg-card border border-border rounded-lg p-6 mb-4">
+            <h3 className="font-bold text-lg mb-3 text-foreground">お問い合わせ</h3>
+            <p className="text-foreground/80 whitespace-pre-wrap">
               {audition.contactInfo}
             </p>
           </div>
         )}
 
         {/* 応募ボタン */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-50">
           <div className="max-w-7xl mx-auto">
             {audition.status === 'published' ? (
               <Link href={`/liff/auditions/${audition.id}/apply`}>
-                <button className="w-full bg-blue-600 text-white py-4 rounded-lg font-bold hover:bg-blue-700 transition">
+                <button className="w-full bg-primary text-primary-foreground py-4 rounded-lg font-bold hover:bg-primary/90 transition">
                   今すぐ応募する
                 </button>
               </Link>
             ) : (
               <button 
                 disabled 
-                className="w-full bg-gray-300 text-gray-500 py-4 rounded-lg font-bold cursor-not-allowed"
+                className="w-full bg-muted text-muted-foreground py-4 rounded-lg font-bold cursor-not-allowed"
               >
                 {audition.status === 'closed' ? '応募受付終了' : '準備中'}
               </button>

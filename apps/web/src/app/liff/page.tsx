@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 
 export default function LiffHomePage() {
   const {
@@ -19,133 +20,220 @@ export default function LiffHomePage() {
   } = useLiffAuth()
   const [showRawData, setShowRawData] = useState(false)
   const [showDebugLogs, setShowDebugLogs] = useState(true)
+  const [showDebugPanel, setShowDebugPanel] = useState(false)
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-muted-foreground">読み込み中...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="px-4 py-6">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+          <p className="text-destructive font-medium">エラーが発生しました</p>
+          <p className="text-sm text-muted-foreground mt-1">{error}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-        {/* アクション */}
-        <section className="bg-white shadow-sm rounded-lg p-4 space-y-3">
-          <h2 className="text-xl font-bold text-gray-900">LIFFステータス</h2>
-          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
-            <p className="text-sm text-yellow-800">
-              ⚠️ 注意: このページはパソコンからのアクセスではLIFF SDKが動作しません。LINEアプリ内でのみ正常に動作します。
-              診断情報が空の場合、LINEアプリ内でページを再読み込みしてください。
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <StatusItem label="LIFF Ready" value={isLiffReady} />
-            <StatusItem label="Is Loading" value={isLoading} spinner />
-            <StatusItem label="User Authenticated" value={!!user} />
-            <StatusItem label="Error" text={error ?? 'なし'} isError={!!error} />
-            <StatusItem label="env LIFF ID" value={diagnostics.envLiffIdConfigured} />
-            <StatusItem label="LIFF ID (一部)" text={process.env.NEXT_PUBLIC_LINE_LIFF_ID ? `${process.env.NEXT_PUBLIC_LINE_LIFF_ID.slice(0, 8)}...` : '未設定'} />
-            <StatusItem label="window.liff" value={diagnostics.hasWindowLiff} />
-            <StatusItem
-              label="Script Load"
-              text={diagnostics.scriptLoadState}
-              isError={diagnostics.scriptLoadState === 'error'}
-            />
-            <StatusItem label="scriptElementCount" text={diagnostics.scriptElementCount.toString()} />
-            <StatusItem label="scriptAppendedAt" text={diagnostics.scriptAppendedAt ?? '—'} />
-            <StatusItem label="layoutScriptLoadedAt" text={diagnostics.layoutScriptLoadedAt ?? '—'} />
-            <StatusItem label="layoutScriptErrorAt" text={diagnostics.layoutScriptErrorAt ?? '—'} />
-            <StatusItem label="layoutScriptHasLiff" text={diagnostics.layoutScriptHasLiff?.toString() ?? '—'} />
-          </div>
+    <div className="px-4 pt-6 pb-8 space-y-6">
+      {/* ウェルカムセクション */}
+      <div>
+        <h1 className="text-2xl font-bold text-foreground mb-1">
+          ようこそ{user?.displayName ? `、${user.displayName}さん` : ''}
+        </h1>
+        <p className="text-sm text-muted-foreground">あなたのオーディション活動</p>
+      </div>
 
-          <div className="flex flex-wrap gap-2 pt-2 text-sm">
-            <button
-              onClick={() => {
-                void reinitializeLiff()
-              }}
-              className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-            >
-              LIFF再初期化
-            </button>
-            <button
-              onClick={() => {
-                clearDebugLogs()
-              }}
-              className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition"
-            >
-              ログクリア
-            </button>
-            <button
-              onClick={() => {
-                void refreshSession()
-              }}
-              className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-            >
-              セッション再取得
-            </button>
-            <button
-              onClick={() => setShowRawData((prev) => !prev)}
-              className="px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
-            >
-              {showRawData ? '診断JSONを隠す' : '診断JSONを表示'}
-            </button>
-            <button
-              onClick={() => setShowDebugLogs((prev) => !prev)}
-              className="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
-            >
-              {showDebugLogs ? 'デバッグログを隠す' : 'デバッグログを表示'}
-            </button>
-            {user && (
+      {/* プロフィール完成度（仮） */}
+      <section className="bg-card border border-border rounded-lg p-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-semibold text-foreground">プロフィール完成度</h3>
+          <span className="text-2xl font-bold text-primary">60%</span>
+        </div>
+        <div className="w-full bg-secondary rounded-full h-2 mb-2">
+          <div className="bg-primary h-2 rounded-full" style={{ width: '60%' }} />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          プロフィールを完成させて、より多くのオーディションに応募しましょう
+        </p>
+      </section>
+
+      {/* ダッシュボード統計（仮） */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-card border border-border rounded-lg p-3 text-center">
+          <p className="text-2xl font-bold text-foreground">0</p>
+          <p className="text-xs text-muted-foreground mt-1">応募中</p>
+        </div>
+        <div className="bg-card border border-border rounded-lg p-3 text-center">
+          <p className="text-2xl font-bold text-foreground">0</p>
+          <p className="text-xs text-muted-foreground mt-1">閲覧済み</p>
+        </div>
+        <div className="bg-card border border-border rounded-lg p-3 text-center">
+          <p className="text-2xl font-bold text-foreground">0</p>
+          <p className="text-xs text-muted-foreground mt-1">お気に入り</p>
+        </div>
+      </div>
+
+      {/* クイックアクション */}
+      <section className="bg-card border border-border rounded-lg p-4">
+        <h3 className="font-semibold text-foreground mb-3">クイックアクション</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <button className="flex flex-col items-center justify-center p-4 border border-border rounded-lg hover:bg-accent transition-colors">
+            <span className="text-2xl mb-2">🔍</span>
+            <span className="text-sm font-medium">オーディションを探す</span>
+          </button>
+          <button className="flex flex-col items-center justify-center p-4 border border-border rounded-lg hover:bg-accent transition-colors">
+            <span className="text-2xl mb-2">👤</span>
+            <span className="text-sm font-medium">プロフィール編集</span>
+          </button>
+        </div>
+      </section>
+
+      {/* デバッグパネル（折りたたみ可能） */}
+      <section className="bg-card border border-border rounded-lg">
+        <button
+          onClick={() => setShowDebugPanel(!showDebugPanel)}
+          className="w-full flex items-center justify-between p-4 hover:bg-accent transition-colors rounded-lg"
+        >
+          <span className="font-semibold text-foreground">🔧 開発者向けデバッグパネル</span>
+          {showDebugPanel ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+        </button>
+        
+        {showDebugPanel && (
+          <div className="border-t border-border p-4 space-y-4">
+            {/* 警告 */}
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+              <p className="text-sm text-yellow-800">
+                ⚠️ 注意: このページはパソコンからのアクセスではLIFF SDKが動作しません。LINEアプリ内でのみ正常に動作します。
+                診断情報が空の場合、LINEアプリ内でページを再読み込みしてください。
+              </p>
+            </div>
+
+            {/* ステータスグリッド */}
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <StatusItem label="LIFF Ready" value={isLiffReady} />
+              <StatusItem label="Is Loading" value={isLoading} spinner />
+              <StatusItem label="User Authenticated" value={!!user} />
+              <StatusItem label="Error" text={error ?? 'なし'} isError={!!error} />
+              <StatusItem label="env LIFF ID" value={diagnostics.envLiffIdConfigured} />
+              <StatusItem label="LIFF ID (一部)" text={process.env.NEXT_PUBLIC_LINE_LIFF_ID ? `${process.env.NEXT_PUBLIC_LINE_LIFF_ID.slice(0, 8)}...` : '未設定'} />
+              <StatusItem label="window.liff" value={diagnostics.hasWindowLiff} />
+              <StatusItem
+                label="Script Load"
+                text={diagnostics.scriptLoadState}
+                isError={diagnostics.scriptLoadState === 'error'}
+              />
+              <StatusItem label="scriptElementCount" text={diagnostics.scriptElementCount.toString()} />
+              <StatusItem label="scriptAppendedAt" text={diagnostics.scriptAppendedAt ?? '—'} />
+              <StatusItem label="layoutScriptLoadedAt" text={diagnostics.layoutScriptLoadedAt ?? '—'} />
+              <StatusItem label="layoutScriptErrorAt" text={diagnostics.layoutScriptErrorAt ?? '—'} />
+              <StatusItem label="layoutScriptHasLiff" text={diagnostics.layoutScriptHasLiff?.toString() ?? '—'} />
+            </div>
+
+            {/* アクションボタン */}
+            <div className="flex flex-wrap gap-2 pt-2 text-sm">
               <button
                 onClick={() => {
-                  void logout()
+                  void reinitializeLiff()
                 }}
-                className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                className="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
               >
-                ログアウト
+                LIFF再初期化
               </button>
-            )}
-          </div>
-        </section>
-
-        {/* タイムライン情報 */}
-        <section className="bg-white shadow-sm rounded-lg p-4">
-          <h3 className="text-lg font-bold text-gray-900 mb-3">イベントタイムライン</h3>
-          <TimelineItem label="最後のwindow.liffチェック" value={diagnostics.lastLiffCheckAt} note={diagnostics.lastLiffCheckReason} />
-          <TimelineItem label="LIFF init開始" value={diagnostics.liffInitStartedAt} />
-          <TimelineItem label="LIFF init完了" value={diagnostics.liffInitCompletedAt} />
-          <TimelineItem label="プロフィール取得" value={diagnostics.profileFetchedAt} />
-          <TimelineItem label="LINEログイン試行" value={diagnostics.lastLoginAttemptAt} />
-          <TimelineItem label="LINEログイン成功" value={diagnostics.lastLoginSuccessAt} />
-          <TimelineItem label="アプリ側ユーザー読み込み" value={diagnostics.authUserLoadedAt} />
-          <TimelineItem label="スクリプト追加" value={diagnostics.scriptAppendedAt} />
-          <TimelineItem label="レイアウトスクリプトロード" value={diagnostics.layoutScriptLoadedAt} />
-          <TimelineItem label="レイアウトスクリプトエラー" value={diagnostics.layoutScriptErrorAt} />
-        </section>
-
-        {/* ユーザー情報 */}
-        <section className="bg-white shadow-sm rounded-lg p-4">
-          <h3 className="font-bold mb-2">デバッグ情報</h3>
-          <div className="grid md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-1">LINEプロフィール</h4>
-              <KeyValue label="User ID" value={liffProfile?.userId} />
-              <KeyValue label="Display Name" value={liffProfile?.displayName} />
-              <KeyValue label="Picture URL" value={liffProfile?.pictureUrl} />
-              <KeyValue label="Status Message" value={liffProfile?.statusMessage} />
-              <KeyValue label="ID Token (一部)" value={diagnostics.idTokenSnippet} />
+              <button
+                onClick={() => {
+                  clearDebugLogs()
+                }}
+                className="px-3 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition"
+              >
+                ログクリア
+              </button>
+              <button
+                onClick={() => {
+                  void refreshSession()
+                }}
+                className="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+              >
+                セッション再取得
+              </button>
+              <button
+                onClick={() => setShowRawData((prev) => !prev)}
+                className="px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
+              >
+                {showRawData ? '診断JSONを隠す' : '診断JSONを表示'}
+              </button>
+              <button
+                onClick={() => setShowDebugLogs((prev) => !prev)}
+                className="px-3 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+              >
+                {showDebugLogs ? 'デバッグログを隠す' : 'デバッグログを表示'}
+              </button>
+              {user && (
+                <button
+                  onClick={() => {
+                    void logout()
+                  }}
+                  className="px-3 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                >
+                  ログアウト
+                </button>
+              )}
             </div>
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-1">アプリユーザー</h4>
-              <KeyValue label="ID" value={user?.id} />
-              <KeyValue label="Display Name" value={user?.displayName ?? user?.name ?? '—'} />
-              <KeyValue label="メール" value={user?.email ?? '—'} />
-              <KeyValue label="LINE User ID" value={user?.lineUserId ?? '—'} />
-              <KeyValue label="Role" value={user?.role ?? '—'} />
-              <KeyValue label="Provider" value={user?.provider ?? '—'} />
-            </div>
-          </div>
-        </section>
 
-        {/* Raw JSON */}
-        {showRawData && (
-          <section className="bg-white shadow-sm rounded-lg p-4">
-            <h3 className="font-bold mb-2">診断JSON</h3>
-            <pre className="text-xs overflow-auto bg-gray-900 text-green-200 p-3 rounded max-h-64">
+            {/* タイムライン情報 */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">イベントタイムライン</h3>
+              <TimelineItem label="最後のwindow.liffチェック" value={diagnostics.lastLiffCheckAt} note={diagnostics.lastLiffCheckReason} />
+              <TimelineItem label="LIFF init開始" value={diagnostics.liffInitStartedAt} />
+              <TimelineItem label="LIFF init完了" value={diagnostics.liffInitCompletedAt} />
+              <TimelineItem label="プロフィール取得" value={diagnostics.profileFetchedAt} />
+              <TimelineItem label="LINEログイン試行" value={diagnostics.lastLoginAttemptAt} />
+              <TimelineItem label="LINEログイン成功" value={diagnostics.lastLoginSuccessAt} />
+              <TimelineItem label="アプリ側ユーザー読み込み" value={diagnostics.authUserLoadedAt} />
+              <TimelineItem label="スクリプト追加" value={diagnostics.scriptAppendedAt} />
+              <TimelineItem label="レイアウトスクリプトロード" value={diagnostics.layoutScriptLoadedAt} />
+              <TimelineItem label="レイアウトスクリプトエラー" value={diagnostics.layoutScriptErrorAt} />
+            </div>
+
+            {/* ユーザー情報 */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="font-bold mb-2">デバッグ情報</h3>
+              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-1">LINEプロフィール</h4>
+                  <KeyValue label="User ID" value={liffProfile?.userId} />
+                  <KeyValue label="Display Name" value={liffProfile?.displayName} />
+                  <KeyValue label="Picture URL" value={liffProfile?.pictureUrl} />
+                  <KeyValue label="Status Message" value={liffProfile?.statusMessage} />
+                  <KeyValue label="ID Token (一部)" value={diagnostics.idTokenSnippet} />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-1">アプリユーザー</h4>
+                  <KeyValue label="ID" value={user?.id} />
+                  <KeyValue label="Display Name" value={user?.displayName ?? user?.name ?? '—'} />
+                  <KeyValue label="メール" value={user?.email ?? '—'} />
+                  <KeyValue label="LINE User ID" value={user?.lineUserId ?? '—'} />
+                  <KeyValue label="Role" value={user?.role ?? '—'} />
+                  <KeyValue label="Provider" value={user?.provider ?? '—'} />
+                </div>
+              </div>
+            </div>
+
+            {/* Raw JSON */}
+            {showRawData && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-bold mb-2">診断JSON</h3>
+                <pre className="text-xs overflow-auto bg-gray-900 text-green-200 p-3 rounded max-h-64">
 {JSON.stringify(
   {
     diagnostics,
@@ -155,24 +243,26 @@ export default function LiffHomePage() {
   null,
   2
 )}
-            </pre>
-          </section>
-        )}
+                </pre>
+              </div>
+            )}
 
-        {/* Debug Logs */}
-        {showDebugLogs && (
-          <section className="bg-white shadow-sm rounded-lg p-4">
-            <h3 className="font-bold mb-2">デバッグログ</h3>
-            <div className="text-xs bg-gray-900 text-green-200 p-3 rounded max-h-64 overflow-y-auto space-y-1 font-mono">
-              {debugLogs.length > 0 ? (
-                debugLogs.map((log, i) => <div key={i}>{log}</div>)
-              ) : (
-                <div className="text-gray-400">ログなし</div>
-              )}
-            </div>
-          </section>
+            {/* Debug Logs */}
+            {showDebugLogs && (
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-bold mb-2">デバッグログ</h3>
+                <div className="text-xs bg-gray-900 text-green-200 p-3 rounded max-h-64 overflow-y-auto space-y-1 font-mono">
+                  {debugLogs.length > 0 ? (
+                    debugLogs.map((log, i) => <div key={i}>{log}</div>)
+                  ) : (
+                    <div className="text-gray-400">ログなし</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         )}
-      </main>
+      </section>
     </div>
   )
 }
