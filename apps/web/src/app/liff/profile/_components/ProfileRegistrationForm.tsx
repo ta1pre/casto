@@ -115,7 +115,7 @@ export function ProfileRegistrationForm() {
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<ProfileFormData>(INITIAL_FORM_DATA)
 
-  const updateFormData = (field: keyof ProfileFormData, value: any) => {
+  const updateFormData = <K extends keyof ProfileFormData>(field: K, value: ProfileFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
