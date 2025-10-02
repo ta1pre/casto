@@ -582,7 +582,7 @@ export function ProfileRegistrationForm() {
       </div>
 
       {/* フッターナビゲーション */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-40">
+      <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-border z-40">
         <div className="container max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
             <Button
@@ -590,7 +590,7 @@ export function ProfileRegistrationForm() {
               variant="outline"
               onClick={handlePrev}
               disabled={currentStep === 1}
-              className="flex-1 sm:flex-none"
+              className="flex-1 sm:flex-none bg-white text-black border-white hover:bg-white/90"
             >
               <ChevronLeft className="w-4 h-4 mr-2" />
               戻る
@@ -600,7 +600,7 @@ export function ProfileRegistrationForm() {
               <Button
                 type="button"
                 onClick={handleNext}
-                className="flex-1 sm:flex-none"
+                className="flex-1 sm:flex-none bg-white text-black hover:bg-white/90"
                 disabled={currentStep === 2 && !isBasicInfoValid()}
               >
                 次へ
@@ -610,7 +610,7 @@ export function ProfileRegistrationForm() {
               <Button
                 type="button"
                 onClick={handleSubmit}
-                className="flex-1 sm:flex-none"
+                className="flex-1 sm:flex-none bg-white text-black hover:bg-white/90"
               >
                 登録完了
                 <CheckCircle2 className="w-4 h-4 ml-2" />
