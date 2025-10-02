@@ -12,10 +12,11 @@ interface LiffLayoutProps {
 export function LiffLayout({ children }: LiffLayoutProps) {
   const pathname = usePathname()
   
-  // オーディション詳細ページではヘッダー・フッターを非表示
+  // オーディション詳細ページとプロフィール登録ページではヘッダー・フッターを非表示
   const isAuditionDetailPage = /^\/liff\/auditions\/[^/]+$/.test(pathname)
-  const showHeader = !isAuditionDetailPage
-  const showFooter = !isAuditionDetailPage
+  const isProfileRegistrationPage = pathname === '/liff/profile/new'
+  const showHeader = !isAuditionDetailPage && !isProfileRegistrationPage
+  const showFooter = !isAuditionDetailPage && !isProfileRegistrationPage
   
   return (
     <div className="min-h-screen bg-background">
