@@ -196,7 +196,7 @@ export function ProfileRegistrationForm() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* ヘッダー */}
-      <header className="sticky top-0 z-50 bg-card border-b border-border">
+      <header className="bg-card border-b border-border">
         <div className="container max-w-2xl mx-auto px-4 py-4">
           <h1 className="text-xl font-bold text-foreground">プロフィール登録</h1>
         </div>
@@ -243,7 +243,7 @@ export function ProfileRegistrationForm() {
                         isCompleted
                           ? 'bg-foreground border-foreground text-background cursor-pointer hover:opacity-80'
                           : isActive
-                            ? 'bg-background border-foreground text-foreground'
+                            ? 'bg-primary border-primary text-primary-foreground shadow-md'
                             : isDisabled
                               ? 'bg-background border-border text-muted-foreground cursor-not-allowed'
                               : 'bg-background border-border text-muted-foreground cursor-pointer hover:border-foreground/50'
@@ -582,7 +582,7 @@ export function ProfileRegistrationForm() {
       </div>
 
       {/* フッターナビゲーション */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-40">
+      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg z-40">
         <div className="container max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between gap-4">
             <Button
