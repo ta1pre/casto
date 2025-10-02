@@ -35,7 +35,7 @@ export function DetailStep({ formData, onUpdate }: DetailStepProps) {
 
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-2">
-          <Label htmlFor="bust">バスト（cm）</Label>
+          <Label htmlFor="bust">バスト(cm)</Label>
           <Input
             id="bust"
             type="number"
@@ -45,7 +45,7 @@ export function DetailStep({ formData, onUpdate }: DetailStepProps) {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="waist">ウエスト（cm）</Label>
+          <Label htmlFor="waist">ウエスト(cm)</Label>
           <Input
             id="waist"
             type="number"
@@ -55,7 +55,7 @@ export function DetailStep({ formData, onUpdate }: DetailStepProps) {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="hip">ヒップ（cm）</Label>
+          <Label htmlFor="hip">ヒップ(cm)</Label>
           <Input
             id="hip"
             type="number"

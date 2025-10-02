@@ -16,7 +16,7 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
         <Label htmlFor="stageName">芸名・活動名 *</Label>
         <Input
           id="stageName"
-          placeholder="例: 山田 太郎"
+          placeholder="例: メグ"
           value={formData.stageName}
           onChange={(e) => onUpdate('stageName', e.target.value)}
           required

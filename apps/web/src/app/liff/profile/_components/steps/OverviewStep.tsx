@@ -8,11 +8,6 @@ interface OverviewStepProps {
 export function OverviewStep({ onStepClick }: OverviewStepProps) {
   return (
     <div className="space-y-6">
-      <div className="text-center py-4">
-        <p className="text-muted-foreground">
-          これから入力する項目の全体像です。各セクションから入力を始めましょう。
-        </p>
-      </div>
       <div className="space-y-3">
         {OVERVIEW_SECTIONS.map((section) => (
           <Button

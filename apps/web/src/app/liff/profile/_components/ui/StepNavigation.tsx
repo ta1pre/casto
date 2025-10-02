@@ -27,11 +27,13 @@ export function StepNavigation({ currentStep, onStepClick, isBasicInfoValid }: S
                     onClick={() => onStepClick(step.id)}
                     disabled={isDisabled}
                     className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${
-                      isVisited
-                        ? 'bg-foreground border-foreground text-background cursor-pointer hover:opacity-80'
-                        : isDisabled
-                          ? 'bg-background border-border text-muted-foreground cursor-not-allowed'
-                          : 'bg-background border-border text-muted-foreground cursor-pointer hover:border-foreground/50'
+                      isActive
+                        ? 'bg-blue-500 border-blue-500 text-white cursor-pointer hover:bg-blue-600 shadow-lg ring-2 ring-blue-300'
+                        : isCompleted
+                          ? 'bg-foreground border-foreground text-background cursor-pointer hover:opacity-80'
+                          : isDisabled
+                            ? 'bg-background border-border text-muted-foreground cursor-not-allowed'
+                            : 'bg-background border-border text-muted-foreground cursor-pointer hover:border-foreground/50'
                     } ${!isDisabled ? 'active:scale-95' : ''}`}
                     aria-label={`${step.name}に移動`}
                   >
