@@ -13,7 +13,7 @@ export const INITIAL_FORM_DATA: ProfileFormData = {
   gender: '',
   birthdate: '',
   prefecture: '',
-  bio: '',
+  occupation: '',
   height: '',
   weight: '',
   bust: '',

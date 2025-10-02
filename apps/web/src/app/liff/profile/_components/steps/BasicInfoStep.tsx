@@ -40,42 +40,41 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <Label htmlFor="birthdate">生年月日 *</Label>
-          <Input
-            id="birthdate"
-            type="date"
-            value={formData.birthdate}
-            onChange={(e) => onUpdate('birthdate', e.target.value)}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="prefecture">都道府県 *</Label>
-          <select
-            id="prefecture"
-            value={formData.prefecture}
-            onChange={(e) => onUpdate('prefecture', e.target.value)}
-            className="w-full border border-border rounded-md px-3 py-2 text-base bg-background"
-            required
-          >
-            <option value="">選択</option>
-            {PREFECTURES.map((pref) => (
-              <option key={pref} value={pref}>{pref}</option>
-            ))}
-          </select>
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="birthdate">生年月日 *</Label>
+        <Input
+          id="birthdate"
+          type="date"
+          value={formData.birthdate}
+          onChange={(e) => onUpdate('birthdate', e.target.value)}
+          required
+        />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="bio">自己紹介（任意）</Label>
-        <textarea
-          id="bio"
-          placeholder="あなたの魅力をアピールしてください"
-          value={formData.bio}
-          onChange={(e) => onUpdate('bio', e.target.value)}
-          className="w-full border border-border rounded-md px-3 py-2 text-base bg-background min-h-[100px]"
+        <Label htmlFor="prefecture">都道府県 *</Label>
+        <select
+          id="prefecture"
+          value={formData.prefecture}
+          onChange={(e) => onUpdate('prefecture', e.target.value)}
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          required
+        >
+          <option value="">選択</option>
+          {PREFECTURES.map((pref) => (
+            <option key={pref} value={pref}>{pref}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="occupation">職業（任意）</Label>
+        <Input
+          id="occupation"
+          placeholder="例: 学生、会社員"
+          value={formData.occupation}
+          onChange={(e) => onUpdate('occupation', e.target.value)}
+          className="w-full"
         />
       </div>
     </div>

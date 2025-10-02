@@ -6,7 +6,7 @@ export interface ProfileFormData {
   prefecture: string
   
   // 基本情報（任意）
-  bio: string
+  occupation: string
   
   // 体型情報
   height: string
