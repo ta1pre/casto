@@ -30,8 +30,9 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
             <Button
               key={g.value}
               type="button"
-              variant={formData.gender === g.value ? 'default' : 'outline'}
+              variant="outline"
               onClick={() => onUpdate('gender', g.value)}
+              className={formData.gender === g.value ? 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600' : ''}
             >
               {g.label}
             </Button>
@@ -56,7 +57,7 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
             id="prefecture"
             value={formData.prefecture}
             onChange={(e) => onUpdate('prefecture', e.target.value)}
-            className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background"
+            className="w-full border border-border rounded-md px-3 py-2 text-base bg-background"
             required
           >
             <option value="">選択</option>
@@ -74,7 +75,7 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
           placeholder="あなたの魅力をアピールしてください"
           value={formData.bio}
           onChange={(e) => onUpdate('bio', e.target.value)}
-          className="w-full border border-border rounded-md px-3 py-2 text-sm bg-background min-h-[100px]"
+          className="w-full border border-border rounded-md px-3 py-2 text-base bg-background min-h-[100px]"
         />
       </div>
     </div>

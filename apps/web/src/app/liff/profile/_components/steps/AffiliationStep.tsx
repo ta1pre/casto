@@ -19,14 +19,14 @@ export function AffiliationStep({ formData, onUpdate }: AffiliationStepProps) {
             <Button
               key={job.value}
               type="button"
-              variant={formData.jobTypes.includes(job.value) ? 'default' : 'outline'}
+              variant="outline"
               onClick={() => {
                 const newJobTypes = formData.jobTypes.includes(job.value)
                   ? formData.jobTypes.filter(j => j !== job.value)
                   : [...formData.jobTypes, job.value]
                 onUpdate('jobTypes', newJobTypes)
               }}
-              className="h-auto py-3"
+              className={`h-auto py-3 ${formData.jobTypes.includes(job.value) ? 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600' : ''}`}
             >
               {job.label}
             </Button>
