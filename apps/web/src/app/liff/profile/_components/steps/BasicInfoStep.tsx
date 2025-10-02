@@ -68,7 +68,7 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="occupation">職業（任意）</Label>
+        <Label htmlFor="occupation">職業</Label>
         <Input
           id="occupation"
           placeholder="例: 学生、会社員"
