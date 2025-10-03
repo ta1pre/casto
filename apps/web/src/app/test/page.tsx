@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
-import { AlertCircle, Info } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import { UsersTable } from './_components/UsersTable'
 import { ApiTestCards } from './_components/ApiTestCards'
 import { UserCreateForm, type UserFormData } from './_components/UserCreateForm'

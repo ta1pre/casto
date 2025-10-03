@@ -26,7 +26,7 @@ export function formDataToApiInput(formData: ProfileFormData): TalentProfileInpu
     can_move: formData.canMove,
     can_stay: formData.canStay,
     passport_status: formData.passportStatus || null,
-    affiliation_type: formData.affiliationType as any || null,
+    affiliation_type: (formData.affiliationType as 'freelance' | 'business-partner' | 'exclusive') || null,
     agency: formData.agency || null,
     twitter: formData.twitter || null,
     instagram: formData.instagram || null,

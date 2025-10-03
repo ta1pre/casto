@@ -29,8 +29,8 @@ export default function ProfileTestPage() {
       const data = await fetchProfile()
       setProfile(data)
       addLog(`✅ 取得成功: ${data.stage_name} (完成度: ${data.completion_rate}%)`)
-    } catch (err: any) {
-      const msg = err.message || '取得失敗'
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '取得失敗'
       setError(msg)
       addLog(`❌ ${msg}`)
     } finally {
@@ -82,8 +82,8 @@ export default function ProfileTestPage() {
       const data = await saveProfile(testInput)
       setProfile(data)
       addLog(`✅ 作成成功: ${data.stage_name} (完成度: ${data.completion_rate}%)`)
-    } catch (err: any) {
-      const msg = err.message || '作成失敗'
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '作成失敗'
       setError(msg)
       addLog(`❌ ${msg}`)
     } finally {
@@ -103,7 +103,7 @@ export default function ProfileTestPage() {
 
     const updatedInput: TalentProfileInput = {
       stage_name: profile.stage_name + ' (更新)',
-      gender: profile.gender as any,
+      gender: profile.gender as 'male' | 'female' | 'other',
       birthdate: profile.birthdate,
       prefecture: profile.prefecture,
       occupation: profile.occupation || undefined,
@@ -116,7 +116,7 @@ export default function ProfileTestPage() {
       can_move: profile.can_move,
       can_stay: profile.can_stay,
       passport_status: profile.passport_status || undefined,
-      affiliation_type: profile.affiliation_type as any || undefined,
+      affiliation_type: (profile.affiliation_type as 'freelance' | 'business-partner' | 'exclusive' | null) || undefined,
       agency: profile.agency || undefined,
       twitter: profile.twitter || undefined,
       instagram: profile.instagram || undefined,
@@ -129,8 +129,8 @@ export default function ProfileTestPage() {
       const data = await updateProfile(updatedInput)
       setProfile(data)
       addLog(`✅ 更新成功: ${data.stage_name} (完成度: ${data.completion_rate}%)`)
-    } catch (err: any) {
-      const msg = err.message || '更新失敗'
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '更新失敗'
       setError(msg)
       addLog(`❌ ${msg}`)
     } finally {
@@ -150,8 +150,8 @@ export default function ProfileTestPage() {
       })
       setProfile(data)
       addLog(`✅ 部分更新成功: ${data.stage_name} (完成度: ${data.completion_rate}%)`)
-    } catch (err: any) {
-      const msg = err.message || '部分更新失敗'
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '部分更新失敗'
       setError(msg)
       addLog(`❌ ${msg}`)
     } finally {

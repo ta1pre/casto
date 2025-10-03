@@ -387,7 +387,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
       setError('LIFFの初期化に失敗しました')
       addLog(`ERROR: LIFF initialization failed: ${err instanceof Error ? err.message : String(err)}`)
     }
-  }, [user, synchronizeLineSession, updateWindowLiff, addLog])
+  }, [user, synchronizeLineSession, updateWindowLiff, addLog, updateScriptMetrics])
 
   // 初回マウント時にLIFFを初期化
   useEffect(() => {
@@ -495,7 +495,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
     }
     updateWindowLiff('manual reinitialize')
     await initializeLiff()
-  }, [initializeLiff, updateWindowLiff])
+  }, [initializeLiff, updateWindowLiff, addLog])
 
   // ログアウト処理
   const handleLogout = useCallback(async () => {
