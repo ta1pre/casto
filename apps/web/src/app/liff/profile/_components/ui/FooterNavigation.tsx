@@ -1,6 +1,7 @@
 import { Button } from '@/shared/ui/button'
 import { ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
 import { STEPS } from '../constants'
+import { BOTTOM_NAV_HEIGHT } from '../../../_components/BottomNav'
 
 interface FooterNavigationProps {
   currentStep: number
@@ -18,8 +19,13 @@ export function FooterNavigation({
   isBasicInfoValid,
   completionRate
 }: FooterNavigationProps) {
+  const bottomOffset = `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom) + 16px)`
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-border z-40">
+    <div
+      className="fixed left-0 right-0 bg-black border-t border-border z-40 shadow-lg"
+      style={{ bottom: bottomOffset }}
+    >
       <div className="container max-w-2xl mx-auto px-4 py-4 space-y-4">
         <div className="flex items-center gap-3">
           <div className="flex-1 h-2 bg-border/60 rounded-full overflow-hidden">

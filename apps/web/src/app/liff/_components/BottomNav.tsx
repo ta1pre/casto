@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { cn } from "@/shared/lib/utils"
 
+export const BOTTOM_NAV_HEIGHT = 64
+
 const navItems = [
   { icon: Home, label: "ホーム", href: "/liff" },
   { icon: Search, label: "探す", href: "/liff/auditions" },
@@ -17,8 +19,14 @@ export function BottomNav() {
   const pathname = usePathname()
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
-      <div className="flex items-center justify-around h-16 px-2">
+    <nav
+      className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50"
+      style={{
+        height: BOTTOM_NAV_HEIGHT,
+        paddingBottom: 'env(safe-area-inset-bottom)'
+      }}
+    >
+      <div className="flex items-center justify-around h-full px-2">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
