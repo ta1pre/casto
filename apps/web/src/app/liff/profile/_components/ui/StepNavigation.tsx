@@ -16,7 +16,6 @@ export function StepNavigation({ currentStep, onStepClick, isBasicInfoValid }: S
             const Icon = step.icon
             const isActive = currentStep === step.id
             const isCompleted = currentStep > step.id
-            const isVisited = currentStep >= step.id
             const isDisabled = step.id > 2 && !isBasicInfoValid
             const isGuideStep = step.id === 1
             

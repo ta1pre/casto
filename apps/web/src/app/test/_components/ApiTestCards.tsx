@@ -23,7 +23,7 @@ export function ApiTestCards({ loading, onHealthCheck, onGetUsers, onReset }: Ap
           <p className="text-sm text-muted-foreground leading-relaxed">
             期待されるレスポンス:
             <br />
-            <span className="font-mono text-xs">&#123; "status": "ok" &#125;</span>
+            <span className="font-mono text-xs">&#123; &quot;status&quot;: &quot;ok&quot; &#125;</span>
           </p>
         </CardContent>
       </Card>
