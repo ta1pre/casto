@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { INITIAL_FORM_DATA, STEPS } from './constants'
 import type { ProfileFormData } from './types'
-import { ProfileHeader } from './ui/ProfileHeader'
 import { StepNavigation } from './ui/StepNavigation'
 import { StepCard } from './ui/StepCard'
 import { FooterNavigation } from './ui/FooterNavigation'
@@ -13,6 +12,7 @@ import { PhotoStep } from './steps/PhotoStep'
 import { DetailStep } from './steps/DetailStep'
 import { AffiliationStep } from './steps/AffiliationStep'
 import { SnsStep } from './steps/SnsStep'
+import { calculateProfileCompletion } from './profileCompletion'
 
 export function ProfileRegistrationForm() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -24,58 +24,6 @@ export function ProfileRegistrationForm() {
 
   const isBasicInfoValid = (): boolean => {
     return !!(formData.stageName && formData.gender && formData.birthdate && formData.prefecture)
-  }
-
-  const calculateCompletion = () => {
-    let completionRate = 0
-    
-    // 基本情報 (20%)
-    const hasBasicInfo = !!(
-      formData.stageName ||
-      formData.gender ||
-      formData.birthdate ||
-      formData.prefecture ||
-      formData.occupation
-    )
-    if (hasBasicInfo) completionRate += 20
-    
-    // 写真 (20%) - 現在未実装のため0%
-    // TODO: 写真アップロード機能実装時に追加
-    
-    // 詳細情報 (20%)
-    const hasDetailInfo = !!(
-      formData.height ||
-      formData.weight ||
-      formData.bust ||
-      formData.waist ||
-      formData.hip ||
-      formData.shoeSize ||
-      formData.achievements ||
-      formData.activityAreas.length > 0 ||
-      formData.canMove !== null ||
-      formData.canStay !== null ||
-      formData.passportStatus
-    )
-    if (hasDetailInfo) completionRate += 20
-    
-    // 所属 (20%)
-    const hasAffiliation = !!(
-      formData.affiliationType ||
-      formData.agency
-    )
-    if (hasAffiliation) completionRate += 20
-    
-    // SNS (20%)
-    const hasSns = !!(
-      formData.twitter ||
-      formData.instagram ||
-      formData.tiktok ||
-      formData.youtube ||
-      formData.followers
-    )
-    if (hasSns) completionRate += 20
-    
-    return completionRate
   }
 
   const handleNext = () => {
@@ -121,12 +69,10 @@ export function ProfileRegistrationForm() {
     }
   }
 
-  const completionRate = calculateCompletion()
+  const { completionRate } = calculateProfileCompletion(formData)
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <ProfileHeader />
-      
       <StepNavigation 
         currentStep={currentStep}
         onStepClick={handleStepClick}

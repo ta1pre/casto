@@ -1,0 +1,68 @@
+import type { ProfileFormData } from './types'
+
+export interface ProfileCompletionSections {
+  basic: boolean
+  photo: boolean
+  detail: boolean
+  affiliation: boolean
+  sns: boolean
+}
+
+export interface ProfileCompletionResult {
+  completionRate: number
+  sections: ProfileCompletionSections
+}
+
+export function calculateProfileCompletion(formData: ProfileFormData): ProfileCompletionResult {
+  const hasBasicInfo = Boolean(
+    formData.stageName ||
+    formData.gender ||
+    formData.birthdate ||
+    formData.prefecture ||
+    formData.occupation
+  )
+
+  // TODO: 写真アップロード実装後に更新
+  const hasPhoto = false
+
+  const hasDetailInfo = Boolean(
+    formData.height ||
+    formData.weight ||
+    formData.bust ||
+    formData.waist ||
+    formData.hip ||
+    formData.shoeSize ||
+    formData.achievements ||
+    (formData.activityAreas?.length ?? 0) > 0 ||
+    formData.canMove !== null ||
+    formData.canStay !== null ||
+    formData.passportStatus
+  )
+
+  const hasAffiliation = Boolean(
+    formData.affiliationType ||
+    formData.agency
+  )
+
+  const hasSns = Boolean(
+    formData.twitter ||
+    formData.instagram ||
+    formData.tiktok ||
+    formData.youtube ||
+    formData.followers
+  )
+
+  const completionRate = [hasBasicInfo, hasPhoto, hasDetailInfo, hasAffiliation, hasSns]
+    .reduce((total, sectionFilled) => total + (sectionFilled ? 20 : 0), 0)
+
+  return {
+    completionRate,
+    sections: {
+      basic: hasBasicInfo,
+      photo: hasPhoto,
+      detail: hasDetailInfo,
+      affiliation: hasAffiliation,
+      sns: hasSns
+    }
+  }
+}

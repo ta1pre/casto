@@ -1,10 +1,14 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
 import { ChevronDown, ChevronUp } from 'lucide-react'
+import { INITIAL_FORM_DATA } from './profile/_components/constants'
+import { calculateProfileCompletion } from './profile/_components/profileCompletion'
 
 export default function LiffHomePage() {
+  const router = useRouter()
   const {
     user,
     isLoading,
@@ -21,6 +25,11 @@ export default function LiffHomePage() {
   const [showRawData, setShowRawData] = useState(false)
   const [showDebugLogs, setShowDebugLogs] = useState(true)
   const [showDebugPanel, setShowDebugPanel] = useState(false)
+
+  const { completionRate } = useMemo(() => {
+    // TODO: プロフィール情報取得API実装時に置き換え
+    return calculateProfileCompletion(INITIAL_FORM_DATA)
+  }, [])
 
   if (isLoading) {
     return (
@@ -58,10 +67,10 @@ export default function LiffHomePage() {
       <section className="bg-card border border-border rounded-lg p-4">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold text-foreground">プロフィール完成度</h3>
-          <span className="text-2xl font-bold text-primary">60%</span>
+          <span className="text-2xl font-bold text-primary">{completionRate}%</span>
         </div>
         <div className="w-full bg-secondary rounded-full h-2 mb-2">
-          <div className="bg-primary h-2 rounded-full" style={{ width: '60%' }} />
+          <div className="bg-primary h-2 rounded-full" style={{ width: `${completionRate}%` }} />
         </div>
         <p className="text-xs text-muted-foreground">
           プロフィールを完成させて、より多くのオーディションに応募しましょう
@@ -92,7 +101,10 @@ export default function LiffHomePage() {
             <span className="text-2xl mb-2">🔍</span>
             <span className="text-sm font-medium">オーディションを探す</span>
           </button>
-          <button className="flex flex-col items-center justify-center p-4 border border-border rounded-lg hover:bg-accent transition-colors">
+          <button
+            onClick={() => router.push('/liff/profile')}
+            className="flex flex-col items-center justify-center p-4 border border-border rounded-lg hover:bg-accent transition-colors"
+          >
             <span className="text-2xl mb-2">👤</span>
             <span className="text-sm font-medium">プロフィール編集</span>
           </button>
