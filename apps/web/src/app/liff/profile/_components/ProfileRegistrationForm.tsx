@@ -23,7 +23,7 @@ export function ProfileRegistrationForm() {
   }
 
   const isBasicInfoValid = (): boolean => {
-    return !!(formData.stageName && formData.gender && formData.birthdate && formData.prefecture)
+    return !!(formData.stageName && formData.gender && formData.prefecture)
   }
 
   const handleNext = () => {

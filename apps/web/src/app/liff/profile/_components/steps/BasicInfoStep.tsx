@@ -10,6 +10,17 @@ interface BasicInfoStepProps {
 }
 
 export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
+  const [birthYear = '', birthMonth = '', birthDay = ''] = formData.birthdate?.split('-') ?? []
+
+  const updateBirthdate = (year: string, month: string, day: string) => {
+    if (year && month && day) {
+      onUpdate('birthdate', `${year}-${month}-${day}`)
+      return
+    }
+
+    onUpdate('birthdate', '')
+  }
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -41,52 +52,43 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label>生年月日 *</Label>
+        <Label>生年月日 (任意)</Label>
         <div className="grid grid-cols-3 gap-2">
           <select
-            value={formData.birthdate ? formData.birthdate.split('-')[0] : ''}
+            value={birthYear}
             onChange={(e) => {
               const year = e.target.value
-              const month = formData.birthdate?.split('-')[1] || '01'
-              const day = formData.birthdate?.split('-')[2] || '01'
-              onUpdate('birthdate', year ? `${year}-${month}-${day}` : '')
+              updateBirthdate(year, birthMonth, birthDay)
             }}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            required
           >
-            <option value="">年</option>
+            <option value="">-</option>
             {Array.from({ length: 75 }, (_, i) => 2010 - i).map((year) => (
               <option key={year} value={year}>{year}</option>
             ))}
           </select>
           <select
-            value={formData.birthdate ? formData.birthdate.split('-')[1] : ''}
+            value={birthMonth}
             onChange={(e) => {
-              const year = formData.birthdate?.split('-')[0] || '2000'
               const month = e.target.value
-              const day = formData.birthdate?.split('-')[2] || '01'
-              onUpdate('birthdate', month ? `${year}-${month}-${day}` : '')
+              updateBirthdate(birthYear, month, birthDay)
             }}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            required
           >
-            <option value="">月</option>
+            <option value="">-</option>
             {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
               <option key={month} value={String(month).padStart(2, '0')}>{month}</option>
             ))}
           </select>
           <select
-            value={formData.birthdate ? formData.birthdate.split('-')[2] : ''}
+            value={birthDay}
             onChange={(e) => {
-              const year = formData.birthdate?.split('-')[0] || '2000'
-              const month = formData.birthdate?.split('-')[1] || '01'
               const day = e.target.value
-              onUpdate('birthdate', day ? `${year}-${month}-${day}` : '')
+              updateBirthdate(birthYear, birthMonth, day)
             }}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            required
           >
-            <option value="">日</option>
+            <option value="">-</option>
             {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
               <option key={day} value={String(day).padStart(2, '0')}>{day}</option>
             ))}
