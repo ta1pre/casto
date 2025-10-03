@@ -44,11 +44,15 @@
 
 ---
 
-### Step 2: データベース設計・マイグレーション（完了）
+### Step 2: データベース設計・マイグレーション
 
-- [x] **マイグレーションファイル作成 (`supabase/migrations/20251004000000_create_talent_profiles.sql`)** – `talent_profiles` テーブルを定義し、完成度カラム・JSON セクション・インデックス・トリガーまで含めて実装。[CA]
+- [x] **スキーマファイル作成 (`supabase/schema/talent_profiles.sql`)** – `talent_profiles` テーブルを定義し、完成度カラム・JSON セクション・インデックス・トリガーまで含めて実装。[CA]
 - [x] **RLS 設定** – 認証済みユーザーが自身のレコードのみCRUD可能なポリシーを追加。[SFT]
 - [x] **CHECK制約とバリデーション** – 数値範囲チェックとenum値の検証をDB層で実装。[REH]
+- [ ] **マイグレーション生成と適用**（次回実施）
+  - [ ] `cd supabase && ./sync` を実行してマイグレーション生成
+  - [ ] 生成されたマイグレーションをレビュー
+  - [ ] クラウドSupabaseに適用（GitHub Actions経由）
 
 ---
 

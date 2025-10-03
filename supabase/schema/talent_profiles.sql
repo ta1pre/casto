@@ -1,4 +1,4 @@
--- タレント・モデルプロフィールテーブル作成
+-- タレント・モデルプロフィールテーブル
 -- [CA][SFT] 完成度・RLS設定込み
 
 CREATE TABLE IF NOT EXISTS public.talent_profiles (
@@ -56,9 +56,9 @@ CREATE TABLE IF NOT EXISTS public.talent_profiles (
 );
 
 -- インデックス
-CREATE INDEX idx_talent_profiles_stage_name ON public.talent_profiles(stage_name);
-CREATE INDEX idx_talent_profiles_completion_rate ON public.talent_profiles(completion_rate DESC);
-CREATE INDEX idx_talent_profiles_created_at ON public.talent_profiles(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_talent_profiles_stage_name ON public.talent_profiles(stage_name);
+CREATE INDEX IF NOT EXISTS idx_talent_profiles_completion_rate ON public.talent_profiles(completion_rate DESC);
+CREATE INDEX IF NOT EXISTS idx_talent_profiles_created_at ON public.talent_profiles(created_at DESC);
 
 -- 更新日時の自動更新トリガー
 CREATE OR REPLACE FUNCTION update_talent_profiles_updated_at()
@@ -69,6 +69,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trigger_update_talent_profiles_updated_at ON public.talent_profiles;
 CREATE TRIGGER trigger_update_talent_profiles_updated_at
   BEFORE UPDATE ON public.talent_profiles
   FOR EACH ROW
@@ -78,18 +79,21 @@ CREATE TRIGGER trigger_update_talent_profiles_updated_at
 ALTER TABLE public.talent_profiles ENABLE ROW LEVEL SECURITY;
 
 -- ポリシー: 認証済みユーザーは自身のプロフィールを参照可能
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.talent_profiles;
 CREATE POLICY "Users can view their own profile"
   ON public.talent_profiles
   FOR SELECT
   USING (auth.uid() = user_id);
 
 -- ポリシー: 認証済みユーザーは自身のプロフィールを挿入可能
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.talent_profiles;
 CREATE POLICY "Users can insert their own profile"
   ON public.talent_profiles
   FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 -- ポリシー: 認証済みユーザーは自身のプロフィールを更新可能
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.talent_profiles;
 CREATE POLICY "Users can update their own profile"
   ON public.talent_profiles
   FOR UPDATE
@@ -97,6 +101,7 @@ CREATE POLICY "Users can update their own profile"
   WITH CHECK (auth.uid() = user_id);
 
 -- ポリシー: 認証済みユーザーは自身のプロフィールを削除可能
+DROP POLICY IF EXISTS "Users can delete their own profile" ON public.talent_profiles;
 CREATE POLICY "Users can delete their own profile"
   ON public.talent_profiles
   FOR DELETE

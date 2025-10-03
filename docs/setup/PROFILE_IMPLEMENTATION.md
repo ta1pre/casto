@@ -59,7 +59,9 @@ CREATE TABLE public.talent_profiles (
 
 **RLSポリシー**: 認証済みユーザーが自身のレコードのみCRUD可能。
 
-**マイグレーション**: `supabase/migrations/20251004000000_create_talent_profiles.sql`
+**スキーマファイル**: `supabase/schema/talent_profiles.sql`
+
+**マイグレーション生成**: `cd supabase && ./sync` を実行
 
 ## API仕様
 
@@ -209,20 +211,31 @@ profileRoutes.use('/*', verifyLineToken)
 - PUT: プロフィール更新
 - PATCH: 部分更新
 
-### ローカル開発
+### クラウドSupabaseへのマイグレーション適用
 
 ```bash
-# Supabaseローカル環境起動
-cd supabase && supabase start
+# 1. スキーマファイルからマイグレーション生成
+cd supabase
+./sync  # 環境変数が必要: SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF
 
-# マイグレーション適用
-supabase db reset
+# 2. 生成されたマイグレーションをレビュー
+git diff migrations/
 
+# 3. GitHub Actionsでクラウドに自動適用
+git add supabase/migrations/
+git commit -m "feat: add talent_profiles table"
+git push
+```
+
+### Workers/Webの起動
+
+```bash
 # Workers起動
 cd apps/workers && npm run dev
 
-# Web起動
-cd apps/web && npm run dev
+# Web起動（Docker Compose経由）
+cd /Users/taichiumeki/dev
+docker compose up -d casto
 ```
 
 ### テストフロー
