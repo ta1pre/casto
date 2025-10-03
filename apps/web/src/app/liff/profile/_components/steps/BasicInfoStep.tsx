@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
@@ -11,8 +10,6 @@ interface BasicInfoStepProps {
 }
 
 export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
-  const [birthdateDraft, setBirthdateDraft] = useState<string | null>(null)
-
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -44,27 +41,57 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="birthdate">生年月日 *</Label>
-        <Input
-          id="birthdate"
-          type="date"
-          value={formData.birthdate || birthdateDraft || ''}
-          onFocus={() => {
-            if (!formData.birthdate && !birthdateDraft) {
-              setBirthdateDraft('2000-01-01')
-            }
-          }}
-          onBlur={() => {
-            if (!formData.birthdate) {
-              setBirthdateDraft(null)
-            }
-          }}
-          onChange={(e) => {
-            onUpdate('birthdate', e.target.value)
-            setBirthdateDraft(null)
-          }}
-          required
-        />
+        <Label>生年月日 *</Label>
+        <div className="grid grid-cols-3 gap-2">
+          <select
+            value={formData.birthdate ? formData.birthdate.split('-')[0] : ''}
+            onChange={(e) => {
+              const year = e.target.value
+              const month = formData.birthdate?.split('-')[1] || '01'
+              const day = formData.birthdate?.split('-')[2] || '01'
+              onUpdate('birthdate', year ? `${year}-${month}-${day}` : '')
+            }}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            required
+          >
+            <option value="">年</option>
+            {Array.from({ length: 75 }, (_, i) => 2010 - i).map((year) => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+          <select
+            value={formData.birthdate ? formData.birthdate.split('-')[1] : ''}
+            onChange={(e) => {
+              const year = formData.birthdate?.split('-')[0] || '2000'
+              const month = e.target.value
+              const day = formData.birthdate?.split('-')[2] || '01'
+              onUpdate('birthdate', month ? `${year}-${month}-${day}` : '')
+            }}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            required
+          >
+            <option value="">月</option>
+            {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+              <option key={month} value={String(month).padStart(2, '0')}>{month}</option>
+            ))}
+          </select>
+          <select
+            value={formData.birthdate ? formData.birthdate.split('-')[2] : ''}
+            onChange={(e) => {
+              const year = formData.birthdate?.split('-')[0] || '2000'
+              const month = formData.birthdate?.split('-')[1] || '01'
+              const day = e.target.value
+              onUpdate('birthdate', day ? `${year}-${month}-${day}` : '')
+            }}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            required
+          >
+            <option value="">日</option>
+            {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+              <option key={day} value={String(day).padStart(2, '0')}>{day}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="space-y-2">
