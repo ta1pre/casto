@@ -11,7 +11,7 @@ import type { ProfileFormData, StepConfig } from './types'
 export const INITIAL_FORM_DATA: ProfileFormData = {
   stageName: '',
   gender: '',
-  birthdate: '2000-01-01',
+  birthdate: '',
   prefecture: '',
   occupation: '',
   height: '',
