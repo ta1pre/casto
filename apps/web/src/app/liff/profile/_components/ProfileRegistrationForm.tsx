@@ -27,7 +27,7 @@ export function ProfileRegistrationForm() {
   }
 
   const calculateCompletion = () => {
-    const totalFields = 24
+    const totalFields = 23
     let filledFields = 0
     
     if (formData.stageName) filledFields++
@@ -39,13 +39,12 @@ export function ProfileRegistrationForm() {
     if (formData.weight) filledFields++
     if (formData.bust || formData.waist || formData.hip) filledFields++
     if (formData.shoeSize) filledFields++
+    if (formData.achievements) filledFields++
     if (formData.activityAreas.length > 0) filledFields++
     if (formData.canMove !== null) filledFields++
     if (formData.canStay !== null) filledFields++
     if (formData.passportStatus) filledFields++
-    if (formData.jobTypes.length > 0) filledFields++
     if (formData.affiliationType) filledFields++
-    if (formData.workRequestType) filledFields++
     if (formData.agency) filledFields++
     if (formData.twitter) filledFields++
     if (formData.instagram) filledFields++

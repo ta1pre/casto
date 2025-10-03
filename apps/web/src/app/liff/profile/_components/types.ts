@@ -15,6 +15,7 @@ export interface ProfileFormData {
   waist: string
   hip: string
   shoeSize: string
+  achievements: string
   
   // 活動情報
   activityAreas: string[]
@@ -22,10 +23,8 @@ export interface ProfileFormData {
   canStay: boolean | null
   passportStatus: string
   
-  // 仕事情報
-  jobTypes: string[]
+  // 所属・ステータス
   affiliationType: string
-  workRequestType: string
   agency: string
   
   // SNS情報

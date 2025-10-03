@@ -67,14 +67,13 @@ export function DetailStep({ formData, onUpdate }: DetailStepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="shoeSize">靴のサイズ（cm）</Label>
-        <Input
-          id="shoeSize"
-          type="number"
-          step="0.5"
-          placeholder="25.5"
-          value={formData.shoeSize}
-          onChange={(e) => onUpdate('shoeSize', e.target.value)}
+        <Label htmlFor="achievements">自己PR（趣味・特技・実績等）</Label>
+        <textarea
+          id="achievements"
+          placeholder="趣味や特技、これまでの活動経験、これから挑戦したいことなど自由にアピールしてください"
+          value={formData.achievements}
+          onChange={(e) => onUpdate('achievements', e.target.value)}
+          className="w-full border border-border rounded-md px-3 py-2 text-base bg-background min-h-[100px]"
         />
       </div>
     </div>

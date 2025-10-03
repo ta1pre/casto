@@ -20,13 +20,12 @@ export const INITIAL_FORM_DATA: ProfileFormData = {
   waist: '',
   hip: '',
   shoeSize: '',
+  achievements: '',
   activityAreas: [],
   canMove: null,
   canStay: null,
   passportStatus: '',
-  jobTypes: [],
   affiliationType: '',
-  workRequestType: '',
   agency: '',
   twitter: '',
   instagram: '',
@@ -51,7 +50,7 @@ export const PREFECTURES = [
   '静岡県', '愛知県', '三重県', '滋賀県', '京都府', '大阪府', '兵庫県',
   '奈良県', '和歌山県', '鳥取県', '島根県', '岡山県', '広島県', '山口県',
   '徳島県', '香川県', '愛媛県', '高知県', '福岡県', '佐賀県', '長崎県',
-  '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県'
+  '熊本県', '大分県', '宮崎県', '鹿児島県', '沖縄県', 'その他'
 ]
 
 export const GENDERS = [
@@ -60,22 +59,16 @@ export const GENDERS = [
   { value: 'other', label: 'その他' }
 ]
 
-export const JOB_TYPES = [
-  { value: 'model', label: 'モデル' },
-  { value: 'actor', label: '俳優' },
-  { value: 'talent', label: 'タレント' },
-  { value: 'voice-actor', label: '声優' },
-  { value: 'dancer', label: 'ダンサー' },
-  { value: 'singer', label: '歌手' },
-  { value: 'influencer', label: 'インフルエンサー' },
-  { value: 'mc', label: 'MC・司会' },
-  { value: 'other', label: 'その他' }
+export const AFFILIATION_TYPES = [
+  { value: 'freelance', label: 'フリー', description: '本人と直接契約' },
+  { value: 'business-partner', label: '業務提携', description: '本人が契約当事者' },
+  { value: 'exclusive', label: '専属所属', description: '事務所経由が必須' }
 ]
 
 export const OVERVIEW_SECTIONS = [
   { title: '基本情報', desc: '芸名・性別・生年月日・都道府県', step: 2 },
   { title: '写真', desc: '顔写真・全身写真のアップロード', step: 3 },
   { title: 'プロフィール詳細', desc: '身長・体重・自己紹介など', step: 4 },
-  { title: '所属・ステータス', desc: '所属形態・仕事の受け方', step: 5 },
+  { title: '所属・ステータス', desc: '現在の所属状況・契約窓口', step: 5 },
   { title: 'SNS情報', desc: 'SNSアカウント・フォロワー数', step: 6 }
 ]
