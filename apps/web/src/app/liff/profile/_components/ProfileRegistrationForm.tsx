@@ -27,32 +27,55 @@ export function ProfileRegistrationForm() {
   }
 
   const calculateCompletion = () => {
-    const totalFields = 23
-    let filledFields = 0
+    let completionRate = 0
     
-    if (formData.stageName) filledFields++
-    if (formData.gender) filledFields++
-    if (formData.birthdate) filledFields++
-    if (formData.prefecture) filledFields++
-    if (formData.occupation) filledFields++
-    if (formData.height) filledFields++
-    if (formData.weight) filledFields++
-    if (formData.bust || formData.waist || formData.hip) filledFields++
-    if (formData.shoeSize) filledFields++
-    if (formData.achievements) filledFields++
-    if (formData.activityAreas.length > 0) filledFields++
-    if (formData.canMove !== null) filledFields++
-    if (formData.canStay !== null) filledFields++
-    if (formData.passportStatus) filledFields++
-    if (formData.affiliationType) filledFields++
-    if (formData.agency) filledFields++
-    if (formData.twitter) filledFields++
-    if (formData.instagram) filledFields++
-    if (formData.tiktok) filledFields++
-    if (formData.youtube) filledFields++
-    if (formData.followers) filledFields++
+    // 基本情報 (20%)
+    const hasBasicInfo = !!(
+      formData.stageName ||
+      formData.gender ||
+      formData.birthdate ||
+      formData.prefecture ||
+      formData.occupation
+    )
+    if (hasBasicInfo) completionRate += 20
     
-    return Math.round((filledFields / totalFields) * 100)
+    // 写真 (20%) - 現在未実装のため0%
+    // TODO: 写真アップロード機能実装時に追加
+    
+    // 詳細情報 (20%)
+    const hasDetailInfo = !!(
+      formData.height ||
+      formData.weight ||
+      formData.bust ||
+      formData.waist ||
+      formData.hip ||
+      formData.shoeSize ||
+      formData.achievements ||
+      formData.activityAreas.length > 0 ||
+      formData.canMove !== null ||
+      formData.canStay !== null ||
+      formData.passportStatus
+    )
+    if (hasDetailInfo) completionRate += 20
+    
+    // 所属 (20%)
+    const hasAffiliation = !!(
+      formData.affiliationType ||
+      formData.agency
+    )
+    if (hasAffiliation) completionRate += 20
+    
+    // SNS (20%)
+    const hasSns = !!(
+      formData.twitter ||
+      formData.instagram ||
+      formData.tiktok ||
+      formData.youtube ||
+      formData.followers
+    )
+    if (hasSns) completionRate += 20
+    
+    return completionRate
   }
 
   const handleNext = () => {
