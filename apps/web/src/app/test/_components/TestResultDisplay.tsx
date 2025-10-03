@@ -112,7 +112,7 @@ export function TestResultDisplay({ result }: TestResultDisplayProps) {
         </CardHeader>
         <CardContent>
           <pre className={`p-4 rounded-md text-sm overflow-auto max-h-96 ${
-            result.success ? 'bg-green-50 dark:bg-green-950' : 'bg-red-50 dark:bg-red-950'
+            result.success ? 'bg-muted text-foreground' : 'bg-red-50 dark:bg-red-950 text-red-900 dark:text-red-100'
           }`}>
             {JSON.stringify(result.data || result.error, null, 2)}
           </pre>

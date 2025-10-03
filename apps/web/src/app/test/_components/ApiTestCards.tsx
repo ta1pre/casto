@@ -17,7 +17,7 @@ export function ApiTestCards({ loading, onHealthCheck, onGetUsers, onReset }: Ap
           <CardDescription>Workers API が起動・応答しているかを確認します。</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <Button onClick={onHealthCheck} disabled={loading} className="w-full">
+          <Button onClick={onHealthCheck} disabled={loading} className="w-full" variant="default">
             {loading ? '実行中…' : 'ヘルスチェックを実行'}
           </Button>
           <p className="text-sm text-muted-foreground leading-relaxed">
@@ -34,7 +34,7 @@ export function ApiTestCards({ loading, onHealthCheck, onGetUsers, onReset }: Ap
           <CardDescription>共通型 `UsersListResponse` に準拠したレスポンスを確認します。</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <Button onClick={onGetUsers} disabled={loading} className="w-full">
+          <Button onClick={onGetUsers} disabled={loading} className="w-full" variant="default">
             {loading ? '取得中…' : 'ユーザー一覧を取得'}
           </Button>
           <p className="text-sm text-muted-foreground leading-relaxed">
