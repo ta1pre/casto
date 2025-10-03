@@ -27,14 +27,15 @@ export function useApiTest() {
     url: string,
     method: 'GET' | 'POST',
     type: string,
-    body?: Record<string, unknown>
+    body?: unknown
   ): Promise<boolean> => {
     setLoading(true)
 
     const requestHeaders: Record<string, string> = {}
-    const requestBody = body ? JSON.stringify(body) : undefined
+    const shouldSendBody = body !== undefined
+    const requestBody = shouldSendBody ? JSON.stringify(body) : undefined
 
-    if (body) {
+    if (shouldSendBody) {
       requestHeaders['Content-Type'] = 'application/json'
     }
 
@@ -113,9 +114,14 @@ export function useApiTest() {
     }
   }
 
+  const reset = () => {
+    setResult(null)
+  }
+
   return {
     loading,
     result,
-    executeApiCall
+    executeApiCall,
+    reset
   }
 }

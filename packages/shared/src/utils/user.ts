@@ -1,4 +1,9 @@
-import type { SupabaseUserRow, UserResponse } from '../types/user'
+import type {
+  SupabaseUserRow,
+  UserResponse,
+  UsersListResponse,
+  UsersStats
+} from '../types/user'
 
 export const mapRoles = (role?: string | null): string[] => {
   if (!role) {
@@ -19,5 +24,42 @@ export const serializeUserResponse = (user: SupabaseUserRow): UserResponse => {
     isActive: user.is_active ?? false,
     createdAt: user.created_at ?? null,
     updatedAt: user.updated_at ?? null
+  }
+}
+
+export const calculateUsersStats = (users: SupabaseUserRow[]): UsersStats => {
+  const stats: UsersStats = {
+    total: users.length,
+    active: 0,
+    inactive: 0,
+    byProvider: {},
+    byRole: {}
+  }
+
+  for (const user of users) {
+    if (user.is_active) {
+      stats.active += 1
+    } else {
+      stats.inactive += 1
+    }
+
+    const provider = user.auth_provider ?? 'unknown'
+    stats.byProvider[provider] = (stats.byProvider[provider] ?? 0) + 1
+
+    const role = user.role ?? 'unknown'
+    stats.byRole[role] = (stats.byRole[role] ?? 0) + 1
+  }
+
+  return stats
+}
+
+export const buildUsersListResponse = (users: SupabaseUserRow[]): UsersListResponse => {
+  const serializedUsers = users.map(serializeUserResponse)
+
+  return {
+    users: serializedUsers,
+    count: serializedUsers.length,
+    fetchedAt: new Date().toISOString(),
+    stats: calculateUsersStats(users)
   }
 }

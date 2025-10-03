@@ -1,6 +1,13 @@
 import { Hono } from 'hono'
 import { createSupabaseClient } from '../../lib/supabase'
 import type { AppBindings } from '../../types'
+import {
+  buildUsersListResponse,
+  serializeUserResponse,
+  type SupabaseUserRow,
+  type UserUpsertRequest,
+  type UserUpsertResponse
+} from '@casto/shared'
 
 const usersRoutes = new Hono<AppBindings>()
 
@@ -20,11 +27,9 @@ usersRoutes.get('/users', async (c) => {
       }, 500)
     }
 
-    return c.json({
-      users: data ?? [],
-      count: data?.length ?? 0,
-      fetchedAt: new Date().toISOString()
-    })
+    const users = (data ?? []) as SupabaseUserRow[]
+
+    return c.json(buildUsersListResponse(users))
   } catch (error) {
     console.error('[UsersAPI] Unexpected error:', error)
     return c.json({
@@ -36,15 +41,11 @@ usersRoutes.get('/users', async (c) => {
 
 usersRoutes.post('/users', async (c) => {
   try {
-    const payload = await c.req.json<{
-      provider?: 'email' | 'line'
-      handle?: string
-      role?: string
-    }>()
+    const payload = await c.req.json<UserUpsertRequest>()
 
-    const provider = payload.provider
-    const handle = payload.handle?.trim()
-    const role = payload.role?.trim() || 'applicant'
+    const provider = payload?.provider
+    const handle = payload?.handle?.trim()
+    const role = payload?.role?.trim() || 'applicant'
 
     if (!provider || !handle) {
       return c.json({
@@ -95,11 +96,15 @@ usersRoutes.post('/users', async (c) => {
       }, 500)
     }
 
-    return c.json({
+    const insertedUser = data as SupabaseUserRow
+
+    const responseBody: UserUpsertResponse = {
       status: 'ok',
-      user: data,
+      user: serializeUserResponse(insertedUser),
       processedAt: new Date().toISOString()
-    }, 201)
+    }
+
+    return c.json(responseBody, 201)
   } catch (error) {
     if (error instanceof SyntaxError) {
       return c.json({

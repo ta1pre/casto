@@ -34,16 +34,25 @@ export interface UserResponse {
   updatedAt: string | null
 }
 
+export interface UsersStats {
+  total: number
+  active: number
+  inactive: number
+  byProvider: Record<string, number>
+  byRole: Record<string, number>
+}
+
 export interface UsersListResponse {
   users: UserResponse[]
   count: number
   fetchedAt: string
+  stats: UsersStats
 }
 
 export interface UserUpsertRequest {
   provider: AuthProvider
   handle: string
-  role: UserRole
+  role?: UserRole
 }
 
 export interface UserUpsertResponse {

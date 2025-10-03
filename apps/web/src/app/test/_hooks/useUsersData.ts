@@ -1,17 +1,44 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { UserResponse } from '@casto/shared'
-
-type User = UserResponse
+import type { UserResponse, UsersListResponse, UsersStats } from '@casto/shared'
 
 interface UseUsersDataResult {
-  users: User[]
+  users: UserResponse[]
+  stats: UsersStats | null
+  lastFetchedAt: string | null
   loading: boolean
   error: string | null
   refresh: () => void
 }
 
+const parseUsersPayload = (payload: unknown): UsersListResponse | null => {
+  if (!payload || typeof payload !== 'object') {
+    return null
+  }
+
+  const typedPayload = payload as Partial<UsersListResponse>
+
+  if (!Array.isArray(typedPayload.users)) {
+    return null
+  }
+
+  return {
+    users: typedPayload.users as UserResponse[],
+    count: typeof typedPayload.count === 'number' ? typedPayload.count : typedPayload.users.length,
+    fetchedAt: typeof typedPayload.fetchedAt === 'string' ? typedPayload.fetchedAt : new Date().toISOString(),
+    stats: typedPayload.stats ?? {
+      total: typedPayload.users.length,
+      active: 0,
+      inactive: 0,
+      byProvider: {},
+      byRole: {}
+    }
+  }
+}
+
 export function useUsersData(apiBase?: string): UseUsersDataResult {
-  const [users, setUsers] = useState<User[]>([])
+  const [users, setUsers] = useState<UserResponse[]>([])
+  const [stats, setStats] = useState<UsersStats | null>(null)
+  const [lastFetchedAt, setLastFetchedAt] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -41,10 +68,16 @@ export function useUsersData(apiBase?: string): UseUsersDataResult {
         throw new Error(message)
       }
 
-      const usersData = Array.isArray(payload?.users) ? payload.users : []
+      const usersPayload = parseUsersPayload(payload)
 
-      console.log('✅ [API] 取得成功:', usersData)
-      setUsers(usersData as User[])
+      if (!usersPayload) {
+        throw new Error('レスポンス形式が不正です')
+      }
+
+      console.log('✅ [API] 取得成功:', usersPayload)
+      setUsers(usersPayload.users)
+      setStats(usersPayload.stats ?? null)
+      setLastFetchedAt(usersPayload.fetchedAt)
     } catch (fetchError) {
       const errorMessage = fetchError instanceof Error ? fetchError.message : '不明なエラー'
       console.error('💥 [API] データ取得失敗:', errorMessage)
@@ -60,6 +93,8 @@ export function useUsersData(apiBase?: string): UseUsersDataResult {
 
   return {
     users,
+    stats,
+    lastFetchedAt,
     loading,
     error,
     refresh: fetchUsers
