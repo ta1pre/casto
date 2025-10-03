@@ -10,15 +10,36 @@ interface BasicInfoStepProps {
 }
 
 export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
-  const [birthYear = '', birthMonth = '', birthDay = ''] = formData.birthdate?.split('-') ?? []
-
-  const updateBirthdate = (year: string, month: string, day: string) => {
-    if (year && month && day) {
-      onUpdate('birthdate', `${year}-${month}-${day}`)
-      return
+  const parseBirthdate = (birthdate: string) => {
+    if (!birthdate) {
+      return { year: '', month: '', day: '' }
     }
 
-    onUpdate('birthdate', '')
+    const parts = birthdate.split('-')
+    while (parts.length < 3) {
+      parts.push('')
+    }
+
+    return {
+      year: parts[0] || '',
+      month: parts[1] || '',
+      day: parts[2] || ''
+    }
+  }
+
+  const { year: birthYear, month: birthMonth, day: birthDay } = parseBirthdate(formData.birthdate || '')
+
+  const updateBirthdate = (year: string, month: string, day: string) => {
+    const effectiveMonth = year ? month : ''
+    const effectiveDay = year && effectiveMonth ? day : ''
+    const segments = [year || '', effectiveMonth || '', effectiveDay || '']
+
+    while (segments.length > 0 && segments[segments.length - 1] === '') {
+      segments.pop()
+    }
+
+    const nextBirthdate = segments.join('-')
+    onUpdate('birthdate', nextBirthdate)
   }
 
   return (
@@ -74,6 +95,7 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
               updateBirthdate(birthYear, month, birthDay)
             }}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            disabled={!birthYear}
           >
             <option value="">-</option>
             {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
@@ -86,6 +108,7 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
               const day = e.target.value
               updateBirthdate(birthYear, birthMonth, day)
             }}
+            disabled={!birthYear || !birthMonth}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <option value="">-</option>
