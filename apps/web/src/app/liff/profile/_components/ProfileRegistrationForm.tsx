@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { INITIAL_FORM_DATA, STEPS } from './constants'
 import type { ProfileFormData } from './types'
 import { ProfileHeader } from './ui/ProfileHeader'
-import { ProfileCompletionCard } from './ui/ProfileCompletionCard'
 import { StepNavigation } from './ui/StepNavigation'
 import { StepCard } from './ui/StepCard'
 import { FooterNavigation } from './ui/FooterNavigation'
@@ -35,7 +34,7 @@ export function ProfileRegistrationForm() {
     if (formData.gender) filledFields++
     if (formData.birthdate) filledFields++
     if (formData.prefecture) filledFields++
-    if (formData.bio) filledFields++
+    if (formData.occupation) filledFields++
     if (formData.height) filledFields++
     if (formData.weight) filledFields++
     if (formData.bust || formData.waist || formData.hip) filledFields++
@@ -100,11 +99,11 @@ export function ProfileRegistrationForm() {
     }
   }
 
+  const completionRate = calculateCompletion()
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <ProfileHeader />
-      
-      <ProfileCompletionCard completionRate={calculateCompletion()} />
       
       <StepNavigation 
         currentStep={currentStep}
@@ -124,6 +123,7 @@ export function ProfileRegistrationForm() {
         onNext={handleNext}
         onSubmit={handleSubmit}
         isBasicInfoValid={isBasicInfoValid()}
+        completionRate={completionRate}
       />
     </div>
   )

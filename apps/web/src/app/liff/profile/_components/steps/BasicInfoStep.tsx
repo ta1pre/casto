@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
@@ -10,13 +11,15 @@ interface BasicInfoStepProps {
 }
 
 export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
+  const [birthdateDraft, setBirthdateDraft] = useState<string | null>(null)
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="stageName">芸名・活動名 *</Label>
         <Input
           id="stageName"
-          placeholder="例: メグ"
+          placeholder="例: はらせつこ"
           value={formData.stageName}
           onChange={(e) => onUpdate('stageName', e.target.value)}
           required
@@ -45,8 +48,21 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
         <Input
           id="birthdate"
           type="date"
-          value={formData.birthdate}
-          onChange={(e) => onUpdate('birthdate', e.target.value)}
+          value={formData.birthdate || birthdateDraft || ''}
+          onFocus={() => {
+            if (!formData.birthdate && !birthdateDraft) {
+              setBirthdateDraft('2000-01-01')
+            }
+          }}
+          onBlur={() => {
+            if (!formData.birthdate) {
+              setBirthdateDraft(null)
+            }
+          }}
+          onChange={(e) => {
+            onUpdate('birthdate', e.target.value)
+            setBirthdateDraft(null)
+          }}
           required
         />
       </div>
