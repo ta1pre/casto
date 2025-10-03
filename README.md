@@ -4,28 +4,17 @@
 
 ## 🚀 クイックスタート
 
-### Supabase セットアップ（5分で完了）
+### Supabase スキーマ更新
 
 ```bash
-# 1. API Key を .env.local に追加
-echo 'SUPABASE_SERVICE_ROLE_KEY="sb_secret__your_key"' >> .env.local
-
-# 2. DB初期化（完全自動）
-node scripts/db-cleanup.js
-
-# 3. 日常的なマイグレーション適用
-make migrate
+# schema/*.sql を編集した後に差分を生成
+cd supabase
+./sync
 ```
 
-**完了！** 完全自動で実行されます。
-
-```bash
-# スキーマ確認（型定義・ドキュメント生成）
-make generate-schema
-cat supabase/SCHEMA.md
-```
-
-👉 **詳細:** [クイックスタート](./docs/setup/SUPABASE_QUICKSTART.md) | [マイグレーション管理](./MIGRATION_GUIDE.md)
+- `schema/` でテーブル定義を編集し、`schema.sql` は自動生成物として直接編集しません。[SF][PEC]
+- 新しい `supabase/migrations/*.sql` が生成された場合は内容をレビューしてコミットします。[CA]
+- 詳細手順は [`docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md`](./docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md) を参照してください。[SD]
 
 <details>
 <summary>手動セットアップ（クリックして展開）</summary>
@@ -43,7 +32,7 @@ supabase db push --linked
 
 </details>
 
-👉 **詳細:** [QUICKSTART_SUPABASE.md](./QUICKSTART_SUPABASE.md)
+👉 **詳細:** [Supabase スキーマ運用ガイド](./docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md)
 
 ### ローカル開発
 
@@ -67,16 +56,24 @@ docker compose up -d casto
 
 ---
 
+## 🧭 開発の道しるべ
+
+- **テーブル追加・スキーマ変更**: `supabase/schema/` を編集し、`./supabase/sync` を実行 → 生成されたマイグレーションをレビュー → [`docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md`](./docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md)。
+- **Workers 機能追加**: `apps/workers/src/features/` に機能ディレクトリを作成し、構成は [`docs/setup/WORKERS_STRUCTURE.md`](./docs/setup/WORKERS_STRUCTURE.md) を参照。API のレスポンス設計は `apps/web/src/app/test/` をリファレンスに統一します。
+- **Web UI 追加**: `apps/web/src/app/` へページ・コンポーネントを配置し、データ連携は `apps/web/src/app/test/` のテストハーネスを参考に共通型を利用します。
+- **タスク着手前**: `docs/tasks/TODO.md` を更新し、完了後はチェックを付けて履歴を残します。
+
+---
+
 ## 📖 ドキュメント
 
-### セットアップ
-- **[Supabase 接続完全ガイド](./docs/setup/SUPABASE_CONNECTION.md)** ⭐ 必読
-- [ローカル開発環境](./docs/setup/LOCAL_DEVELOPMENT.md)
+### 開発準備
+- Supabase: [`docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md`](./docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md)
+- ローカル開発: [`docs/setup/LOCAL_DEVELOPMENT.md`](./docs/setup/LOCAL_DEVELOPMENT.md)
 
-### 仕様・設計
-- [アーキテクチャ](./docs/specs/ARCHITECTURE.md)
-- [ドメイン設計ルール](./docs/operations/systems/DOMAIN_RULES.md)
+### 実装リファレンス
+- Workers API 構成: [`docs/setup/WORKERS_STRUCTURE.md`](./docs/setup/WORKERS_STRUCTURE.md)
+- Web / テストハーネス: `apps/web/src/app/test/`（API レスポンスと UI のサンプル）
 
 ### タスク管理
-- [TODO リスト](./docs/tasks/TODO.md)
-- [Phase 1 デプロイ手順](./docs/tasks/PHASE1_DEPLOYMENT.md)
+- [`docs/tasks/TODO.md`](./docs/tasks/TODO.md)

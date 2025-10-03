@@ -30,6 +30,7 @@
 - [x] **Users 機能の共通化リファクタ** – Workers ルートと Web テストページを共通型に合わせて更新。[SF]
 - [x] **Supabase スキーマ運用ガイド整備** – `docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md` を作成し、`supabase/` 配下の役割を定義。[SD]
 - [x] **Workers 型の共通化** – `apps/workers/src/types/` から `SupabaseUserRow` を削除し、`@casto/shared` を参照する構成へ統一。[DRY]
+- [x] **ドキュメント全体整理** – `README.md`、`docs/README.md`、`docs/ARCHITECTURE.md` を最新構成（packages/shared、test ディレクトリのリファレンス化）に合わせて刷新し、setup 配下とのリンクを整備。[TR][CA]
 
 ---
 

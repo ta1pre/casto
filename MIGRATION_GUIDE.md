@@ -1,16 +1,10 @@
-# 📚 マイグレーションガイド（改訂中）
+# Supabase マイグレーションガイド
 
-## 現状
-- 既存のマイグレーションファイルは削除または無効状態になっており、新規設計が必要です。[CCI]
-- 2025-10-01 時点で標準コマンド（`make migrate` など）は非推奨です。誤って実行しないでください。[SFT]
+内容は `docs/setup/SUPABASE_MIGRATION_GUIDE.md` に移動しました。スキーマ変更時は以下のドキュメントを参照してください。[TR]
 
-## 再構築タスク
-- **[ポリシー策定]** 新しいマイグレーション命名規則・RLS方針・ロールバック手順を決定する。[PD]
-- **[DDL運用策定]** `supabase/schema/` の宣言的管理と `supabase db diff/push` を前提としたフローを文書化する。[CA]
-- **[検証手順]** 変更をテストするためのローカル/ブランチ運用や自動テストの枠組みを決める。[TDT]
-- **[ドキュメント更新]** 決定した手順を本書に反映し、暫定記述を差し替える。[SD]
+- `docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md`
+- `docs/setup/SUPABASE_MIGRATION_GUIDE.md`
+- `docs/tasks/TODO.md`
 
-## メモ
-- 最新情報は `docs/DATABASE_MANAGEMENT.md` と `docs/tasks/` を参照してください。[CCI]
-- 変更作業は必ずSlack #db で共有し、タスク管理に記録してください。[UFL]
+本ファイルは互換性のため残されており、今後更新予定はありません。[PEC]
 

@@ -49,10 +49,17 @@ supabase/
 - `schema.sql` を直接編集しないこと。`schema/` 配下の DDL を変更し `./sync` を実行する。[CA]
 - マイグレーションの命名規則は `YYYYMMDD_HHMMSS_<feature>.sql` とし、生成直後に内容をレビューする。[ISA]
 - 大規模変更時は `docs/tasks/TODO.md` に必ず作業ログを残し、進行中タスクを明示する。[TR]
+- Workers / Web の実装は `apps/web/src/app/test/` をリファレンスにしてレスポンス整形を確認し、高度な API 変更時の回帰を防ぐ。[DRY]
 
 ## 参考
 
-- `docs/setup/LOCAL_DEVELOPMENT.md`
-- `docs/tasks/TODO.md`
+- [`LOCAL_DEVELOPMENT.md`](./LOCAL_DEVELOPMENT.md) - ローカル開発環境の構築
+- [`WORKERS_STRUCTURE.md`](./WORKERS_STRUCTURE.md) - Workers API 構成と実装リファレンス
+- [`../tasks/TODO.md`](../tasks/TODO.md) - タスク管理
+- [`../ARCHITECTURE.md`](../ARCHITECTURE.md) - プロジェクト全体の構成
 
 整然としたスキーマ管理のため、上記フローに従って運用してください。[CA][TR]
+
+---
+
+**最終更新**: 2025/10/04

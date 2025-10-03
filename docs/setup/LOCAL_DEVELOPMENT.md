@@ -121,7 +121,13 @@ docker exec casto npm run test
 
 ## 📚 参考ドキュメント
 
-- `operations/deployment/STRATEGY.md`
-- `operations/DECISIONS.md`
+- [`SUPABASE_SCHEMA_MANAGEMENT.md`](./SUPABASE_SCHEMA_MANAGEMENT.md) - テーブル追加・マイグレーション手順
+- [`WORKERS_STRUCTURE.md`](./WORKERS_STRUCTURE.md) - Workers API の構成と実装例
+- [`../tasks/TODO.md`](../tasks/TODO.md) - 進行中タスクと完了履歴
+- [`../ARCHITECTURE.md`](../ARCHITECTURE.md) - プロジェクト全体の構成と型共有方針
 
 構成変更時は本ドキュメントを更新する。[TR]
+
+---
+
+**最終更新**: 2025/10/04

@@ -4,25 +4,25 @@
 
 ```
 apps/workers/src/
-├── app.ts              # Honoアプリ本体（CORS・ルーティング・エラーハンドリング）
-├── index.ts            # エントリポイント（app.tsからexport）
+├── app.ts              # Hono アプリ本体（CORS・ルーティング・エラーハンドリング）
+├── index.ts            # エントリポイント（app.ts から export）
 ├── config/
-│   └── env.ts         # 環境設定（development/production切替、CORS Origin管理）
+│   └── env.ts         # 環境設定（development / production 切替、CORS Origin 管理）
 ├── types/
-│   ├── index.ts       # 型のre-export
-│   ├── bindings.ts    # Hono Bindings、AppContext
-│   └── supabase.ts    # Supabaseドメイン型
+│   ├── index.ts       # 型の re-export（@casto/shared から import）
+│   ├── bindings.ts    # Hono Bindings、AppContext（Workers 専用）
+│   └── supabase.ts    # @casto/shared から再エクスポート（重複排除）
 ├── lib/               # 汎用インフラ・ユーティリティ
-│   ├── auth.ts        # JWT認証（LINE/Email共通）
-│   └── supabase.ts    # Supabaseクライアント初期化
+│   ├── auth.ts        # JWT 認証（LINE / Email 共通）
+│   └── supabase.ts    # Supabase クライアント初期化
 ├── middleware/
 │   └── authContext.ts # リクエスト認証コンテキスト
-└── features/          # 機能特化コード（API単位）
+└── features/          # 機能特化コード（API 単位）
     ├── health/
     │   └── routes.ts
-    └── users/
+    └── users/        # ★ 実装リファレンス
         ├── routes.ts   # API endpoints (GET/POST /api/v1/users)
-        └── service.ts  # users関連ビジネスロジック
+        └── service.ts  # users 関連ビジネスロジック
 ```
 
 ## 配置ルール
@@ -46,8 +46,9 @@ apps/workers/src/
 
 ### `types/`
 アプリ全体で使う共通型定義
-- `bindings.ts`: Cloudflare Workers Bindings
-- `supabase.ts`: ドメイン型
+- `bindings.ts`: Cloudflare Workers Bindings（Workers 専用）。
+- `supabase.ts`: `@casto/shared` から `SupabaseUserRow` 等を再エクスポート。Workers 側では独自定義を持たず、共通パッケージを参照します。[PEC][DRY]
+- `index.ts`: 上記をまとめて再エクスポート。
 
 ## 環境設定
 
@@ -61,6 +62,23 @@ apps/workers/src/
 
 環境変数 `ENVIRONMENT` を `development` または `production` に設定することで自動切替。
 
+## 実装リファレンス
+
+新規 API 機能を追加する際は以下を参考にしてください:
+
+- **Workers API 構成例**: `apps/workers/src/features/users/`
+  - `routes.ts`: API エンドポイント定義。
+  - `service.ts`: DB 操作、ビジネスロジック。
+  - `@casto/shared` の型を利用し、レスポンス形式を Web と統一。[DRY]
+
+- **Web UI 連携例**: `apps/web/src/app/test/`
+  - Workers API を呼び出し、共通型を利用したデータフック、UI コンポーネント統合の実装サンプル。[TDT]
+  - API レスポンスの型安全性をフロントとバックで一致させる手本としても機能します。
+
+- **共通パッケージ**: `packages/shared/src/`
+  - `types/user.ts`: Workers / Web で共有する型定義。
+  - `utils/user.ts`: DB レスポンスを整形する関数群。
+
 ---
 
-**最終更新**: 2025/10/01
+**最終更新**: 2025/10/04
