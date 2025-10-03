@@ -1,6 +1,7 @@
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
+import { HelpHint } from '@/shared/ui/help-hint'
 import { GENDERS, PREFECTURES } from '../constants'
 import type { ProfileFormData } from '../types'
 
@@ -73,7 +74,13 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label>生年月日 (任意)</Label>
+        <div className="flex items-center gap-2">
+          <Label>生年月日 (任意)</Label>
+          <HelpHint
+            description="18歳未満の方はオーディション時に親の承諾書が必要です。"
+            placement="top"
+          />
+        </div>
         <div className="grid grid-cols-3 gap-2">
           <select
             value={birthYear}
