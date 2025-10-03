@@ -28,6 +28,8 @@
 - [x] **ユーティリティ整備 (`packages/shared/src/utils/user.ts`)** – `serializeUserResponse()`, `buildUsersListResponse()` などを実装。[DRY]
 - [x] **依存・パス設定** – `apps/web` / `apps/workers` の `package.json` と `tsconfig.json` を更新し、`npm install` 実施。[CA]
 - [x] **Users 機能の共通化リファクタ** – Workers ルートと Web テストページを共通型に合わせて更新。[SF]
+- [x] **Supabase スキーマ運用ガイド整備** – `docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md` を作成し、`supabase/` 配下の役割を定義。[SD]
+- [x] **Workers 型の共通化** – `apps/workers/src/types/` から `SupabaseUserRow` を削除し、`@casto/shared` を参照する構成へ統一。[DRY]
 
 ---
 

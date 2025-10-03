@@ -1,2 +1,2 @@
 export type { Bindings, AppBindings, AppContext } from './bindings'
-export type { SupabaseUserRow } from './supabase'
+export type { SupabaseUserRow } from '@casto/shared'
