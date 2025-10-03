@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { INITIAL_FORM_DATA, STEPS } from './constants'
 import type { ProfileFormData } from './types'
 import { StepNavigation } from './ui/StepNavigation'
@@ -13,10 +13,22 @@ import { DetailStep } from './steps/DetailStep'
 import { AffiliationStep } from './steps/AffiliationStep'
 import { SnsStep } from './steps/SnsStep'
 import { calculateProfileCompletion } from './profileCompletion'
+import { useProfileData } from '../_hooks/useProfileData'
+import { formDataToApiInput, apiResponseToFormData } from '../_utils/profileConverter'
 
 export function ProfileRegistrationForm() {
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<ProfileFormData>(INITIAL_FORM_DATA)
+  const [saving, setSaving] = useState(false)
+  
+  const { profile, loading, error, save } = useProfileData()
+
+  // プロフィール読み込み時にフォームデータに反映
+  useEffect(() => {
+    if (profile) {
+      setFormData(apiResponseToFormData(profile))
+    }
+  }, [profile])
 
   const updateFormData = <K extends keyof ProfileFormData>(field: K, value: ProfileFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -45,9 +57,18 @@ export function ProfileRegistrationForm() {
     setCurrentStep(stepId)
   }
 
-  const handleSubmit = () => {
-    console.log('Form submitted:', formData)
-    alert('プロフィール登録完了！（モックデータ）')
+  const handleSubmit = async () => {
+    setSaving(true)
+    try {
+      const apiInput = formDataToApiInput(formData)
+      await save(apiInput)
+      alert('プロフィールを保存しました！')
+    } catch (err) {
+      console.error('Save failed:', err)
+      alert('保存に失敗しました。もう一度お試しください。')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const renderStepContent = () => {
@@ -71,6 +92,27 @@ export function ProfileRegistrationForm() {
 
   const { completionRate } = calculateProfileCompletion(formData)
 
+  // ローディング表示
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">読み込み中...</p>
+      </div>
+    )
+  }
+
+  // エラー表示
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <p className="text-destructive mb-4">エラーが発生しました</p>
+          <p className="text-sm text-muted-foreground">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <StepNavigation 
@@ -91,7 +133,8 @@ export function ProfileRegistrationForm() {
         onNext={handleNext}
         onSubmit={handleSubmit}
         isBasicInfoValid={isBasicInfoValid()}
-        completionRate={completionRate}
+        completionRate={profile?.completion_rate ?? completionRate}
+        saving={saving}
       />
     </div>
   )

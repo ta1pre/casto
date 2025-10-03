@@ -10,6 +10,7 @@ interface FooterNavigationProps {
   onSubmit: () => void
   isBasicInfoValid: boolean
   completionRate: number
+  saving?: boolean
 }
 export function FooterNavigation({
   currentStep,
@@ -17,7 +18,8 @@ export function FooterNavigation({
   onNext,
   onSubmit,
   isBasicInfoValid,
-  completionRate
+  completionRate,
+  saving = false
 }: FooterNavigationProps) {
   const bottomOffset = `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom) + 16px)`
 
@@ -65,8 +67,9 @@ export function FooterNavigation({
               type="button"
               onClick={onSubmit}
               className="flex-1 sm:flex-none bg-white text-black hover:bg-white/90"
+              disabled={saving}
             >
-              登録完了
+              {saving ? '保存中...' : '登録完了'}
               <CheckCircle2 className="w-4 h-4 ml-2" />
             </Button>
           )}

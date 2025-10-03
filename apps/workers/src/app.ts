@@ -5,6 +5,7 @@ import { attachUserContext } from './middleware/authContext'
 import healthRoutes from './features/health/routes'
 import usersRoutes from './features/users/routes'
 import authRoutes from './features/auth/routes'
+import profileRoutes from './features/liff/profile/routes'
 import { getAllowedOrigins, getPrimaryOrigin } from './config/env'
 import type { AppBindings } from './types'
 
@@ -38,6 +39,7 @@ export function createApp() {
   app.route('/api/v1', healthRoutes)
   app.route('/api/v1', authRoutes)
   app.route('/api/v1', usersRoutes)
+  app.route('/api/v1/liff/profile', profileRoutes)
 
   app.notFound((c) => {
     return c.json({ error: 'Not Found' }, 404)

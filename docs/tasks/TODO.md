@@ -34,54 +34,57 @@
 
 ---
 
-### Step 1: プロフィール型・フロント整備
+### Step 1: プロフィール型・フロント整備（完了）
 
-- [ ] **`apps/web/src/app/liff/profile/_components/types.ts` の整理** – 未使用フィールド削除、数値項目を `number | null` へ移行。[SF]
-- [ ] **`packages/shared/src/types/profile.ts` 作成** – `TalentProfileInput`, `TalentProfileResponse`, `ProfileCompletionInfo` を定義。[DRY]
-- [ ] **完成度ロジックの共通化 (`packages/shared/src/utils/profileCompletion.ts`)** – `calculateTalentProfileCompletion()` を実装し、重複を排除。[DRY]
-- [ ] **バリデーション共通化 (`packages/shared/src/utils/profileValidation.ts`)** – 数値範囲・必須項目チェックを実装し、日本語メッセージを返す。[REH]
-- [ ] **既存フォームでの新型適用 (`ProfileRegistrationForm.tsx`)** – 型更新に追従し型エラーを解消。[ISA]
-
----
-
-### Step 2: データベース設計・マイグレーション
-
-- [ ] **マイグレーションファイル作成 (`supabase/migrations/YYYYMMDD_create_talent_profiles.sql`)** – `talent_profiles` テーブルを定義し、必要なインデックスと RLS を設定。[CA]
-- [ ] **ローカル適用テスト** – `supabase db reset` で適用し、`\d talent_profiles` で構造確認。[TDT]
-- [ ] **ドキュメント更新 (`MIGRATION_GUIDE.md`)** – マイグレーション手順を追記。[SD]
+- [x] **`packages/shared/src/types/profile.ts` 新規作成** – `TalentProfileInput`, `TalentProfileResponse`, `ProfileCompletionInfo` を定義し、Workers / Web で共有。[CA]
+- [x] **`packages/shared/src/utils/profileCompletion.ts` 実装** – `calculateTalentProfileCompletion()` を共通化し、テストデータで検証。[TDT]
+- [x] **`packages/shared/src/utils/profileValidation.ts` 実装** – 必須・数値項目のバリデーションとエラーメッセージを共通化。[REH]
+- [x] **`ProfileRegistrationForm.tsx` の型適用** – 共通型・バリデーションを利用し、API連携を実装。[ISA]
+- [x] **データ変換ユーティリティ作成** – `profileConverter.ts` でフォーム型 ⇔ API型の相互変換を実装。[DRY]
 
 ---
 
-### Step 3: Workers 側プロフィール API
+### Step 2: データベース設計・マイグレーション（完了）
 
-- [ ] **ディレクトリ作成 (`apps/workers/src/features/liff/profile/`)** – `types.ts`, `service.ts`, `routes.ts` を追加。[CA]
-- [ ] **`service.ts` 実装** – `getTalentProfile()`, `upsertTalentProfile()`, `calculateCompletion()` を実装し、共通バリデーション/完成度ロジックを利用。[DRY]
-- [ ] **`routes.ts` 実装** – `GET`/`POST`/`PUT`/`PATCH` `/api/v1/liff/profile` を定義し、`verifyLineToken` を適用。エラーハンドリング追加。[REH]
-- [ ] **`app.ts` ルート登録** – `app.route('/api/v1', profileRoutes)` を追記し、型チェックを通す。[ISA]
-- [ ] **ユニットテスト/モック** – `vitest` で service 関数を検証。（追加予定）[TDT]
+- [x] **マイグレーションファイル作成 (`supabase/migrations/20251004000000_create_talent_profiles.sql`)** – `talent_profiles` テーブルを定義し、完成度カラム・JSON セクション・インデックス・トリガーまで含めて実装。[CA]
+- [x] **RLS 設定** – 認証済みユーザーが自身のレコードのみCRUD可能なポリシーを追加。[SFT]
+- [x] **CHECK制約とバリデーション** – 数値範囲チェックとenum値の検証をDB層で実装。[REH]
 
 ---
 
-### Step 4: Web 側プロフィール連携
+### Step 3: Workers 側プロフィール API（完了）
 
-- [ ] **API層作成 (`apps/web/src/shared/api/profile.ts`)** – `fetchProfile()`, `saveProfile()` などを実装し、`User` と同様のフェッチパターンを利用。[CA]
-- [ ] **データフック実装 (`apps/web/src/app/liff/profile/_hooks/useProfileData.ts`)** – 取得・保存・状態管理を共通化。[SF]
-- [ ] **`ProfileRegistrationForm.tsx` の接続** – 保存/更新フロー、完了時リフレッシュ、エラー表示を実装。[REH]
-- [ ] **ステップフォームの改善 (`DetailStep.tsx`, `SnsStep.tsx`)** – 数値入力に `type='number'` 等を設定し、共通バリデーションを連携。[ISA]
-- [ ] **完成度ビューの更新** – バックエンドから返却された `completion_rate` を UI に反映。[CA]
+- [x] **ディレクトリ作成 (`apps/workers/src/features/liff/profile/`)** – `service.ts`, `routes.ts` を追加し、既存 `users` 構成に揃える。[CA]
+- [x] **サービス実装 (`service.ts`)** – `getTalentProfile()`, `upsertTalentProfile()`, `serializeTalentProfileResponse()` を実装し、共通バリデーション・完成度計算を利用。[CA][DRY]
+- [x] **ルート実装 (`routes.ts`)** – `GET`/`POST`/`PUT`/`PATCH` `/api/v1/liff/profile` を定義し、`verifyLineToken` とエラーハンドリングを適用。[REH]
+- [x] **ミドルウェア作成 (`middleware/verifyLineToken.ts`)** – LINE認証チェックミドルウェアを実装。[SFT]
+- [x] **エントリ登録 (`apps/workers/src/app.ts`)** – `app.route('/api/v1/liff/profile', profileRoutes)` を追加し、型チェック完了。[ISA]
 
 ---
 
-### Step 5: 統合テスト・検証
+### Step 4: Web 側プロフィール連携（完了）
 
-- [ ] **ローカル統合テスト**
-  - [ ] LIFF からプロフィール新規作成/更新が成功。
-  - [ ] Supabase に保存されたレコードと完成度が期待値通り。
-  - [ ] フロント/バックで同じ完成度ロジックを参照していることを確認。
-- [ ] **開発環境検証**
-  - [ ] Cloudflare Workers をデプロイし、`/api/v1/liff/profile` が動作。
-  - [ ] マイグレーションを適用し、RLS を確認。
-  - [ ] LIFF 実機での確認を実施。
+- [x] **API 層 (`apps/web/src/shared/api/profile.ts`)** – `fetchProfile()`, `saveProfile()`, `updateProfile()`, `patchProfile()` を実装。[CA]
+- [x] **データフック (`apps/web/src/app/liff/profile/_hooks/useProfileData.ts`)** – 取得・保存・状態管理を共通化し、エラーハンドリングを実装。[SF][REH]
+- [x] **`ProfileRegistrationForm.tsx` の接続** – `useProfileData` を使って保存・更新フローを実装し、完成度表示をバックエンド値に置き換え。[CA]
+- [x] **FooterNavigation更新** – 保存中状態の表示とボタン無効化を実装。[ISA]
+- [x] **データ変換ユーティリティ** – フォームデータ ⇔ API型の相互変換を実装。[DRY]
+
+---
+
+### Step 5: 統合テスト・検証（準備完了）
+
+- [x] **テストページ作成** – `/test/profile` でGET/POST/PUT/PATCHの動作確認が可能。[TDT]
+- [x] **実装ドキュメント作成** – `docs/setup/PROFILE_IMPLEMENTATION.md` に仕様・使用方法・トラブルシューティングを記載。[SD]
+- [ ] **ローカル統合テスト**（次回実施）
+  - [ ] Supabaseローカル環境でマイグレーション適用とテーブル確認
+  - [ ] プロフィール新規作成/更新が成功し、DB に保存される
+  - [ ] 完成度が正しく計算・表示され、必須/数値バリデーションが動作
+  - [ ] フロント/バックが同じ完成度ロジックを参照することを確認
+- [ ] **開発環境検証**（デプロイ後）
+  - [ ] Cloudflare Workers をデプロイし、`/api/v1/liff/profile` が動作
+  - [ ] マイグレーション適用と RLS の確認を実施
+  - [ ] LIFF 実機での動作確認を完了
 
 ---
 
