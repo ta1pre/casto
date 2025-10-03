@@ -1,5 +1,7 @@
 import type { AppContext } from '../../types'
+import type { SupabaseUserRow } from '@casto/shared'
 import { createSupabaseClient } from '../../lib/supabase'
+import { upsertLineUser as upsertLineUserService } from '../users/service'
 
 export type LineProfile = {
   userId: string
@@ -50,39 +52,14 @@ export async function verifyLineIdToken(
 export async function upsertLineUser(
   c: AppContext,
   profile: LineProfile
-): Promise<{
-  id: string
-  lineUserId: string
-  displayName: string
-  tokenVersion: number
-}> {
+): Promise<SupabaseUserRow> {
   const supabase = createSupabaseClient(c)
 
-  const { data, error } = await supabase
-    .from('users')
-    .upsert(
-      {
-        line_user_id: profile.userId,
-        display_name: profile.displayName,
-        is_active: true,
-        token_version: 0
-      },
-      {
-        onConflict: 'line_user_id',
-        ignoreDuplicates: false
-      }
-    )
-    .select('id, line_user_id, display_name, token_version')
-    .single()
+  // users/service.ts の共通ロジックを利用
+  const user = await upsertLineUserService(supabase, profile.userId, {
+    name: profile.displayName,
+    picture: profile.pictureUrl
+  })
 
-  if (error || !data) {
-    throw new Error(`Failed to upsert LINE user: ${error?.message ?? 'Unknown error'}`)
-  }
-
-  return {
-    id: data.id,
-    lineUserId: data.line_user_id,
-    displayName: data.display_name,
-    tokenVersion: data.token_version
-  }
+  return user
 }

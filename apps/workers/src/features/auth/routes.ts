@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { createJWT, setAuthCookie, getAuthCookie, clearAuthCookie } from '../../lib/auth'
 import { createSupabaseClient } from '../../lib/supabase'
 import { verifyLineIdToken, upsertLineUser } from './service'
+import { serializeUserResponse } from '@casto/shared'
 import type { AppBindings } from '../../types'
 
 const authRoutes = new Hono<AppBindings>()
@@ -44,7 +45,7 @@ authRoutes.post('/auth/line/verify', async (c) => {
         userId: user.id,
         roles: ['applicant'],
         provider: 'line',
-        tokenVersion: user.tokenVersion
+        tokenVersion: user.token_version ?? 0
       },
       jwtSecret
     )
@@ -53,12 +54,7 @@ authRoutes.post('/auth/line/verify', async (c) => {
     setAuthCookie(c, token)
 
     return c.json({
-      user: {
-        id: user.id,
-        lineUserId: user.lineUserId,
-        displayName: user.displayName,
-        provider: 'line'
-      }
+      user: serializeUserResponse(user)
     })
   } catch (error) {
     console.error('[Auth] LINE verification failed:', error)
@@ -96,14 +92,7 @@ authRoutes.get('/auth/session', async (c) => {
     }
 
     return c.json({
-      user: {
-        id: data.id,
-        email: data.email,
-        lineUserId: data.line_user_id,
-        displayName: data.display_name,
-        provider: userContext.provider,
-        tokenVersion: data.token_version
-      }
+      user: serializeUserResponse(data)
     })
   } catch (error) {
     console.error('[Auth] Failed to fetch session:', error)
