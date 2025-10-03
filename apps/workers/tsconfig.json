@@ -16,8 +16,8 @@
     "baseUrl": ".",
     "types": ["@cloudflare/workers-types"],
     "paths": {
-      "@casto/shared": ["../shared/src/index.ts"],
-      "@casto/shared/*": ["../shared/src/*"]
+      "@casto/shared": ["../../packages/shared/src/index.ts"],
+      "@casto/shared/*": ["../../packages/shared/src/*"]
     }
   },
   "include": ["src/**/*"],
