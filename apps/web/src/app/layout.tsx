@@ -4,8 +4,8 @@ import "./globals.css";
 import { AuthProvider } from "@/shared/providers/AuthProvider";
 
 export const metadata: Metadata = {
-  title: "Casto - オーディション管理アプリ",
-  description: "集める→選ぶ→見せる→売るを1つのIDで全部できるオーディション管理アプリ",
+  title: "casto",
+  description: "オーディション管理アプリ",
 };
 
 export default function RootLayout({
