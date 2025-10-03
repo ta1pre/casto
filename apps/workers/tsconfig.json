@@ -13,7 +13,12 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "types": ["@cloudflare/workers-types"]
+    "baseUrl": ".",
+    "types": ["@cloudflare/workers-types"],
+    "paths": {
+      "@casto/shared": ["../shared/src/index.ts"],
+      "@casto/shared/*": ["../shared/src/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

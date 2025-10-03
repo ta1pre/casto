@@ -1,15 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
+import type { UserResponse } from '@casto/shared'
 
-interface User {
-  id: string
-  email: string | null
-  line_user_id: string | null
-  display_name: string | null
-  is_active: boolean
-  token_version: number
-  created_at: string
-  updated_at: string
-}
+type User = UserResponse
 
 interface UseUsersDataResult {
   users: User[]

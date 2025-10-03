@@ -1,28 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { SupabaseUserRow } from '../../types'
+import type { SupabaseUserRow } from '@casto/shared'
+import { mapRoles, serializeUserResponse } from '@casto/shared'
 
 export type GenericSupabaseClient = SupabaseClient<any, any, any>
-
-export function mapRoles(role?: string | null): string[] {
-  if (!role) {
-    return []
-  }
-  return [role]
-}
-
-export function serializeUserResponse(user: SupabaseUserRow) {
-  return {
-    id: user.id,
-    email: user.email,
-    lineUserId: user.line_user_id,
-    displayName: user.display_name,
-    role: user.role,
-    provider: user.auth_provider,
-    tokenVersion: user.token_version ?? 0,
-    createdAt: user.created_at,
-    updatedAt: user.updated_at
-  }
-}
 
 export async function findUserByLineId(
   client: GenericSupabaseClient,

@@ -2,17 +2,9 @@ import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { AlertCircle, Loader2 } from "lucide-react"
+import type { UserResponse } from '@casto/shared'
 
-interface User {
-  id: string
-  email: string | null
-  line_user_id: string | null
-  display_name: string | null
-  is_active: boolean
-  token_version: number
-  created_at: string
-  updated_at: string
-}
+type User = UserResponse
 
 interface UsersTableProps {
   users: User[]
@@ -88,19 +80,19 @@ export function UsersTable({ users, loading, error, onRefresh }: UsersTableProps
                   <tr key={user.id} className="border-b hover:bg-muted/50">
                     <td className="p-2 font-mono text-xs">{user.id.substring(0, 8)}...</td>
                     <td className="p-2">{user.email || '-'}</td>
-                    <td className="p-2">{user.line_user_id || '-'}</td>
-                    <td className="p-2">{user.display_name || '-'}</td>
+                    <td className="p-2">{user.lineUserId || '-'}</td>
+                    <td className="p-2">{user.displayName || '-'}</td>
                     <td className="p-2">
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        user.is_active 
+                        user.isActive 
                           ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
                           : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                       }`}>
-                        {user.is_active ? '✓ 有効' : '✗ 無効'}
+                        {user.isActive ? '✓ 有効' : '✗ 無効'}
                       </span>
                     </td>
                     <td className="p-2 text-xs text-muted-foreground">
-                      {new Date(user.created_at).toLocaleString('ja-JP')}
+                      {user.createdAt && new Date(user.createdAt).toLocaleString('ja-JP')}
                     </td>
                   </tr>
                 ))}
