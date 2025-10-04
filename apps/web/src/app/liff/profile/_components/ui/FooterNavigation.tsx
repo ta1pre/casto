@@ -29,13 +29,6 @@ export function FooterNavigation({
       style={{ bottom: bottomOffset }}
     >
       <div className="container max-w-2xl mx-auto px-4 py-4 space-y-3">
-        {/* 保存の説明 */}
-        {currentStep < STEPS.length && (
-          <p className="text-xs text-white/60 text-center">
-            次へをタップで保存されます
-          </p>
-        )}
-        
         <div className="flex items-center gap-3">
           <div className="flex-1 h-2 bg-border/60 rounded-full overflow-hidden">
             <div
@@ -81,6 +74,13 @@ export function FooterNavigation({
             </Button>
           )}
         </div>
+        
+        {/* 保存の説明 */}
+        {currentStep < STEPS.length && (
+          <p className="text-xs text-white/60 text-center">
+            次へをタップで保存されます
+          </p>
+        )}
       </div>
     </div>
   )
