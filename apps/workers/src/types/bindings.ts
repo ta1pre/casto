@@ -12,6 +12,7 @@ export type Bindings = {
   ALLOWED_ORIGINS?: string
   CACHE?: KVNamespace
   NOTIFICATION_QUEUE?: Queue
+  TALENT_PHOTOS?: R2Bucket
 }
 
 export type AppBindings = {

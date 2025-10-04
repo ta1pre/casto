@@ -26,7 +26,8 @@ export const INITIAL_FORM_DATA: ProfileFormData = {
   instagram: '',
   tiktok: '',
   youtube: '',
-  followers: ''
+  followers: '',
+  photoUrls: []
 }
 
 export const STEPS: StepConfig[] = [
@@ -59,6 +60,14 @@ export const AFFILIATION_TYPES = [
   { value: 'business-partner', label: '業務提携', description: '本人が契約当事者' },
   { value: 'exclusive', label: '専属所属', description: '事務所経由が必須' }
 ]
+
+export const PHOTO_CONFIG = {
+  MAX_FILES: 6,
+  MAX_SIZE_MB: 5,
+  MAX_SIZE_BYTES: 5 * 1024 * 1024,
+  ALLOWED_TYPES: ['image/jpeg', 'image/png', 'image/webp'] as string[],
+  PHOTO_LABELS: ['顔写真', '全身写真', '写真3', '写真4', '写真5', '写真6']
+}
 
 export const OVERVIEW_SECTIONS = [
   { title: '基本情報', desc: '芸名・性別・生年月日・都道府県', step: 2 },

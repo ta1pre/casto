@@ -38,7 +38,8 @@ export function formDataToApiInput(formData: ProfileFormData): TalentProfileInpu
     instagram: formData.instagram || null,
     tiktok: formData.tiktok || null,
     youtube: formData.youtube || null,
-    followers: formData.followers || null
+    followers: formData.followers || null,
+    photo_urls: formData.photoUrls || []
   }
 }
 
@@ -64,6 +65,7 @@ export function apiResponseToFormData(response: TalentProfileResponse): ProfileF
     instagram: response.instagram || '',
     tiktok: response.tiktok || '',
     youtube: response.youtube || '',
-    followers: response.followers || ''
+    followers: response.followers || '',
+    photoUrls: response.photo_urls || []
   }
 }

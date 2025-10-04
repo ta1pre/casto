@@ -130,7 +130,7 @@ export function ProfileRegistrationForm() {
       case 2:
         return <BasicInfoStep formData={formData} onUpdate={updateFormData} />
       case 3:
-        return <PhotoStep />
+        return <PhotoStep formData={formData} onChange={updateFormData} />
       case 4:
         return <DetailStep formData={formData} onUpdate={updateFormData} />
       case 5:

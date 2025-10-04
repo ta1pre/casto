@@ -30,6 +30,12 @@ ENVIRONMENT = "development"
 # LINE_CHANNEL_SECRET
 # STRIPE_SECRET_KEY
 
+# R2 Buckets
+[[r2_buckets]]
+binding = "TALENT_PHOTOS"
+bucket_name = "talent-photos"
+preview_bucket_name = "talent-photos-preview"
+
 # KV Namespaces (disabled for development)
 # [[kv_namespaces]]
 # binding = "CACHE"

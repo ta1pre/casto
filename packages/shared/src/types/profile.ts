@@ -40,9 +40,8 @@ export interface TalentProfileInput {
   youtube?: string | null
   followers?: string | null
 
-  // 写真URL（将来実装）
-  photo_face_url?: string | null
-  photo_full_body_url?: string | null
+  // 写真URL（最大6枚）
+  photo_urls?: string[]
 }
 
 /**
@@ -68,8 +67,7 @@ export interface TalentProfileResponse {
   tiktok: string | null
   youtube: string | null
   followers: string | null
-  photo_face_url: string | null
-  photo_full_body_url: string | null
+  photo_urls: string[]
   completion_rate: number
   completion_sections: ProfileCompletionSections
   created_at: string
@@ -99,8 +97,7 @@ export interface TalentProfileRow {
   tiktok: string | null
   youtube: string | null
   followers: string | null
-  photo_face_url: string | null
-  photo_full_body_url: string | null
+  photo_urls: string[]
   completion_rate: number
   completion_sections: Record<string, unknown> // JSONB型
   created_at: string

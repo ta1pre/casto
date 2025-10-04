@@ -26,6 +26,9 @@ export interface ProfileFormData {
   tiktok: string
   youtube: string
   followers: string
+  
+  // 写真URL（最大6枚）
+  photoUrls: string[]
 }
 
 export interface StepConfig {

@@ -81,8 +81,7 @@ export async function upsertTalentProfile(
     tiktok: input.tiktok ?? null,
     youtube: input.youtube ?? null,
     followers: input.followers ?? null,
-    photo_face_url: input.photo_face_url ?? null,
-    photo_full_body_url: input.photo_full_body_url ?? null,
+    photo_urls: input.photo_urls ?? [],
     completion_rate: completionRate,
     completion_sections: sections as unknown as Record<string, unknown>
   }
@@ -125,8 +124,7 @@ export function serializeTalentProfileResponse(row: TalentProfileRow): TalentPro
     tiktok: row.tiktok,
     youtube: row.youtube,
     followers: row.followers,
-    photo_face_url: row.photo_face_url,
-    photo_full_body_url: row.photo_full_body_url,
+    photo_urls: row.photo_urls || [],
     completion_rate: row.completion_rate,
     completion_sections: row.completion_sections as any,
     created_at: row.created_at,

@@ -22,8 +22,12 @@ export function calculateProfileCompletion(formData: ProfileFormData): ProfileCo
     formData.occupation
   )
 
-  // TODO: 写真アップロード実装後に更新
-  const hasPhoto = false
+  // 写真アップロード（1枚以上で+20%）
+  const hasPhoto = Boolean(
+    formData.photoUrls &&
+    formData.photoUrls.length > 0 &&
+    formData.photoUrls.some(url => url && url.length > 0)
+  )
 
   const hasDetailInfo = Boolean(
     formData.height ||

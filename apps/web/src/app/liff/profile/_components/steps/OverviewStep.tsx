@@ -39,7 +39,30 @@ export function OverviewStep({ formData, onStepClick, isBasicInfoValid }: Overvi
         )
 
       case 3: // 写真
-        return <span className="text-muted-foreground italic bg-blue-50 px-2 py-1 rounded">未実装</span>
+        const photoUrls = formData.photoUrls?.filter(url => url && url.length > 0) || []
+        
+        if (photoUrls.length === 0) {
+          return <span className="text-muted-foreground italic bg-gray-100 px-2 py-1 rounded">未入力</span>
+        }
+        
+        return (
+          <div className="space-y-2">
+            <div className="text-sm">
+              <span className="font-medium">アップロード済み:</span>{' '}
+              {photoUrls.length}枚
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {photoUrls.slice(0, 3).map((url, idx) => (
+                <img
+                  key={idx}
+                  src={url}
+                  alt={`写真${idx + 1}`}
+                  className="w-full aspect-square object-cover rounded border"
+                />
+              ))}
+            </div>
+          </div>
+        )
 
       case 4: // 詳細情報
         const detailItems = [
