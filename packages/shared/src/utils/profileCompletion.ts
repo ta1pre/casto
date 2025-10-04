@@ -37,7 +37,7 @@ export function calculateTalentProfileCompletion(
   if (profile.occupation) completionRate += 4
 
   // 写真セクション（1枚でも20%）
-  if (profile.photo_face_url || profile.photo_full_body_url) {
+  if (profile.photo_urls && profile.photo_urls.length > 0 && profile.photo_urls.some(url => url && url.length > 0)) {
     completionRate += 20
   }
 
@@ -69,7 +69,7 @@ export function calculateTalentProfileCompletion(
   )
 
   const hasPhoto = Boolean(
-    profile.photo_face_url || profile.photo_full_body_url
+    profile.photo_urls && profile.photo_urls.length > 0 && profile.photo_urls.some(url => url && url.length > 0)
   )
 
   const hasDetailInfo = Boolean(

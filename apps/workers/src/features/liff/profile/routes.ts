@@ -185,8 +185,7 @@ profileRoutes.patch('/', async (c) => {
       tiktok: partialInput.tiktok ?? existingProfile.tiktok,
       youtube: partialInput.youtube ?? existingProfile.youtube,
       followers: partialInput.followers ?? existingProfile.followers,
-      photo_face_url: partialInput.photo_face_url ?? existingProfile.photo_face_url,
-      photo_full_body_url: partialInput.photo_full_body_url ?? existingProfile.photo_full_body_url
+      photo_urls: partialInput.photo_urls ?? existingProfile.photo_urls
     }
 
     const profile = await upsertTalentProfile(supabase, userContext.id, mergedInput)
