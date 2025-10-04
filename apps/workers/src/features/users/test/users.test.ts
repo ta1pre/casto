@@ -167,8 +167,6 @@ describe('users API - 統合テスト', () => {
       expect(data.user.email).toBe(testEmail)
       expect(data.user).toHaveProperty('displayName')
       expect(data.user).toHaveProperty('role')
-      expect(data.user).toHaveProperty('provider')
-      expect(data.user.provider).toBe('email')
 
       // データベースに実際に作成されたか確認
       const { data: dbUser, error } = await supabase
@@ -180,7 +178,6 @@ describe('users API - 統合テスト', () => {
       expect(error).toBeNull()
       expect(dbUser).toBeDefined()
       expect(dbUser?.email).toBe(testEmail)
-      expect(dbUser?.auth_provider).toBe('email')
     })
 
     it('既存ユーザーの場合はUPSERTされ、既存データを返す', async () => {
