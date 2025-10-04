@@ -93,6 +93,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
     void initialize()
   }, [refreshSession])
 
+  // 定期的なセッションリフレッシュ（20分ごと）[REH]
+  // JWTの有効期限（24時間）より十分前にリフレッシュしてクッキーを延長
+  useEffect(() => {
+    if (!user) return
+
+    const REFRESH_INTERVAL = 20 * 60 * 1000 // 20分
+    console.log('[AuthProvider] Starting session refresh timer (20min interval)')
+
+    const intervalId = setInterval(async () => {
+      if (document.hidden) {
+        console.log('[AuthProvider] Skipping session refresh (page hidden)')
+        return
+      }
+
+      try {
+        console.log('[AuthProvider] Periodic session refresh triggered')
+        await refreshSession()
+        console.log('[AuthProvider] Periodic session refresh successful')
+      } catch (error) {
+        console.error('[AuthProvider] Periodic session refresh failed:', error)
+      }
+    }, REFRESH_INTERVAL)
+
+    return () => {
+      clearInterval(intervalId)
+      console.log('[AuthProvider] Session refresh timer stopped')
+    }
+  }, [user, refreshSession])
+
   const loginWithLine = useCallback(async (idToken: string): Promise<User> => {
     console.log('[AuthProvider] Logging in with LINE...')
     const response = await apiFetch<{ user: UserResponse }>('/api/v1/auth/line/verify', {

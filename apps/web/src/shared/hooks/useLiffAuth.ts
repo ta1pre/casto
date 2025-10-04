@@ -188,6 +188,9 @@ export function useLiffAuth(): UseLiffAuthReturn {
       setIsAuthenticating(false)
     }, 10000)
 
+    // IDトークンをcatchブロックでも参照できるようにスコープを広げる [REH]
+    let idToken: string | null = null
+
     try {
       // LINEアプリ内かどうかの確認（情報のみ、エラーにはしない）
       const inClient = typeof window.liff.isInClient === 'function' 
@@ -198,7 +201,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
       addLog(`Is in LINE client: ${inClient}`)
 
       // IDトークンの取得
-      const idToken = window.liff.getIDToken?.()
+      idToken = window.liff.getIDToken?.() ?? null
       console.log('[useLiffAuth] ID Token obtained:', idToken ? 'YES' : 'NO')
       addLog(`ID Token: ${idToken ? 'YES' : 'NO'}`)
       setIdTokenSnippet(idToken ? `${idToken.slice(0, 4)}...${idToken.slice(-4)}` : null)
@@ -249,8 +252,25 @@ export function useLiffAuth(): UseLiffAuthReturn {
          apiError.body.details.includes('expired'))
       
       if (isTokenExpiredError) {
-        console.warn('[useLiffAuth] ID token expired, triggering re-login')
-        addLog('ID token expired -> calling liff.login() for refresh')
+        console.warn('[useLiffAuth] ID token expired, attempting silent refresh')
+        addLog('ID token expired -> attempting silent refresh')
+        
+        // まずLIFFのログイン状態を再確認 [SF]
+        if (window.liff?.isLoggedIn()) {
+          // LIFFはログイン済みなので、新しいトークンを取得してリトライ [REH]
+          const freshToken = window.liff.getIDToken?.()
+          if (freshToken && freshToken !== idToken) {
+            console.log('[useLiffAuth] Got fresh token from LIFF, retrying authentication')
+            addLog('Fresh token obtained, retrying...')
+            setError('トークンを更新中...')
+            // 再帰呼び出しでリトライ（isRetry=trueで無限ループ防止）
+            return synchronizeLineSession(true)
+          }
+        }
+        
+        // サイレントリフレッシュ失敗 → ユーザーに再ログインを促す
+        console.warn('[useLiffAuth] Silent refresh failed, triggering re-login')
+        addLog('Silent refresh failed -> calling liff.login()')
         setError('LINEトークンの有効期限が切れました。再認証します...')
         
         // リログイン中フラグを立てる [REH]
@@ -563,6 +583,9 @@ export function useLiffAuth(): UseLiffAuthReturn {
           await loginWithLine(newToken)
           console.log('[useLiffAuth] Proactive token refresh successful')
           addLog('Proactive token refresh successful ✅')
+          // セッションも更新してJWTクッキーを延長 [REH]
+          await refreshSession()
+          addLog('Session cookie also refreshed ✅')
         } else {
           console.warn('[useLiffAuth] No token available for proactive refresh')
           addLog('Proactive refresh: no token available')

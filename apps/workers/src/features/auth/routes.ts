@@ -89,6 +89,8 @@ authRoutes.post('/auth/line/verify', async (c) => {
 /**
  * セッション取得エンドポイント
  * GET /api/v1/auth/session
+ * 
+ * セッション取得時にクッキーの有効期限を自動延長する [REH]
  */
 authRoutes.get('/auth/session', async (c) => {
   const userContext = c.get('user')
@@ -107,6 +109,23 @@ authRoutes.get('/auth/session', async (c) => {
 
     if (error || !data) {
       return c.json({ user: null }, 200)
+    }
+
+    // セッション延長: 新しいJWTトークンを発行してクッキーを更新 [REH]
+    const jwtSecret = c.env.JWT_SECRET
+    if (jwtSecret) {
+      const provider = userContext.provider === 'email' ? 'email' : 'line'
+      const token = await createJWT(
+        {
+          userId: data.id,
+          roles: userContext.roles,
+          provider,
+          tokenVersion: data.token_version ?? 0
+        },
+        jwtSecret
+      )
+      setAuthCookie(c, token)
+      console.log('[Auth] Session cookie refreshed for user:', data.id)
     }
 
     return c.json({
