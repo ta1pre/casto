@@ -114,10 +114,10 @@ export async function deletePhotoUrlFromDB(
   userId: string,
   index: PhotoIndex
 ): Promise<string[]> {
-  // 現在のphoto_urlsを取得
+  // 現在のプロフィール全体を取得
   const { data: profile, error: fetchError } = await supabase
     .from('talent_profiles')
-    .select('photo_urls')
+    .select('*')
     .eq('user_id', userId)
     .maybeSingle()
 
@@ -130,10 +130,19 @@ export async function deletePhotoUrlFromDB(
   // 指定されたインデックスを削除（空文字に設定）
   photoUrls[index] = ''
 
-  // データベースを更新
+  // 完成度を再計算 [DRY]
+  const { calculateTalentProfileCompletion } = await import('@casto/shared')
+  const updatedProfile = { ...profile, photo_urls: photoUrls }
+  const { completionRate, sections } = calculateTalentProfileCompletion(updatedProfile)
+
+  // データベースを更新（photo_urlsと完成度）
   const { data, error } = await supabase
     .from('talent_profiles')
-    .update({ photo_urls: photoUrls })
+    .update({ 
+      photo_urls: photoUrls,
+      completion_rate: completionRate,
+      completion_sections: sections
+    })
     .eq('user_id', userId)
     .select('photo_urls')
     .single()

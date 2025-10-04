@@ -26,18 +26,15 @@ export function useProfileData(): UseProfileDataResult {
 
   // プロフィール取得
   const fetchData = useCallback(async () => {
-    console.log('[useProfileData] fetchData called')
     setLoading(true)
     setError(null)
 
     try {
       const data = await fetchProfile()
-      console.log('[useProfileData] Profile fetched successfully:', data?.completion_rate)
       setProfile(data)
     } catch (err) {
       // 404は初回作成前なので正常扱い
       if (err && typeof err === 'object' && 'status' in err && err.status === 404) {
-        console.log('[useProfileData] Profile not found (404), setting null')
         setProfile(null)
       } else {
         // エラーオブジェクト全体を保存（デバッグ情報のため）

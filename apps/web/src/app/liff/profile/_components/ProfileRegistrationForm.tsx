@@ -145,6 +145,7 @@ export function ProfileRegistrationForm() {
   // リアルタイムで完成度を計算 [DRY]
   const apiInput = formDataToApiInput(formData)
   const { completionRate } = calculateTalentProfileCompletion(apiInput)
+  
 
   // ローディング表示
   if (loading) {

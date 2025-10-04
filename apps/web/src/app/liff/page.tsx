@@ -22,11 +22,6 @@ export default function LiffHomePage() {
     refreshSession
   } = useLiffAuth()
   const { profile, loading: isProfileLoading } = useProfileData()
-  
-  // デバッグ: プロフィール取得の監視
-  React.useEffect(() => {
-    console.log('[LiffHome] Profile updated:', profile?.completion_rate)
-  }, [profile])
   const [showRawData, setShowRawData] = useState(false)
   const [showDebugLogs, setShowDebugLogs] = useState(true)
   const [showDebugPanel, setShowDebugPanel] = useState(false)
