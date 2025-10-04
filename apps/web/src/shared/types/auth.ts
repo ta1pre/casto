@@ -1,3 +1,5 @@
+import type { UserResponse } from '@casto/shared'
+
 export type AuthRole =
   | 'applicant'
   | 'fan'
@@ -6,33 +8,20 @@ export type AuthRole =
   | 'admin'
   | 'crowdfunding'
 
-export interface User {
-  id: string
-  email?: string | null
-  lineUserId?: string | null
-  displayName?: string | null
-  name?: string | null
-  provider: 'email' | 'line'
-  role: AuthRole
-  tokenVersion?: number
-  createdAt?: string
-  updatedAt?: string
-  pictureUrl?: string | null
-  statusMessage?: string | null
-}
+export type User = UserResponse
 
 export interface AuthContextType {
-  user: User | null
+  user: UserResponse | null
   isLoading: boolean
   isAuthenticated: boolean
-  loginWithLine: (idToken: string) => Promise<User>
+  loginWithLine: (idToken: string) => Promise<UserResponse>
   requestMagicLink: (params: { email: string; role?: AuthRole; redirectUrl?: string }) => Promise<{
     token: string
     magicLinkUrl?: string
   }>
-  verifyMagicLink: (token: string) => Promise<User>
+  verifyMagicLink: (token: string) => Promise<UserResponse>
   logout: () => Promise<void>
-  refreshSession: () => Promise<User | null>
+  refreshSession: () => Promise<UserResponse | null>
 }
 
 export type UseAuthReturn = AuthContextType

@@ -19,7 +19,6 @@ export const serializeUserResponse = (user: SupabaseUserRow): UserResponse => {
     lineUserId: user.line_user_id ?? null,
     displayName: user.display_name ?? null,
     role: user.role ?? null,
-    provider: user.auth_provider ?? null,
     tokenVersion: user.token_version ?? 0,
     isActive: user.is_active ?? false,
     createdAt: user.created_at ?? null,
@@ -43,7 +42,8 @@ export const calculateUsersStats = (users: SupabaseUserRow[]): UsersStats => {
       stats.inactive += 1
     }
 
-    const provider = user.auth_provider ?? 'unknown'
+    // Provider情報はline_user_idの有無で判定
+    const provider = user.line_user_id ? 'line' : user.email ? 'email' : 'unknown'
     stats.byProvider[provider] = (stats.byProvider[provider] ?? 0) + 1
 
     const role = user.role ?? 'unknown'

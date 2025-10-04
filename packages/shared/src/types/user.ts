@@ -14,7 +14,6 @@ export interface SupabaseUserRow {
   line_user_id?: string | null
   display_name?: string | null
   role?: string | null
-  auth_provider?: string | null
   token_version?: number | null
   is_active?: boolean | null
   created_at?: string
@@ -27,7 +26,6 @@ export interface UserResponse {
   lineUserId: string | null
   displayName: string | null
   role: string | null
-  provider: string | null
   tokenVersion: number
   isActive: boolean
   createdAt: string | null

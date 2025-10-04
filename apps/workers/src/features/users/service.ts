@@ -66,8 +66,7 @@ export async function upsertLineUser(
     const { data, error } = await client
       .from('users')
       .update({
-        display_name: profile.name ?? existing.display_name ?? 'LINEユーザー',
-        auth_provider: 'line'
+        display_name: profile.name ?? existing.display_name ?? 'LINEユーザー'
       })
       .eq('id', existing.id)
       .select('*')
@@ -85,7 +84,6 @@ export async function upsertLineUser(
     .insert({
       line_user_id: lineUserId,
       display_name: profile.name ?? 'LINEユーザー',
-      auth_provider: 'line',
       role: 'applicant',
       email: profile.email?.toLowerCase() ?? null,
       token_version: 0
@@ -113,7 +111,6 @@ export async function upsertEmailUser(
       .from('users')
       .update({
         display_name: options.displayName ?? existing.display_name ?? normalizedEmail,
-        auth_provider: 'email',
         role: options.role ?? existing.role ?? 'organizer'
       })
       .eq('id', existing.id)
@@ -132,7 +129,6 @@ export async function upsertEmailUser(
     .insert({
       email: normalizedEmail,
       display_name: options.displayName ?? normalizedEmail,
-      auth_provider: 'email',
       role: options.role ?? 'organizer',
       token_version: 0
     })
