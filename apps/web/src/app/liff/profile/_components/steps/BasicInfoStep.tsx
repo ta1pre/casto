@@ -31,15 +31,16 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
   const { year: birthYear, month: birthMonth, day: birthDay } = parseBirthdate(formData.birthdate || '')
 
   const updateBirthdate = (year: string, month: string, day: string) => {
-    const effectiveMonth = year ? month : ''
-    const effectiveDay = year && effectiveMonth ? day : ''
-    const segments = [year || '', effectiveMonth || '', effectiveDay || '']
-
-    while (segments.length > 0 && segments[segments.length - 1] === '') {
-      segments.pop()
+    // 完全な形式（YYYY-MM-DD）でない場合は空文字列にする
+    if (!year || !month || !day) {
+      onUpdate('birthdate', '')
+      return
     }
 
-    const nextBirthdate = segments.join('-')
+    // YYYY-MM-DD形式に変換
+    const paddedMonth = month.padStart(2, '0')
+    const paddedDay = day.padStart(2, '0')
+    const nextBirthdate = `${year}-${paddedMonth}-${paddedDay}`
     onUpdate('birthdate', nextBirthdate)
   }
 

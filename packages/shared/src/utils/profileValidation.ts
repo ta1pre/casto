@@ -30,9 +30,7 @@ export function validateTalentProfile(
     errors.push({ field: 'gender', message: '性別を選択してください' })
   }
 
-  if (!profile.birthdate) {
-    errors.push({ field: 'birthdate', message: '生年月日を入力してください' })
-  } else if (!isValidDateFormat(profile.birthdate)) {
+  if (profile.birthdate && !isValidDateFormat(profile.birthdate)) {
     errors.push({ field: 'birthdate', message: '生年月日の形式が正しくありません（YYYY-MM-DD）' })
   }
 

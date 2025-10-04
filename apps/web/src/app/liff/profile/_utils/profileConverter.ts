@@ -14,7 +14,7 @@ export function formDataToApiInput(formData: ProfileFormData): TalentProfileInpu
   return {
     stage_name: formData.stageName,
     gender: formData.gender as 'male' | 'female' | 'other',
-    birthdate: formData.birthdate,
+    birthdate: formData.birthdate || null,
     prefecture: formData.prefecture,
     occupation: formData.occupation || null,
     height: formData.height ? parseFloat(formData.height) : null,
