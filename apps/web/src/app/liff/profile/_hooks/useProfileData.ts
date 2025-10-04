@@ -11,7 +11,7 @@ import { fetchProfile, saveProfile } from '../api/profile'
 interface UseProfileDataResult {
   profile: TalentProfileResponse | null
   loading: boolean
-  error: string | null
+  error: unknown
   refetch: () => Promise<void>
   save: (input: TalentProfileInput) => Promise<TalentProfileResponse>
 }
@@ -22,7 +22,7 @@ interface UseProfileDataResult {
 export function useProfileData(): UseProfileDataResult {
   const [profile, setProfile] = useState<TalentProfileResponse | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
 
   // プロフィール取得
   const fetchData = useCallback(async () => {
@@ -37,8 +37,8 @@ export function useProfileData(): UseProfileDataResult {
       if (err && typeof err === 'object' && 'status' in err && err.status === 404) {
         setProfile(null)
       } else {
-        const message = err instanceof Error ? err.message : 'プロフィール取得に失敗しました'
-        setError(message)
+        // エラーオブジェクト全体を保存（デバッグ情報のため）
+        setError(err)
         console.error('[useProfileData] Fetch error:', err)
       }
     } finally {
@@ -60,8 +60,8 @@ export function useProfileData(): UseProfileDataResult {
       setProfile(saved)
       return saved
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'プロフィール保存に失敗しました'
-      setError(message)
+      // エラーオブジェクト全体を保存（デバッグ情報のため）
+      setError(err)
       console.error('[useProfileData] Save error:', err)
       throw err
     }

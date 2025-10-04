@@ -105,13 +105,15 @@ export function ProfileRegistrationForm() {
     )
   }
 
-  // エラー表示
+  // エラー表示（初回ロード時のエラーをデバッグパネルで表示）
   if (error) {
+    const errorObj = error as { message?: string }
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <p className="text-destructive mb-4">エラーが発生しました</p>
-          <p className="text-sm text-muted-foreground">{error}</p>
+          <p className="text-sm text-muted-foreground">{errorObj.message || 'プロフィール取得に失敗'}</p>
+          <DebugErrorPanel error={error} context="Profile Load (Initial)" />
         </div>
       </div>
     )
