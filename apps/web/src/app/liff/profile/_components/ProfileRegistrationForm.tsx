@@ -21,7 +21,7 @@ export function ProfileRegistrationForm() {
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<ProfileFormData>(INITIAL_FORM_DATA)
   const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState<any>(null)
+  const [saveError, setSaveError] = useState<unknown>(null)
   
   const { profile, loading, error, save } = useProfileData()
 

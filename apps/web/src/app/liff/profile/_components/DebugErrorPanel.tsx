@@ -10,7 +10,7 @@ import { useState } from 'react'
 import { AlertCircle, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface DebugErrorPanelProps {
-  error: any
+  error: unknown
   context?: string
 }
 
@@ -19,13 +19,22 @@ export function DebugErrorPanel({ error, context }: DebugErrorPanelProps) {
 
   if (!error) return null
 
+  // 型ガード: errorをErrorまたはApiError型として扱う
+  const errorObj = error as {
+    message?: string
+    status?: number
+    statusText?: string
+    body?: unknown
+    stack?: string
+  }
+
   const errorInfo = {
     context: context || 'Unknown',
-    message: error?.message || 'Unknown error',
-    status: error?.status,
-    statusText: error?.statusText,
-    body: error?.body,
-    stack: error?.stack,
+    message: errorObj.message || 'Unknown error',
+    status: errorObj.status,
+    statusText: errorObj.statusText,
+    body: errorObj.body,
+    stack: errorObj.stack,
     timestamp: new Date().toISOString()
   }
 
@@ -70,7 +79,7 @@ export function DebugErrorPanel({ error, context }: DebugErrorPanelProps) {
               </div>
             </div>
 
-            {errorInfo.body && (
+            {errorInfo.body !== undefined && errorInfo.body !== null && (
               <div className="mt-3">
                 <div className="font-semibold text-xs mb-1">Response Body:</div>
                 <pre className="bg-gray-100 p-2 rounded text-xs overflow-auto">

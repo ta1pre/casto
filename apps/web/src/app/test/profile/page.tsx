@@ -32,7 +32,7 @@ export default function ProfileTestPage() {
         setAuthStatus('authenticated')
         addLog('✅ 認証OK')
       } catch (err) {
-        const error = err as any
+        const error = err as { status?: number; message?: string }
         if (error?.status === 401) {
           setAuthStatus('unauthenticated')
           addLog('❌ 未認証: LINE認証が必要です')
