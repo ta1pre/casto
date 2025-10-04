@@ -6,7 +6,8 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { fetchProfile, saveProfile, updateProfile, patchProfile } from '@/app/liff/profile/api/profile'
 import type { TalentProfileInput, TalentProfileResponse } from '@casto/shared'
 import { calculateTalentProfileCompletion, validateTalentProfile } from '@casto/shared'
@@ -16,10 +17,36 @@ export default function ProfileTestPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [log, setLog] = useState<string[]>([])
+  const [authStatus, setAuthStatus] = useState<'checking' | 'authenticated' | 'unauthenticated'>('checking')
 
   const addLog = (message: string) => {
     setLog((prev) => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`])
   }
+
+  // 初回ロード時に認証状態をチェック
+  useEffect(() => {
+    const checkAuth = async () => {
+      addLog('認証状態チェック中...')
+      try {
+        await fetchProfile()
+        setAuthStatus('authenticated')
+        addLog('✅ 認証OK')
+      } catch (err) {
+        const error = err as any
+        if (error?.status === 401) {
+          setAuthStatus('unauthenticated')
+          addLog('❌ 未認証: LINE認証が必要です')
+        } else if (error?.status === 404) {
+          setAuthStatus('authenticated')
+          addLog('✅ 認証OK（プロフィール未作成）')
+        } else {
+          setAuthStatus('unauthenticated')
+          addLog(`❌ エラー: ${error?.message || 'Unknown error'}`)
+        }
+      }
+    }
+    checkAuth()
+  }, [])
 
   const handleFetch = async () => {
     setLoading(true)
@@ -162,6 +189,30 @@ export default function ProfileTestPage() {
   return (
     <div className="container max-w-4xl mx-auto p-8">
       <h1 className="text-3xl font-bold mb-6">プロフィールAPI統合テスト</h1>
+
+      {/* 認証状態表示 */}
+      <div className="mb-6 p-4 rounded border">
+        <div className="flex items-center gap-2">
+          <span className="font-semibold">認証状態:</span>
+          {authStatus === 'checking' && (
+            <span className="text-gray-600">確認中...</span>
+          )}
+          {authStatus === 'authenticated' && (
+            <span className="text-green-600">✅ 認証済み</span>
+          )}
+          {authStatus === 'unauthenticated' && (
+            <>
+              <span className="text-red-600">❌ 未認証</span>
+              <Link 
+                href="/test/auth/line" 
+                className="ml-4 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                LINE認証ページへ
+              </Link>
+            </>
+          )}
+        </div>
+      </div>
 
       <div className="space-y-4 mb-8">
         <div className="flex gap-4">
