@@ -4,7 +4,6 @@ import { useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
 import { useProfileData } from './profile/_hooks/useProfileData'
-import { DebugPanel } from './_components/DebugPanel'
 
 export default function LiffHomePage() {
   const router = useRouter()
@@ -117,9 +116,6 @@ export default function LiffHomePage() {
           </button>
         </div>
       </section>
-
-      {/* デバッグパネル */}
-      <DebugPanel {...liffAuth} />
     </div>
   )
 }
