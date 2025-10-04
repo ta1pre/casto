@@ -16,23 +16,62 @@ import type {
  * 
  * @param profile - プロフィール入力データまたはDB行データ
  * @returns 完成度（0-100）とセクション状態
+ * 
+ * 計算ルール [DRY]:
+ * - 基本情報: 各4% (芸名、性別、生年月日、都道府県、職業)
+ * - 写真: 1枚でも20%
+ * - プロフィール詳細: 身長2%, 体重2%, 3サイズ各2%, 自己PR10%
+ * - 所属: 所属形態20% (事務所名はカウントしない)
+ * - SNS: 各4% (Twitter, Instagram, TikTok, YouTube, フォロワー数)
  */
 export function calculateTalentProfileCompletion(
   profile: Partial<TalentProfileInput> | Partial<TalentProfileRow>
 ): ProfileCompletionResult {
-  // 基本情報セクション（必須3項目）
+  let completionRate = 0
+
+  // 基本情報セクション（各4%）
+  if (profile.stage_name) completionRate += 4
+  if (profile.gender) completionRate += 4
+  if (profile.birthdate) completionRate += 4
+  if (profile.prefecture) completionRate += 4
+  if (profile.occupation) completionRate += 4
+
+  // 写真セクション（1枚でも20%）
+  if (profile.photo_face_url || profile.photo_full_body_url) {
+    completionRate += 20
+  }
+
+  // プロフィール詳細セクション
+  if (profile.height !== null && profile.height !== undefined) completionRate += 2
+  if (profile.weight !== null && profile.weight !== undefined) completionRate += 2
+  if (profile.bust !== null && profile.bust !== undefined) completionRate += 2
+  if (profile.waist !== null && profile.waist !== undefined) completionRate += 2
+  if (profile.hip !== null && profile.hip !== undefined) completionRate += 2
+  if (profile.achievements) completionRate += 10
+
+  // 所属・ステータスセクション（所属形態のみ20%、事務所名はカウントしない）
+  if (profile.affiliation_type) completionRate += 20
+
+  // SNS情報セクション（各4%）
+  if (profile.twitter) completionRate += 4
+  if (profile.instagram) completionRate += 4
+  if (profile.tiktok) completionRate += 4
+  if (profile.youtube) completionRate += 4
+  if (profile.followers) completionRate += 4
+
+  // セクション状態（少なくとも1つ入力されているか）
   const hasBasicInfo = Boolean(
-    profile.stage_name &&
-    profile.gender &&
-    profile.prefecture
+    profile.stage_name ||
+    profile.gender ||
+    profile.birthdate ||
+    profile.prefecture ||
+    profile.occupation
   )
 
-  // 写真セクション（face or full_body）
   const hasPhoto = Boolean(
     profile.photo_face_url || profile.photo_full_body_url
   )
 
-  // 詳細情報セクション（体型・自己PR等、いずれか1つ以上）
   const hasDetailInfo = Boolean(
     profile.height !== null && profile.height !== undefined ||
     profile.weight !== null && profile.weight !== undefined ||
@@ -42,12 +81,8 @@ export function calculateTalentProfileCompletion(
     profile.achievements
   )
 
-  // 所属・ステータスセクション（いずれか1つ以上）
-  const hasAffiliation = Boolean(
-    profile.affiliation_type || profile.agency
-  )
+  const hasAffiliation = Boolean(profile.affiliation_type)
 
-  // SNS情報セクション（いずれか1つ以上）
   const hasSns = Boolean(
     profile.twitter ||
     profile.instagram ||
@@ -56,7 +91,6 @@ export function calculateTalentProfileCompletion(
     profile.followers
   )
 
-  // セクション状態
   const sections: ProfileCompletionSections = {
     basic: hasBasicInfo,
     photo: hasPhoto,
@@ -65,14 +99,8 @@ export function calculateTalentProfileCompletion(
     sns: hasSns
   }
 
-  // 完成度計算（各セクション20%）
-  const completionRate = Object.values(sections).reduce(
-    (total, sectionFilled) => total + (sectionFilled ? 20 : 0),
-    0
-  )
-
   return {
-    completionRate,
+    completionRate: Math.min(100, completionRate),
     sections
   }
 }

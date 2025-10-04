@@ -24,41 +24,31 @@ export function FooterNavigation({
   const bottomOffset = `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom) + 16px)`
 
   const clampedRate = Math.max(0, Math.min(100, completionRate))
-  const total = clampedRate > 0 ? clampedRate : 1
-  const baseGray = Math.min(clampedRate, 60)
-  const yellowRange = clampedRate > 60 ? Math.min(clampedRate, 80) - 60 : 0
-  const greenRange = clampedRate > 80 ? clampedRate - 80 : 0
 
-  const toPercent = (value: number) => `${Math.min(100, Math.max(0, Number(value.toFixed(2))))}%`
+  // シンプルな単色バー [SF][DRY]
+  // 閾値設定（今後変更可能）
+  const THRESHOLD_GRAY = 25   // 0-25%: グレー
+  const THRESHOLD_BLUE = 80   // 25-80%: 薄い青
+  // 80%以上: 緑
 
-  const grayPercent = (baseGray / total) * 100
-  const yellowPercent = (yellowRange / total) * 100
-  const greenPercent = (greenRange / total) * 100
+  const COLOR_GRAY = '#9ca3af'
+  const COLOR_BLUE = '#60a5fa'   // 薄い青
+  const COLOR_GREEN = '#22c55e'
 
-  const gradientStops: string[] = [
-    `#9ca3af 0%`,
-    `#9ca3af ${toPercent(grayPercent)}`
-  ]
-
-  if (yellowPercent > 0) {
-    const yellowStart = grayPercent
-    const yellowEnd = grayPercent + yellowPercent
-    gradientStops.push(`#facc15 ${toPercent(yellowStart)}`, `#facc15 ${toPercent(yellowEnd)}`)
+  // 完成度に応じてバー全体の色を決定
+  const getProgressColor = (rate: number): string => {
+    if (rate >= THRESHOLD_BLUE) return COLOR_GREEN  // 80%以上: 緑
+    if (rate >= THRESHOLD_GRAY) return COLOR_BLUE   // 25-80%: 薄い青
+    return COLOR_GRAY                                // 0-25%: グレー
   }
 
-  if (greenPercent > 0) {
-    const greenStart = grayPercent + yellowPercent
-    gradientStops.push(`#22c55e ${toPercent(greenStart)}`, `#22c55e 100%`)
-  } else {
-    gradientStops.push(`${yellowPercent > 0 ? '#facc15' : '#9ca3af'} 100%`)
-  }
+  const progressColor = getProgressColor(clampedRate)
 
-  const progressGradient = `linear-gradient(90deg, ${gradientStops.join(', ')})`
-
-  const progressTextClass = clampedRate >= 80
+  // 数字の色もバーと同じ色に
+  const progressTextClass = clampedRate >= THRESHOLD_BLUE
     ? 'text-emerald-500'
-    : clampedRate >= 60
-      ? 'text-amber-500'
+    : clampedRate >= THRESHOLD_GRAY
+      ? 'text-blue-400'
       : 'text-slate-400'
 
   return (
@@ -69,14 +59,17 @@ export function FooterNavigation({
       <div className="container max-w-2xl mx-auto px-4 py-4">
         <div className="rounded-2xl border border-slate-200/70 bg-gradient-to-br from-white via-white to-slate-100 text-foreground shadow-2xl px-5 py-6 space-y-4 transition-shadow">
           <div className="flex items-center gap-4">
-            <div className="flex-1 h-2 bg-border/60 rounded-full overflow-hidden">
+            <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
               <div
-                className="h-full transition-all duration-500 ease-out"
-                style={{ width: `${completionRate}%`, background: progressGradient }}
+                className="h-full transition-all duration-500 ease-out rounded-full"
+                style={{ 
+                  width: `${clampedRate}%`, 
+                  backgroundColor: progressColor 
+                }}
               />
             </div>
             <span className={`text-sm font-semibold min-w-[3ch] text-right ${progressTextClass}`}>
-              {completionRate}%
+              {clampedRate}%
             </span>
           </div>
           <div className="flex items-center justify-between gap-4">
