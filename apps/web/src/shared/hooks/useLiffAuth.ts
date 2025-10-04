@@ -55,12 +55,13 @@ export function useLiffAuth(): UseLiffAuthReturn {
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const [liffProfile, setLiffProfile] = useState<LiffProfile | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const isReloginInProgressRef = useRef<boolean>(false)
+  const isRefreshingRef = useRef<boolean>(false)
 
   // LINE認証の実行 [REH]
   const synchronizeLineSession = useCallback(async (isRetry = false) => {
-    if (isReloginInProgressRef.current) {
-      console.log('[useLiffAuth] Skipping synchronization (re-login in progress)')
+    // 同時実行防止 [REH]
+    if (isRefreshingRef.current) {
+      console.log('[useLiffAuth] Skipping synchronization (refresh in progress)')
       return
     }
 
@@ -96,7 +97,6 @@ export function useLiffAuth(): UseLiffAuthReturn {
       if (!idToken) {
         console.warn('[useLiffAuth] No ID token, triggering login')
         setError('LINE IDトークンが取得できませんでした')
-        isReloginInProgressRef.current = true
         window.liff.login()
         return
       }
@@ -110,7 +110,8 @@ export function useLiffAuth(): UseLiffAuthReturn {
       await loginWithLine(idToken)
       console.log('[useLiffAuth] LINE session synchronized successfully')
       
-      isReloginInProgressRef.current = false
+      // 認証成功時にフラグをリセット [REH]
+      isRefreshingRef.current = false
       setError(null)
     } catch (err) {
       console.error('[useLiffAuth] Failed to synchronize LINE session:', err)
@@ -128,26 +129,41 @@ export function useLiffAuth(): UseLiffAuthReturn {
          apiError.body.details.includes('expired'))
       
       if (isTokenExpiredError) {
-        console.warn('[useLiffAuth] ID token expired, attempting silent refresh')
+        console.warn('[useLiffAuth] ID token expired, attempting silent refresh via liff.init()')
         
-        // LIFFのログイン状態を再確認 [SF]
-        if (window.liff?.isLoggedIn()) {
-          const freshToken = window.liff.getIDToken?.()
-          if (freshToken && freshToken !== idToken) {
-            console.log('[useLiffAuth] Got fresh token from LIFF, retrying authentication')
-            setError('トークンを更新中...')
-            return synchronizeLineSession(true)
-          }
+        // 同時実行防止フラグを立てる [REH]
+        if (isRefreshingRef.current) {
+          console.log('[useLiffAuth] Token refresh already in progress, skipping')
+          return
         }
         
-        // サイレントリフレッシュ失敗 → ユーザーに再ログインを促す
-        console.warn('[useLiffAuth] Silent refresh failed, triggering re-login')
-        setError('LINEトークンの有効期限が切れました。再認証します...')
-        isReloginInProgressRef.current = true
+        isRefreshingRef.current = true
+        setError('トークンを更新中...')
         
-        if (window.liff) {
-          console.log('[useLiffAuth] Calling liff.login() to refresh token')
-          window.liff.login()
+        try {
+          // liff.init()を再実行してトークンをリフレッシュ [SF]
+          // これによりログアウトせずに新しいトークンを取得できる
+          const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
+          if (window.liff && liffId) {
+            console.log('[useLiffAuth] Re-initializing LIFF to refresh token...')
+            await window.liff.init({ liffId })
+            
+            // 新しいトークンを取得
+            const freshToken = window.liff.getIDToken?.()
+            if (freshToken && freshToken !== idToken) {
+              console.log('[useLiffAuth] Got fresh token after re-init, retrying authentication')
+              isRefreshingRef.current = false
+              return synchronizeLineSession(true)
+            } else {
+              console.warn('[useLiffAuth] Re-init did not provide a fresh token')
+              setError('トークンの更新に失敗しました。ページを再読み込みしてください。')
+            }
+          }
+        } catch (reinitError) {
+          console.error('[useLiffAuth] Failed to re-initialize LIFF:', reinitError)
+          setError('トークンの更新に失敗しました。ページを再読み込みしてください。')
+        } finally {
+          isRefreshingRef.current = false
         }
         return
       }
@@ -195,7 +211,6 @@ export function useLiffAuth(): UseLiffAuthReturn {
 
         if (!isLoggedIn) {
           console.log('[useLiffAuth] Not logged in. Triggering liff.login()')
-          isReloginInProgressRef.current = true
           window.liff.login()
           return
         }
@@ -238,7 +253,6 @@ export function useLiffAuth(): UseLiffAuthReturn {
 
           if (!isLoggedIn) {
             console.log('[useLiffAuth] Not logged in. Triggering liff.login()')
-            isReloginInProgressRef.current = true
             window.liff.login()
             return
           }

@@ -181,7 +181,11 @@ const synchronizeLineSession = useCallback(async (isRetry = false) => {
 1. **✅ 完了**: Phase 1（エラー時の自動再認証）
 2. **✅ 完了**: Phase 2（プロアクティブなトークンリフレッシュ）
    - Phase 1と組み合わせて多層防御を実現
-3. **❌ 非推奨**: JWT有効期限の事前チェック
+3. **✅ 完了**: Phase 3（サイレントトークンリフレッシュ）
+   - `liff.init()`再実行によるトークンリフレッシュ
+   - ログアウトせずにトークンを更新
+   - ページリダイレクトなしでシームレスな体験
+4. **❌ 非推奨**: JWT有効期限の事前チェック
    - [DM]違反のため実装せず
 
 ---
@@ -279,3 +283,107 @@ useEffect(() => {
 3. **バックグラウンド時**: Phase 2はスキップ、エラー時のみPhase 1が動作
 
 これにより、**ユーザーはほぼエラーを見ることなく**シームレスに利用できます。
+
+---
+
+## Phase 3: サイレントトークンリフレッシュ [REH][SF]（完了）
+
+### 問題の背景
+
+Phase 1とPhase 2の実装後、以下の問題が発見されました:
+
+**症状**: しばらく時間をあけてアクセスすると、401エラーで無限ループに陥る
+
+**根本原因**:
+1. LINE IDトークンが期限切れ（約1時間）
+2. `synchronizeLineSession()`が401エラーを検知
+3. エラーハンドリングで`window.liff.login()`を呼び出し
+4. **`liff.login()`がページをリダイレクト** → ユーザーセッションが失われる
+5. リダイレクト後、再度`useLiffAuth`が初期化される
+6. **古いIDトークンが再利用される** → 再び401エラー
+7. 2〜6を無限に繰り返す
+
+**問題の核心**: 
+- `liff.login()`は**完全なログアウト + 再ログイン**を実行
+- ページリダイレクトが発生し、ユーザー体験が悪い
+- 入力中のデータが失われる
+
+### 正しいアプローチ: `liff.init()`の再実行
+
+LIFF SDKの公式ドキュメントによると:
+
+> **IDトークンの取得タイミング**
+> - LIFFブラウザ: `liff.init()`時に自動取得
+> - 外部ブラウザ: `liff.login()` → ログイン → **再度`liff.init()`** で取得
+
+つまり、**`liff.init()`を再実行すれば、ログアウトせずに新しいトークンを取得できる**！
+
+### 解決策
+
+#### サイレントトークンリフレッシュ
+
+トークン期限切れ検知時に`liff.init()`を再実行:
+
+```typescript
+if (isTokenExpiredError) {
+  console.warn('[useLiffAuth] ID token expired, attempting silent refresh via liff.init()')
+  
+  // 同時実行防止フラグを立てる [REH]
+  if (isRefreshingRef.current) {
+    console.log('[useLiffAuth] Token refresh already in progress, skipping')
+    return
+  }
+  
+  isRefreshingRef.current = true
+  setError('トークンを更新中...')
+  
+  try {
+    // liff.init()を再実行してトークンをリフレッシュ [SF]
+    // これによりログアウトせずに新しいトークンを取得できる
+    const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
+    if (window.liff && liffId) {
+      console.log('[useLiffAuth] Re-initializing LIFF to refresh token...')
+      await window.liff.init({ liffId })
+      
+      // 新しいトークンを取得
+      const freshToken = window.liff.getIDToken?.()
+      if (freshToken && freshToken !== idToken) {
+        console.log('[useLiffAuth] Got fresh token after re-init, retrying authentication')
+        isRefreshingRef.current = false
+        return synchronizeLineSession(true) // リトライ
+      } else {
+        console.warn('[useLiffAuth] Re-init did not provide a fresh token')
+        setError('トークンの更新に失敗しました。ページを再読み込みしてください。')
+      }
+    }
+  } catch (reinitError) {
+    console.error('[useLiffAuth] Failed to re-initialize LIFF:', reinitError)
+    setError('トークンの更新に失敗しました。ページを再読み込みしてください。')
+  } finally {
+    isRefreshingRef.current = false
+  }
+  return
+}
+```
+
+### メリット
+
+- ✅ **ログアウトしない**: ユーザーセッションを維持
+- ✅ **ページリダイレクトなし**: シームレスな体験
+- ✅ **入力データを保持**: フォーム入力が失われない
+- ✅ **シンプルな実装**: LocalStorage不要
+- ✅ **追加ライブラリ不要**: [DM]準拠
+
+### デメリット
+
+- ⚠️ `liff.init()`が新しいトークンを返さない場合、手動再読み込みが必要
+
+### 動作フロー
+
+1. **通常時**: Phase 2が50分ごとに自動リフレッシュ
+2. **トークン期限切れ検知**: `liff.init()`を再実行してトークンをリフレッシュ
+3. **新しいトークン取得**: 認証APIを再実行
+4. **リフレッシュ失敗**: エラーメッセージを表示し、手動再読み込みを促す
+5. **認証成功**: フラグをリセット
+
+これにより、**ユーザーをログアウトさせずに**トークンをリフレッシュできます。

@@ -43,11 +43,32 @@ export default function LiffHomePage() {
   }
 
   if (error) {
+    // トークン更新失敗時の特別な処理 [REH]
+    const isTokenRefreshError = error.includes('トークンの更新に失敗')
+    
     return (
       <div className="px-4 py-6">
         <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
           <p className="text-destructive font-medium">エラーが発生しました</p>
           <p className="text-sm text-muted-foreground mt-1">{error}</p>
+          
+          {isTokenRefreshError && (
+            <div className="mt-4 space-y-2">
+              <button
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.location.reload()
+                  }
+                }}
+                className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+              >
+                ページを再読み込み
+              </button>
+              <p className="text-xs text-muted-foreground text-center">
+                問題が解決しない場合は、LINEアプリを再起動してください
+              </p>
+            </div>
+          )}
         </div>
       </div>
     )
