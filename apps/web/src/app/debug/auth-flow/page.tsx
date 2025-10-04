@@ -6,12 +6,23 @@ import { useAuth } from '@/shared/hooks/useAuth'
 
 export default function AuthFlowDebugPage() {
   const [cookies, setCookies] = useState<string>('')
+  const [isMounted, setIsMounted] = useState(false)
   const liff = useLiffAuth()
   const auth = useAuth()
 
   useEffect(() => {
+    setIsMounted(true)
     setCookies(document.cookie)
   }, [])
+
+  if (!isMounted) {
+    return (
+      <div className="p-4 max-w-4xl mx-auto">
+        <h1 className="text-2xl font-bold">認証フローデバッグ</h1>
+        <p className="mt-4">読み込み中...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="p-4 max-w-4xl mx-auto space-y-6">
