@@ -23,40 +23,54 @@ const photosRoutes = new Hono<AppBindings>()
  * 写真アップロード
  */
 photosRoutes.post('/upload', async (c) => {
+  console.log('[PhotosAPI] Upload request received')
   try {
     // 認証チェック
     const user = c.get('user')
+    console.log('[PhotosAPI] User context:', { userId: user?.id, hasUser: !!user })
     if (!user) {
+      console.error('[PhotosAPI] Authentication failed - no user')
       return c.json({ error: '認証が必要です' }, 401)
     }
 
     // R2バケットの取得
     const r2Bucket = c.env.TALENT_PHOTOS
+    console.log('[PhotosAPI] R2 bucket:', { hasR2: !!r2Bucket })
     if (!r2Bucket) {
+      console.error('[PhotosAPI] R2 bucket not configured')
       return c.json({ error: 'R2バケットが設定されていません' }, 500)
     }
 
     // リクエストボディの取得
+    console.log('[PhotosAPI] Parsing FormData...')
     const formData = await c.req.formData()
     const file = formData.get('file') as File | null
     const indexStr = formData.get('index') as string | null
+    console.log('[PhotosAPI] FormData parsed:', { hasFile: !!file, indexStr, fileSize: file?.size, fileType: file?.type })
 
     if (!file || !indexStr) {
+      console.error('[PhotosAPI] Missing file or index')
       return c.json({ error: 'fileとindexは必須です' }, 400)
     }
 
     const index = parseInt(indexStr, 10) as PhotoIndex
     if (isNaN(index) || index < 0 || index > 5) {
+      console.error('[PhotosAPI] Invalid index:', index)
       return c.json({ error: '無効なindexです（0-5の範囲で指定してください）' }, 400)
     }
 
     // R2にアップロード
+    console.log('[PhotosAPI] Uploading to R2...')
     const url = await uploadPhotoToR2(r2Bucket, user.id, index, file)
+    console.log('[PhotosAPI] R2 upload successful:', { url })
 
     // データベースを更新
+    console.log('[PhotosAPI] Updating database...')
     const supabase = createSupabaseClient(c)
     const photoUrls = await updatePhotoUrlsInDB(supabase, user.id, index, url)
+    console.log('[PhotosAPI] Database updated:', { photoUrlsCount: photoUrls.length })
 
+    console.log('[PhotosAPI] Upload completed successfully')
     return c.json({
       success: true,
       url,
@@ -66,6 +80,7 @@ photosRoutes.post('/upload', async (c) => {
     }, 200)
   } catch (error) {
     console.error('[PhotosAPI] Upload error:', error)
+    console.error('[PhotosAPI] Error stack:', error instanceof Error ? error.stack : 'No stack')
     return c.json({
       error: 'アップロードに失敗しました',
       details: error instanceof Error ? error.message : 'Unknown error'

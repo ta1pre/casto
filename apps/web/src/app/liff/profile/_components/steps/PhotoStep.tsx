@@ -21,31 +21,43 @@ export function PhotoStep({ formData, onChange }: PhotoStepProps) {
   const [loading, setLoading] = useState(false)
 
   const handleUpload = async (index: number, file: File) => {
+    console.log('[PhotoStep] Upload started', { index, fileName: file.name, fileSize: file.size, fileType: file.type })
     setLoading(true)
     try {
       // FormDataを作成
       const formDataPayload = new FormData()
       formDataPayload.append('file', file)
       formDataPayload.append('index', index.toString())
+      console.log('[PhotoStep] FormData created', { index })
 
       // APIにアップロード
-      const response = await fetch(resolveApiUrl('/api/v1/liff/profile/photos/upload'), {
+      const url = resolveApiUrl('/api/v1/liff/profile/photos/upload')
+      console.log('[PhotoStep] Uploading to:', url)
+      
+      const response = await fetch(url, {
         method: 'POST',
         credentials: 'include',
         body: formDataPayload,
       })
+      console.log('[PhotoStep] Response received', { status: response.status, ok: response.ok })
 
       if (!response.ok) {
         const errorData = await response.json()
+        console.error('[PhotoStep] Upload failed', errorData)
         throw new Error(errorData.error || 'アップロードに失敗しました')
       }
 
       const data = await response.json()
+      console.log('[PhotoStep] Upload successful', data)
       
       // photo_urlsを更新
       onChange('photoUrls', data.photoUrls || [])
+    } catch (error) {
+      console.error('[PhotoStep] Upload error:', error)
+      throw error
     } finally {
       setLoading(false)
+      console.log('[PhotoStep] Upload completed')
     }
   }
 

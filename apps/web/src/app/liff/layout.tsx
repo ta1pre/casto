@@ -1,10 +1,20 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import Script from 'next/script'
 import { LiffLayout as LiffLayoutWrapper } from './_components/LiffLayout'
 
 export default function LiffRootLayout({ children }: { children: React.ReactNode }) {
+  // Development環境でerudaを起動（LINEアプリ内でコンソールログ確認用）
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+      import('eruda').then((eruda) => {
+        eruda.default.init()
+        console.log('[Eruda] Mobile debug console initialized')
+      })
+    }
+  }, [])
+
   return (
     <>
       <Script
