@@ -4,8 +4,11 @@ import type { AppContext, AppBindings } from '../types'
 
 export async function attachUserContext(c: AppContext, next: Next) {
   const token = getAuthCookie(c)
+  
+  console.log('[authContext] Cookie token present:', !!token)
 
   if (!token) {
+    console.log('[authContext] No token found, continuing without user context')
     await next()
     return
   }
@@ -18,8 +21,10 @@ export async function attachUserContext(c: AppContext, next: Next) {
 
   try {
     const payload = await verifyJWT(token, jwtSecret)
+    console.log('[authContext] JWT verified, payload:', { sub: payload.sub, provider: payload.provider })
 
     if (!payload.sub) {
+      console.log('[authContext] No sub in payload, continuing without user context')
       await next()
       return
     }
@@ -36,7 +41,9 @@ export async function attachUserContext(c: AppContext, next: Next) {
       provider: payload.provider,
       tokenVersion: payload.tokenVersion
     })
-  } catch {
+    console.log('[authContext] User context set successfully')
+  } catch (e) {
+    console.error('[authContext] JWT verification failed:', e)
     // ignore verification error and continue without user context
   }
 

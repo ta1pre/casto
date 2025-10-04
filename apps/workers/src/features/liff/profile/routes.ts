@@ -27,8 +27,11 @@ profileRoutes.use('/*', verifyLineToken)
 profileRoutes.get('/', async (c) => {
   try {
     const userContext = c.get('user')
+    console.log('[Profile GET] userContext:', userContext ? { id: userContext.id, provider: userContext.provider } : null)
+    
     if (!userContext) {
-      return c.json({ error: 'Unauthorized' }, 401)
+      console.error('[Profile GET] No user context - returning 401')
+      return c.json({ error: 'Unauthorized', detail: 'No authentication context' }, 401)
     }
 
     const supabase = createSupabaseClient(c)
