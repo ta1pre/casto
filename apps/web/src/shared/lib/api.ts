@@ -22,7 +22,7 @@ const getApiBaseUrl = () => {
   return base.replace(/\/$/, '')
 }
 
-const buildUrl = (path: string) => {
+export const resolveApiUrl = (path: string) => {
   if (/^https?:\/\//.test(path)) {
     return path
   }
@@ -52,13 +52,13 @@ export async function apiFetch<T = unknown>(path: string, options: ApiFetchOptio
   }
 
   console.log('[API Request]', {
-    url: buildUrl(path),
+    url: resolveApiUrl(path),
     method: options.method || 'GET',
     headers: finalHeaders,
     hasBody: !!options.body
   })
 
-  const response = await fetch(buildUrl(path), {
+  const response = await fetch(resolveApiUrl(path), {
     ...rest,
     credentials,
     headers: finalHeaders
@@ -82,7 +82,7 @@ export async function apiFetch<T = unknown>(path: string, options: ApiFetchOptio
   }
 
   if (!response.ok) {
-    const url = buildUrl(path)
+    const url = resolveApiUrl(path)
     const errorDetails = {
       url,
       method: options.method || 'GET',

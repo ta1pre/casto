@@ -17,8 +17,11 @@ export function LiffLayout({ children }: LiffLayoutProps) {
   const mainBottomPadding = `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom) + 24px)`
 
   return (
-    <div className="min-h-screen bg-background">
-      <main style={{ paddingBottom: mainBottomPadding }}>
+    <div className="flex min-h-screen flex-col bg-background">
+      <main
+        className="flex-1 overflow-y-auto"
+        style={{ paddingBottom: mainBottomPadding }}
+      >
         {children}
       </main>
 

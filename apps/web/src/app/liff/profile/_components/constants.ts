@@ -33,7 +33,7 @@ export const INITIAL_FORM_DATA: ProfileFormData = {
 export const STEPS: StepConfig[] = [
   { id: 1, label: 'Eye', icon: Eye, name: 'プロフィール', description: '入力状況の確認' },
   { id: 2, label: '基', icon: User, name: '基本情報', description: '芸名・性別・都道府県など' },
-  { id: 3, label: '写', icon: Camera, name: '写真', description: '顔写真・全身写真のアップロード' },
+  { id: 3, label: '写', icon: Camera, name: '写真', description: '写真のアップロード' },
   { id: 4, label: '詳', icon: FileText, name: 'プロフィール詳細', description: '身長・体重・自己PRなど' },
   { id: 5, label: '属', icon: Briefcase, name: '所属・ステータス', description: '現在の所属状況・契約窓口' },
   { id: 6, label: 'SNS', icon: Share2, name: 'SNS情報', description: 'SNSアカウント・フォロワー数' }
@@ -57,7 +57,7 @@ export const GENDERS = [
 
 export const AFFILIATION_TYPES = [
   { value: 'freelance', label: 'フリー', description: '本人と直接契約' },
-  { value: 'business-partner', label: '業務提携', description: '本人が契約当事者' },
+  { value: 'business-partner', label: '業務提携', description: '本人が契約可能' },
   { value: 'exclusive', label: '専属所属', description: '事務所経由が必須' }
 ]
 
@@ -71,7 +71,7 @@ export const PHOTO_CONFIG = {
 
 export const OVERVIEW_SECTIONS = [
   { title: '基本情報', desc: '芸名・性別・生年月日・都道府県', step: 2 },
-  { title: '写真', desc: '顔写真・全身写真のアップロード', step: 3 },
+  { title: '写真', desc: '写真のアップロード', step: 3 },
   { title: 'プロフィール詳細', desc: '身長・体重・自己紹介など', step: 4 },
   { title: '所属・ステータス', desc: '現在の所属状況・契約窓口', step: 5 },
   { title: 'SNS情報', desc: 'SNSアカウント・フォロワー数', step: 6 }

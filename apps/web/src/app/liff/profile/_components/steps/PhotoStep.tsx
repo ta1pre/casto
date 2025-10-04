@@ -10,6 +10,7 @@ import { PhotoUploader } from '../ui/PhotoUploader'
 import { PHOTO_CONFIG } from '../constants'
 import type { ProfileFormData } from '../types'
 import { useState } from 'react'
+import { resolveApiUrl } from '@/shared/lib/api'
 
 interface PhotoStepProps {
   formData: ProfileFormData
@@ -28,7 +29,7 @@ export function PhotoStep({ formData, onChange }: PhotoStepProps) {
       formDataPayload.append('index', index.toString())
 
       // APIにアップロード
-      const response = await fetch('/api/v1/liff/profile/photos/upload', {
+      const response = await fetch(resolveApiUrl('/api/v1/liff/profile/photos/upload'), {
         method: 'POST',
         credentials: 'include',
         body: formDataPayload,
@@ -51,7 +52,7 @@ export function PhotoStep({ formData, onChange }: PhotoStepProps) {
   const handleDelete = async (index: number) => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/v1/liff/profile/photos/${index}`, {
+      const response = await fetch(resolveApiUrl(`/api/v1/liff/profile/photos/${index}`), {
         method: 'DELETE',
         credentials: 'include',
       })
@@ -89,7 +90,7 @@ export function PhotoStep({ formData, onChange }: PhotoStepProps) {
       {/* 必須項目の注意書き */}
       <div className="mt-4 p-3 bg-blue-50 rounded-lg">
         <p className="text-sm text-blue-700">
-          💡 顔写真と全身写真は必須です。その他の写真は任意でアップロードできます。
+          💡 多くのオーディションで顔写真・全身写真が必要です。
         </p>
       </div>
     </div>
