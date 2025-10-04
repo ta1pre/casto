@@ -156,7 +156,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
   )
 
   // LINE認証の実行
-  const synchronizeLineSession = useCallback(async () => {
+  const synchronizeLineSession = useCallback(async (isRetry = false) => {
     updateWindowLiff('synchronizeLineSession:start')
 
     if (!window.liff) {
@@ -168,7 +168,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
     }
 
     console.log('[useLiffAuth] Starting LINE session synchronization...')
-    addLog('Starting LINE session synchronization')
+    addLog(`Starting LINE session synchronization (retry=${isRetry})`)
     setIsAuthenticating(true)
     setError(null)
 
@@ -224,6 +224,32 @@ export function useLiffAuth(): UseLiffAuthReturn {
     } catch (err) {
       console.error('[useLiffAuth] Failed to synchronize LINE session:', err)
       const apiError = err instanceof ApiError ? err : null
+      
+      // トークン期限切れエラーの自動リトライ [REH][SF]
+      const isTokenExpiredError = 
+        !isRetry &&
+        apiError?.status === 401 &&
+        apiError.body &&
+        typeof apiError.body === 'object' &&
+        'details' in apiError.body &&
+        typeof apiError.body.details === 'string' &&
+        (apiError.body.details.includes('IdToken expired') || 
+         apiError.body.details.includes('expired'))
+      
+      if (isTokenExpiredError) {
+        console.warn('[useLiffAuth] ID token expired, triggering re-login')
+        addLog('ID token expired -> calling liff.login() for refresh')
+        setError('LINEトークンの有効期限が切れました。再認証します...')
+        
+        // 短い遅延の後に再ログイン
+        setTimeout(() => {
+          if (window.liff) {
+            window.liff.login()
+          }
+        }, 500)
+        return
+      }
+      
       const errorMessage = apiError
         ? `LINE認証APIが失敗しました (status=${apiError.status})`
         : err instanceof Error
@@ -476,6 +502,71 @@ export function useLiffAuth(): UseLiffAuthReturn {
       }
     }
   }, [user, addLog])
+
+  // プロアクティブなトークンリフレッシュ [PA][SF]
+  // LINEトークンの有効期限（1時間）より前に自動でリフレッシュ
+  useEffect(() => {
+    if (!isLiffReady || !user) return
+
+    let isActive = true
+
+    // アプリが非アクティブな場合はスキップ（バッテリー節約）[PA]
+    const handleVisibilityChange = () => {
+      isActive = !document.hidden
+      addLog(`App visibility changed: ${isActive ? 'active' : 'inactive'}`)
+    }
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+    }
+
+    // 50分ごとにリフレッシュ（60分の期限より前）
+    const REFRESH_INTERVAL = 50 * 60 * 1000 // 50分
+    console.log('[useLiffAuth] Starting proactive token refresh timer (50min interval)')
+    addLog('Proactive token refresh timer started (50min interval)')
+
+    const intervalId = setInterval(async () => {
+      if (!isActive) {
+        console.log('[useLiffAuth] Skipping proactive refresh (app inactive)')
+        addLog('Proactive refresh skipped (app inactive)')
+        return
+      }
+
+      if (!window.liff?.isLoggedIn()) {
+        console.log('[useLiffAuth] Skipping proactive refresh (not logged in)')
+        addLog('Proactive refresh skipped (not logged in)')
+        return
+      }
+
+      console.log('[useLiffAuth] Proactive token refresh triggered')
+      addLog('Proactive token refresh triggered')
+
+      try {
+        const newToken = window.liff.getIDToken?.()
+        if (newToken) {
+          await loginWithLine(newToken)
+          console.log('[useLiffAuth] Proactive token refresh successful')
+          addLog('Proactive token refresh successful ✅')
+        } else {
+          console.warn('[useLiffAuth] No token available for proactive refresh')
+          addLog('Proactive refresh: no token available')
+        }
+      } catch (err) {
+        console.error('[useLiffAuth] Proactive refresh failed:', err)
+        addLog(`Proactive refresh failed: ${err instanceof Error ? err.message : String(err)}`)
+        // 失敗しても既存のエラーハンドリング（Phase 1）が動作するため問題なし
+      }
+    }, REFRESH_INTERVAL)
+
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
+      }
+      clearInterval(intervalId)
+      console.log('[useLiffAuth] Proactive token refresh timer stopped')
+      addLog('Proactive token refresh timer stopped')
+    }
+  }, [isLiffReady, user, loginWithLine, addLog])
 
   const reinitializeLiff = useCallback(async () => {
     addLog('Manual reinitialize requested')
