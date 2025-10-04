@@ -100,7 +100,13 @@ export function ProfileRegistrationForm() {
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return <OverviewStep onStepClick={handleStepClick} />
+        return (
+          <OverviewStep 
+            formData={formData} 
+            onStepClick={handleStepClick} 
+            isBasicInfoValid={isBasicInfoValid()}
+          />
+        )
       case 2:
         return <BasicInfoStep formData={formData} onUpdate={updateFormData} />
       case 3:
