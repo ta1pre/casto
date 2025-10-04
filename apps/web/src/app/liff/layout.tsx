@@ -11,6 +11,8 @@ export default function LiffRootLayout({ children }: { children: React.ReactNode
       import('eruda').then((eruda) => {
         eruda.default.init()
         console.log('[Eruda] Mobile debug console initialized')
+      }).catch((err) => {
+        console.warn('[Eruda] Failed to load:', err)
       })
     }
   }, [])

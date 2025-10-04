@@ -9,6 +9,9 @@ vars = { ENVIRONMENT = "development" }
 routes = [
   { pattern = "casto.sb2024.xyz/api/*", zone_name = "sb2024.xyz" }
 ]
+[[env.development.r2_buckets]]
+binding = "TALENT_PHOTOS"
+bucket_name = "talent-photos"
 
 [env.preview]
 name = "casto-workers-preview"
@@ -17,6 +20,9 @@ vars = { ENVIRONMENT = "preview" }
 [env.production]
 name = "casto-workers"
 vars = { ENVIRONMENT = "production" }
+[[env.production.r2_buckets]]
+binding = "TALENT_PHOTOS"
+bucket_name = "talent-photos"
 
 # Variables (non-secret)
 [vars]
@@ -29,12 +35,6 @@ ENVIRONMENT = "development"
 # DATABASE_URL
 # LINE_CHANNEL_SECRET
 # STRIPE_SECRET_KEY
-
-# R2 Buckets
-[[r2_buckets]]
-binding = "TALENT_PHOTOS"
-bucket_name = "talent-photos"
-preview_bucket_name = "talent-photos-preview"
 
 # KV Namespaces (disabled for development)
 # [[kv_namespaces]]
