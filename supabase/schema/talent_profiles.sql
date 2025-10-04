@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS public.talent_profiles (
   -- 基本情報（必須）
   stage_name TEXT NOT NULL,
   gender TEXT NOT NULL CHECK (gender IN ('male', 'female', 'other')),
-  birthdate DATE NOT NULL,
+  birthdate TEXT, -- YYYY、YYYY-MM、またはYYYY-MM-DD形式
   prefecture TEXT NOT NULL,
 
   -- 基本情報（任意）

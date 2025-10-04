@@ -31,7 +31,7 @@ export function validateTalentProfile(
   }
 
   if (profile.birthdate && !isValidDateFormat(profile.birthdate)) {
-    errors.push({ field: 'birthdate', message: '生年月日の形式が正しくありません（YYYY-MM-DD）' })
+    errors.push({ field: 'birthdate', message: '生年月日の形式が正しくありません（YYYY、YYYY-MM、またはYYYY-MM-DD）' })
   }
 
   if (!profile.prefecture) {
@@ -86,14 +86,28 @@ export function validateTalentProfile(
 }
 
 /**
- * 日付形式（YYYY-MM-DD）をチェック
+ * 日付形式（YYYY、YYYY-MM、YYYY-MM-DD）をチェック
  */
 function isValidDateFormat(dateStr: string): boolean {
-  const regex = /^\d{4}-\d{2}-\d{2}$/
-  if (!regex.test(dateStr)) return false
+  // YYYY形式
+  if (/^\d{4}$/.test(dateStr)) {
+    const year = parseInt(dateStr, 10)
+    return year >= 1900 && year <= 2100
+  }
 
-  const date = new Date(dateStr)
-  return !isNaN(date.getTime())
+  // YYYY-MM形式
+  if (/^\d{4}-\d{2}$/.test(dateStr)) {
+    const [year, month] = dateStr.split('-').map(n => parseInt(n, 10))
+    return year >= 1900 && year <= 2100 && month >= 1 && month <= 12
+  }
+
+  // YYYY-MM-DD形式
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const date = new Date(dateStr)
+    return !isNaN(date.getTime())
+  }
+
+  return false
 }
 
 /**

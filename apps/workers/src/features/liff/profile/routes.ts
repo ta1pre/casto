@@ -77,6 +77,8 @@ profileRoutes.post('/', async (c) => {
     }, 201)
   } catch (error) {
     console.error('[Profile] Failed to create/update profile:', error)
+    console.error('[Profile] Error type:', typeof error)
+    console.error('[Profile] Error details:', JSON.stringify(error, null, 2))
     
     // バリデーションエラーの場合は400を返す
     if (error instanceof Error && error.message.includes('Validation failed')) {
@@ -92,7 +94,7 @@ profileRoutes.post('/', async (c) => {
     return c.json(
       {
         error: 'Failed to save profile',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : JSON.stringify(error)
       },
       500
     )

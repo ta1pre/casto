@@ -13,7 +13,7 @@ export interface TalentProfileInput {
   // 基本情報（必須）
   stage_name: string
   gender: 'male' | 'female' | 'other'
-  birthdate: string | null // YYYY-MM-DD形式
+  birthdate: string | null // YYYY、YYYY-MM、またはYYYY-MM-DD形式
   prefecture: string
 
   // 基本情報（任意）
