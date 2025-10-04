@@ -230,15 +230,18 @@ export function useLiffAuth(): UseLiffAuthReturn {
           ? err.message
           : 'LINE認証に失敗しました'
       setError(errorMessage)
-      addLog(
-        `ERROR: synchronizeLineSession failed: ${
-          apiError
-            ? `status=${apiError.status} body=${JSON.stringify(apiError.body)}`
-            : err instanceof Error
-              ? err.message
-              : String(err)
-        }`
-      )
+      const errorDetails = apiError
+        ? {
+            status: apiError.status,
+            statusText: apiError.statusText,
+            body: apiError.body,
+            url: apiError.url
+          }
+        : err instanceof Error
+          ? { message: err.message, stack: err.stack }
+          : { error: String(err) }
+      
+      addLog(`ERROR: synchronizeLineSession failed: ${JSON.stringify(errorDetails, null, 2)}`)
     } finally {
       clearTimeout(timeoutId)
       setIsAuthenticating(false)
