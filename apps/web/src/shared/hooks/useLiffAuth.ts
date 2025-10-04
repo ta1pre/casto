@@ -290,16 +290,14 @@ export function useLiffAuth(): UseLiffAuthReturn {
           return
         }
 
-        // ログイン済みの場合は認証を実行
-        if (!user) {
-          console.log('[useLiffAuth] Triggering synchronizeLineSession...')
-          addLog('Triggering synchronizeLineSession (already loaded)')
-          try {
-            await synchronizeLineSession()
-          } catch (err) {
-            console.error('[useLiffAuth] synchronizeLineSession failed in init:', err)
-            addLog(`ERROR: synchronizeLineSession failed in init: ${err instanceof Error ? err.message : String(err)}`)
-          }
+        // LINEログイン済みの場合は常にセッション同期を実行
+        console.log('[useLiffAuth] LINE logged in - synchronizing session...')
+        addLog('LINE logged in -> synchronizing session')
+        try {
+          await synchronizeLineSession()
+        } catch (err) {
+          console.error('[useLiffAuth] synchronizeLineSession failed in init:', err)
+          addLog(`ERROR: synchronizeLineSession failed in init: ${err instanceof Error ? err.message : String(err)}`)
         }
         return
       }
@@ -360,16 +358,14 @@ export function useLiffAuth(): UseLiffAuthReturn {
             return
           }
 
-          // ログイン済みの場合は認証を実行
-          if (!user) {
-            console.log('[useLiffAuth] Triggering synchronizeLineSession...')
-            addLog('Triggering synchronizeLineSession (dynamic load)')
-            try {
-              await synchronizeLineSession()
-            } catch (err) {
-              console.error('[useLiffAuth] synchronizeLineSession failed in dynamic load:', err)
-              addLog(`ERROR: synchronizeLineSession failed in dynamic load: ${err instanceof Error ? err.message : String(err)}`)
-            }
+          // LINEログイン済みの場合は常にセッション同期を実行
+          console.log('[useLiffAuth] LINE logged in - synchronizing session...')
+          addLog('LINE logged in -> synchronizing session (dynamic load)')
+          try {
+            await synchronizeLineSession()
+          } catch (err) {
+            console.error('[useLiffAuth] synchronizeLineSession failed in dynamic load:', err)
+            addLog(`ERROR: synchronizeLineSession failed in dynamic load: ${err instanceof Error ? err.message : String(err)}`)
           }
         }, 100)
       }
