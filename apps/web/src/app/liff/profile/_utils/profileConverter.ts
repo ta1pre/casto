@@ -43,7 +43,7 @@ export function apiResponseToFormData(response: TalentProfileResponse): ProfileF
   return {
     stageName: response.stage_name,
     gender: response.gender,
-    birthdate: response.birthdate,
+    birthdate: response.birthdate || '',
     prefecture: response.prefecture,
     occupation: response.occupation || '',
     height: response.height !== null ? String(response.height) : '',

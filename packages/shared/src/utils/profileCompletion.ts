@@ -20,11 +20,10 @@ import type {
 export function calculateTalentProfileCompletion(
   profile: Partial<TalentProfileInput> | Partial<TalentProfileRow>
 ): ProfileCompletionResult {
-  // 基本情報セクション（必須4項目）
+  // 基本情報セクション（必須3項目）
   const hasBasicInfo = Boolean(
     profile.stage_name &&
     profile.gender &&
-    profile.birthdate &&
     profile.prefecture
   )
 
@@ -93,7 +92,6 @@ export function isBasicInfoComplete(
   return Boolean(
     profile.stage_name &&
     profile.gender &&
-    profile.birthdate &&
     profile.prefecture
   )
 }

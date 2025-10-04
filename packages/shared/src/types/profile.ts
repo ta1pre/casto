@@ -57,7 +57,7 @@ export interface TalentProfileResponse {
   user_id: string
   stage_name: string
   gender: string
-  birthdate: string
+  birthdate: string | null
   prefecture: string
   occupation: string | null
   height: number | null
@@ -91,7 +91,7 @@ export interface TalentProfileRow {
   user_id: string
   stage_name: string
   gender: string
-  birthdate: string
+  birthdate: string | null
   prefecture: string
   occupation: string | null
   height: number | null
