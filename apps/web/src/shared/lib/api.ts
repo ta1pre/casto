@@ -1,12 +1,16 @@
 export class ApiError extends Error {
   status: number
+  statusText: string
   body: unknown
+  url: string
 
-  constructor(message: string, status: number, body: unknown) {
+  constructor(message: string, status: number, statusText: string, body: unknown, url: string) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.statusText = statusText
     this.body = body
+    this.url = url
   }
 }
 
@@ -58,7 +62,14 @@ export async function apiFetch<T = unknown>(path: string, options: ApiFetchOptio
   const body = (await response.json().catch(() => null)) as unknown
 
   if (!response.ok) {
-    throw new ApiError('API request failed', response.status, body)
+    const url = buildUrl(path)
+    console.error('[API Error]', {
+      url,
+      status: response.status,
+      statusText: response.statusText,
+      body
+    })
+    throw new ApiError('API request failed', response.status, response.statusText, body, url)
   }
 
   return body as T

@@ -15,11 +15,13 @@ import { SnsStep } from './steps/SnsStep'
 import { calculateProfileCompletion } from './profileCompletion'
 import { useProfileData } from '../_hooks/useProfileData'
 import { formDataToApiInput, apiResponseToFormData } from '../_utils/profileConverter'
+import { DebugErrorPanel } from './DebugErrorPanel'
 
 export function ProfileRegistrationForm() {
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<ProfileFormData>(INITIAL_FORM_DATA)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<any>(null)
   
   const { profile, loading, error, save } = useProfileData()
 
@@ -59,13 +61,15 @@ export function ProfileRegistrationForm() {
 
   const handleSubmit = async () => {
     setSaving(true)
+    setSaveError(null)
     try {
       const apiInput = formDataToApiInput(formData)
       await save(apiInput)
       alert('プロフィールを保存しました！')
     } catch (err) {
       console.error('Save failed:', err)
-      alert('保存に失敗しました。もう一度お試しください。')
+      setSaveError(err)
+      alert('保存に失敗しました。画面下部のエラー詳細を確認してください。')
     } finally {
       setSaving(false)
     }
@@ -136,6 +140,9 @@ export function ProfileRegistrationForm() {
         completionRate={profile?.completion_rate ?? completionRate}
         saving={saving}
       />
+
+      {/* デバッグ用エラーパネル */}
+      <DebugErrorPanel error={error || saveError} context={error ? 'Profile Load' : 'Profile Save'} />
     </div>
   )
 }
