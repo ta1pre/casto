@@ -13,7 +13,7 @@ import { useState } from 'react'
 
 interface PhotoStepProps {
   formData: ProfileFormData
-  onChange: (field: keyof ProfileFormData, value: any) => void
+  onChange: (field: keyof ProfileFormData, value: string[]) => void
 }
 
 export function PhotoStep({ formData, onChange }: PhotoStepProps) {

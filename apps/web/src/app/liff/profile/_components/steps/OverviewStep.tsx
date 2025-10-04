@@ -53,6 +53,7 @@ export function OverviewStep({ formData, onStepClick, isBasicInfoValid }: Overvi
             </div>
             <div className="grid grid-cols-3 gap-2">
               {photoUrls.slice(0, 3).map((url, idx) => (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   key={idx}
                   src={url}

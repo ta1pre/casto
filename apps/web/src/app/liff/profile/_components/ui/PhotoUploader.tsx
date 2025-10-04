@@ -127,6 +127,7 @@ export function PhotoUploader({
       >
         {photoUrl ? (
           // 既存の写真を表示
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={photoUrl}
             alt={label}
