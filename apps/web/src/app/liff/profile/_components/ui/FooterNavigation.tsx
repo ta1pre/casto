@@ -23,24 +23,27 @@ export function FooterNavigation({
 }: FooterNavigationProps) {
   const bottomOffset = `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom) + 16px)`
 
+  const progressGradient = 'linear-gradient(90deg, #10b981 0%, #3b82f6 45%, #8b5cf6 100%)'
+
   return (
     <div
-      className="fixed left-0 right-0 bg-black/100 backdrop-blur-sm border-t border-border z-50 shadow-2xl"
-      style={{ bottom: bottomOffset, backgroundColor: 'rgb(0, 0, 0)' }}
+      className="fixed left-0 right-0 bg-black border-t border-border z-[60] shadow-2xl"
+      style={{ bottom: bottomOffset, backgroundColor: '#000000' }}
     >
-      <div className="container max-w-2xl mx-auto px-4 py-4 space-y-3">
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-2 bg-border/60 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-white transition-all duration-500 ease-out"
-              style={{ width: `${completionRate}%` }}
-            />
+      <div className="container max-w-2xl mx-auto px-4 py-4">
+        <div className="rounded-2xl border border-border/70 bg-card text-card-foreground shadow-xl px-4 py-5 space-y-4">
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-2 bg-border/60 rounded-full overflow-hidden">
+              <div
+                className="h-full transition-all duration-500 ease-out"
+                style={{ width: `${completionRate}%`, background: progressGradient }}
+              />
+            </div>
+            <span className="text-sm font-semibold min-w-[3ch] text-right bg-gradient-to-r from-emerald-400 via-sky-400 to-purple-500 text-transparent bg-clip-text">
+              {completionRate}%
+            </span>
           </div>
-          <span className="text-sm font-semibold text-white min-w-[3ch] text-right">
-            {completionRate}%
-          </span>
-        </div>
-        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4">
           <Button
             type="button"
             variant="outline"
@@ -77,10 +80,11 @@ export function FooterNavigation({
         
         {/* 保存の説明 */}
         {currentStep < STEPS.length && (
-          <p className="text-xs text-white/60 text-center">
+          <p className="text-xs text-muted-foreground text-center">
             次へをタップで保存されます
           </p>
         )}
+        </div>
       </div>
     </div>
   )

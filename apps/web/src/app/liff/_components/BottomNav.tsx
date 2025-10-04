@@ -20,7 +20,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50"
+      className="fixed bottom-0 left-0 right-0 bg-black text-white border-t border-border/40 z-[70] shadow-2xl"
       style={{
         height: BOTTOM_NAV_HEIGHT,
         paddingBottom: 'env(safe-area-inset-bottom)'
