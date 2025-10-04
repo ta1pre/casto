@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
 import { ChevronDown, ChevronUp } from 'lucide-react'
@@ -21,7 +21,12 @@ export default function LiffHomePage() {
     reinitializeLiff,
     refreshSession
   } = useLiffAuth()
-  const { profile, loading: isProfileLoading } = useProfileData()
+  const { profile, loading: isProfileLoading, refetch } = useProfileData()
+  
+  // ホーム画面がマウントされたら最新データを取得
+  useEffect(() => {
+    refetch()
+  }, [refetch])
   const [showRawData, setShowRawData] = useState(false)
   const [showDebugLogs, setShowDebugLogs] = useState(true)
   const [showDebugPanel, setShowDebugPanel] = useState(false)
