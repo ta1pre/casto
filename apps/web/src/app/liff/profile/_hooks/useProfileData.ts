@@ -56,13 +56,20 @@ export function useProfileData(): UseProfileDataResult {
     setError(null)
 
     try {
+      console.log('[useProfileData] Saving profile...', { input })
       const saved = await saveProfile(input)
+      console.log('[useProfileData] Profile saved successfully', { saved })
       setProfile(saved)
       return saved
     } catch (err) {
       // エラーオブジェクト全体を保存（デバッグ情報のため）
       setError(err)
       console.error('[useProfileData] Save error:', err)
+      console.error('[useProfileData] Error details:', {
+        message: err instanceof Error ? err.message : 'Unknown',
+        stack: err instanceof Error ? err.stack : 'No stack',
+        errorObject: err
+      })
       throw err
     }
   }, [])
