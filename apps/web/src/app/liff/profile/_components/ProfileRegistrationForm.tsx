@@ -40,10 +40,32 @@ export function ProfileRegistrationForm() {
     return !!(formData.stageName && formData.gender && formData.prefecture)
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep === 2 && !isBasicInfoValid()) return
-    if (currentStep < STEPS.length) {
-      setCurrentStep(currentStep + 1)
+    
+    // ステップ1（概要）は保存不要、それ以外は「次へ」で自動保存
+    if (currentStep > 1) {
+      setSaving(true)
+      setSaveError(null)
+      try {
+        const apiInput = formDataToApiInput(formData)
+        await save(apiInput)
+        
+        if (currentStep < STEPS.length) {
+          setCurrentStep(currentStep + 1)
+        }
+      } catch (err) {
+        console.error('Auto-save failed:', err)
+        setSaveError(err)
+        alert('保存に失敗しました。画面下部のエラー詳細を確認してください。')
+      } finally {
+        setSaving(false)
+      }
+    } else {
+      // ステップ1は保存せず次へ進む
+      if (currentStep < STEPS.length) {
+        setCurrentStep(currentStep + 1)
+      }
     }
   }
 
