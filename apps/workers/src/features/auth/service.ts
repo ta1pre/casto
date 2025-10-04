@@ -17,6 +17,10 @@ export async function verifyLineIdToken(
   idToken: string,
   channelId: string
 ): Promise<LineProfile> {
+  console.log('[verifyLineIdToken] Starting verification')
+  console.log('[verifyLineIdToken] channelId:', channelId)
+  console.log('[verifyLineIdToken] idToken length:', idToken.length)
+  
   const response = await fetch('https://api.line.me/oauth2/v2.1/verify', {
     method: 'POST',
     headers: {
@@ -28,8 +32,12 @@ export async function verifyLineIdToken(
     })
   })
 
+  console.log('[verifyLineIdToken] Response status:', response.status)
+  console.log('[verifyLineIdToken] Response ok:', response.ok)
+
   if (!response.ok) {
     const errorText = await response.text()
+    console.error('[verifyLineIdToken] LINE API error:', errorText)
     throw new Error(`LINE ID token verification failed: ${response.status} ${errorText}`)
   }
 
