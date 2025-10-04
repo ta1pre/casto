@@ -19,7 +19,7 @@ import type {
  * 
  * 計算ルール [DRY]:
  * - 基本情報: 各4% (芸名、性別、生年月日、都道府県、職業)
- * - 写真: 1枚でも20%
+ * - 写真: 顔写真10%, 全身写真10%
  * - プロフィール詳細: 身長2%, 体重2%, 3サイズ各2%, 自己PR10%
  * - 所属: 所属形態20% (事務所名はカウントしない)
  * - SNS: 各4% (Twitter, Instagram, TikTok, YouTube, フォロワー数)
@@ -36,9 +36,16 @@ export function calculateTalentProfileCompletion(
   if (profile.prefecture) completionRate += 4
   if (profile.occupation) completionRate += 4
 
-  // 写真セクション（1枚でも20%）
-  if (profile.photo_urls && profile.photo_urls.length > 0 && profile.photo_urls.some(url => url && url.length > 0)) {
-    completionRate += 20
+  // 写真セクション（顔写真10%, 全身写真10%）
+  if (profile.photo_urls && profile.photo_urls.length > 0) {
+    // 顔写真（photo_urls[0]）
+    if (profile.photo_urls[0] && profile.photo_urls[0].length > 0) {
+      completionRate += 10
+    }
+    // 全身写真（photo_urls[1]）
+    if (profile.photo_urls[1] && profile.photo_urls[1].length > 0) {
+      completionRate += 10
+    }
   }
 
   // プロフィール詳細セクション

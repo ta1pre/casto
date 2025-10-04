@@ -4,14 +4,13 @@ import React, { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import { INITIAL_FORM_DATA } from './profile/_components/constants'
-import { calculateProfileCompletion } from './profile/_components/profileCompletion'
+import { useProfileData } from './profile/_hooks/useProfileData'
 
 export default function LiffHomePage() {
   const router = useRouter()
   const {
     user,
-    isLoading,
+    isLoading: isAuthLoading,
     error,
     liffProfile,
     logout,
@@ -22,14 +21,21 @@ export default function LiffHomePage() {
     reinitializeLiff,
     refreshSession
   } = useLiffAuth()
+  const { profile, loading: isProfileLoading } = useProfileData()
+  
+  // デバッグ: プロフィール取得の監視
+  React.useEffect(() => {
+    console.log('[LiffHome] Profile updated:', profile?.completion_rate)
+  }, [profile])
   const [showRawData, setShowRawData] = useState(false)
   const [showDebugLogs, setShowDebugLogs] = useState(true)
   const [showDebugPanel, setShowDebugPanel] = useState(false)
 
-  const { completionRate } = useMemo(() => {
-    // TODO: プロフィール情報取得API実装時に置き換え
-    return calculateProfileCompletion(INITIAL_FORM_DATA)
-  }, [])
+  const isLoading = isAuthLoading || isProfileLoading
+
+  const completionRate = useMemo(() => {
+    return profile?.completion_rate ?? 0
+  }, [profile])
 
   if (isLoading) {
     return (
@@ -63,14 +69,20 @@ export default function LiffHomePage() {
         <p className="text-sm text-muted-foreground">あなたのオーディション活動</p>
       </div>
 
-      {/* プロフィール完成度（仮） */}
-      <section className="bg-card border border-border rounded-lg p-4">
+      {/* プロフィール完成度 */}
+      <section 
+        className="bg-card border border-border rounded-lg p-4 cursor-pointer hover:bg-accent transition-colors"
+        onClick={() => router.push('/liff/profile')}
+      >
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold text-foreground">プロフィール完成度</h3>
-          <span className="text-2xl font-bold text-primary">{completionRate}%</span>
+          <span className="text-2xl font-bold text-green-600">{completionRate}%</span>
         </div>
-        <div className="w-full bg-secondary rounded-full h-2 mb-2">
-          <div className="bg-primary h-2 rounded-full" style={{ width: `${completionRate}%` }} />
+        <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+          <div 
+            className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-300" 
+            style={{ width: `${completionRate}%` }} 
+          />
         </div>
         <p className="text-xs text-muted-foreground">
           プロフィールを完成させて、より多くのオーディションに応募しましょう
