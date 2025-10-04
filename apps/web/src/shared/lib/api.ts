@@ -46,13 +46,22 @@ export async function apiFetch<T = unknown>(path: string, options: ApiFetchOptio
     ...rest
   } = options
 
+  const finalHeaders = {
+    'Content-Type': 'application/json',
+    ...headers
+  }
+
+  console.log('[API Request]', {
+    url: buildUrl(path),
+    method: options.method || 'GET',
+    headers: finalHeaders,
+    hasBody: !!options.body
+  })
+
   const response = await fetch(buildUrl(path), {
     ...rest,
     credentials,
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers
-    }
+    headers: finalHeaders
   })
 
   if (!parseJson) {
@@ -63,12 +72,28 @@ export async function apiFetch<T = unknown>(path: string, options: ApiFetchOptio
 
   if (!response.ok) {
     const url = buildUrl(path)
-    console.error('[API Error]', {
+    const errorDetails = {
       url,
       status: response.status,
       statusText: response.statusText,
-      body
-    })
+      body,
+      headers: Object.fromEntries(response.headers.entries()),
+      timestamp: new Date().toISOString()
+    }
+    console.error('[API Error]', errorDetails)
+    
+    // エラーを画面に強制表示（デバッグ用）
+    if (typeof window !== 'undefined') {
+      const errorDiv = document.createElement('div')
+      errorDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;background:red;color:white;padding:10px;z-index:9999;font-size:12px;'
+      errorDiv.innerHTML = `
+        <strong>API Error (status=${response.status})</strong><br>
+        URL: ${url}<br>
+        <button onclick="navigator.clipboard.writeText('${JSON.stringify(errorDetails).replace(/'/g, "\\'")}');alert('Copied!')">Copy Error</button>
+      `
+      document.body.appendChild(errorDiv)
+    }
+    
     throw new ApiError('API request failed', response.status, response.statusText, body, url)
   }
 
