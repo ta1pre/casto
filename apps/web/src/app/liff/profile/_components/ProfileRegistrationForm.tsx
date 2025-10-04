@@ -12,10 +12,10 @@ import { PhotoStep } from './steps/PhotoStep'
 import { DetailStep } from './steps/DetailStep'
 import { AffiliationStep } from './steps/AffiliationStep'
 import { SnsStep } from './steps/SnsStep'
-import { calculateProfileCompletion } from './profileCompletion'
 import { useProfileData } from '../_hooks/useProfileData'
 import { formDataToApiInput, apiResponseToFormData } from '../_utils/profileConverter'
 import { DebugErrorPanel } from './DebugErrorPanel'
+import { validateTalentProfile, calculateTalentProfileCompletion } from '@casto/shared'
 
 export function ProfileRegistrationForm() {
   const [currentStep, setCurrentStep] = useState(1)
@@ -49,6 +49,16 @@ export function ProfileRegistrationForm() {
       setSaveError(null)
       try {
         const apiInput = formDataToApiInput(formData)
+        
+        // フロントエンドでバリデーション [REH]
+        const validation = validateTalentProfile(apiInput)
+        if (!validation.valid) {
+          const errorMessages = validation.errors.map(e => e.message).join('\n')
+          alert(`入力内容に誤りがあります:\n\n${errorMessages}`)
+          setSaving(false)
+          return
+        }
+        
         await save(apiInput)
         
         if (currentStep < STEPS.length) {
@@ -86,6 +96,16 @@ export function ProfileRegistrationForm() {
     setSaveError(null)
     try {
       const apiInput = formDataToApiInput(formData)
+      
+      // フロントエンドでバリデーション [REH]
+      const validation = validateTalentProfile(apiInput)
+      if (!validation.valid) {
+        const errorMessages = validation.errors.map(e => e.message).join('\n')
+        alert(`入力内容に誤りがあります:\n\n${errorMessages}`)
+        setSaving(false)
+        return
+      }
+      
       await save(apiInput)
       alert('プロフィールを保存しました！')
     } catch (err) {
@@ -122,7 +142,9 @@ export function ProfileRegistrationForm() {
     }
   }
 
-  const { completionRate } = calculateProfileCompletion(formData)
+  // リアルタイムで完成度を計算 [DRY]
+  const apiInput = formDataToApiInput(formData)
+  const { completionRate } = calculateTalentProfileCompletion(apiInput)
 
   // ローディング表示
   if (loading) {
@@ -167,7 +189,7 @@ export function ProfileRegistrationForm() {
         onNext={handleNext}
         onSubmit={handleSubmit}
         isBasicInfoValid={isBasicInfoValid()}
-        completionRate={profile?.completion_rate ?? completionRate}
+        completionRate={completionRate}
         saving={saving}
       />
 

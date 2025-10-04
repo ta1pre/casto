@@ -12,12 +12,21 @@ LINEのIDトークンは**発行から約1時間**で期限切れとなります
 
 **動作**:
 1. APIから401エラー + `"IdToken expired"`メッセージを受信
-2. `isRetry`フラグで再試行ループを防止
-3. 500msの遅延後に`window.liff.login()`を自動実行
-4. ユーザーは透過的に再認証される
+2. `isReloginInProgressRef`フラグを立てて、同時実行を防止
+3. 即座に`window.liff.login()`を実行（ページリダイレクト）
+4. リダイレクト中は他の認証処理をスキップ
+5. ログイン成功後、フラグをリセット
 
 **コード**:
 ```typescript
+// リログイン中の場合は処理をスキップ
+if (isReloginInProgressRef.current) {
+  console.log('[useLiffAuth] Skipping synchronization (re-login in progress)')
+  return
+}
+
+// ... 認証処理 ...
+
 const isTokenExpiredError = 
   !isRetry &&
   apiError?.status === 401 &&
@@ -30,16 +39,21 @@ const isTokenExpiredError =
 
 if (isTokenExpiredError) {
   console.warn('[useLiffAuth] ID token expired, triggering re-login')
-  addLog('ID token expired -> calling liff.login() for refresh')
   setError('LINEトークンの有効期限が切れました。再認証します...')
   
-  setTimeout(() => {
-    if (window.liff) {
-      window.liff.login()
-    }
-  }, 500)
+  // リログイン中フラグを立てる（無限ループ防止）
+  isReloginInProgressRef.current = true
+  
+  // liff.login()はページをリダイレクトするため、即座に実行
+  if (window.liff) {
+    window.liff.login()
+  }
   return
 }
+
+// 認証成功したらフラグをリセット
+await loginWithLine(idToken)
+isReloginInProgressRef.current = false
 ```
 
 **メリット**:
@@ -47,10 +61,12 @@ if (isTokenExpiredError) {
 - ✅ 最小限のコード変更
 - ✅ 他の認証方式（email等）への影響なし
 - ✅ エラーが自動的に処理される
+- ✅ 無限ループ防止機構搭載
 
 **デメリット**:
 - ⚠️ エラーが一度発生してから対処（reactive）
 - ⚠️ 短時間だがユーザーにエラーメッセージが表示される
+- ⚠️ ページリダイレクトが発生するため、入力中のデータは失われる可能性
 
 ---
 

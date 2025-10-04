@@ -8,6 +8,15 @@ import type { TalentProfileInput, TalentProfileResponse } from '@casto/shared'
 import type { ProfileFormData } from '../_components/types'
 
 /**
+ * 文字列を数値に変換（空文字列やNaNの場合はnull） [REH]
+ */
+function parseNumberOrNull(value: string): number | null {
+  if (!value || value.trim() === '') return null
+  const parsed = parseFloat(value)
+  return isNaN(parsed) ? null : parsed
+}
+
+/**
  * フォームデータ → API入力データ
  */
 export function formDataToApiInput(formData: ProfileFormData): TalentProfileInput {
@@ -17,11 +26,11 @@ export function formDataToApiInput(formData: ProfileFormData): TalentProfileInpu
     birthdate: formData.birthdate || null,
     prefecture: formData.prefecture,
     occupation: formData.occupation || null,
-    height: formData.height ? parseFloat(formData.height) : null,
-    weight: formData.weight ? parseFloat(formData.weight) : null,
-    bust: formData.bust ? parseFloat(formData.bust) : null,
-    waist: formData.waist ? parseFloat(formData.waist) : null,
-    hip: formData.hip ? parseFloat(formData.hip) : null,
+    height: parseNumberOrNull(formData.height),
+    weight: parseNumberOrNull(formData.weight),
+    bust: parseNumberOrNull(formData.bust),
+    waist: parseNumberOrNull(formData.waist),
+    hip: parseNumberOrNull(formData.hip),
     achievements: formData.achievements || null,
     affiliation_type: (formData.affiliationType as 'freelance' | 'business-partner' | 'exclusive') || null,
     agency: formData.agency || null,

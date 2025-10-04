@@ -121,6 +121,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
   const [layoutScriptErrorAt, setLayoutScriptErrorAt] = useState<string | null>(null)
   const [layoutScriptHasLiff, setLayoutScriptHasLiff] = useState<boolean | null>(null)
   const previousUserIdRef = useRef<string | null>(null)
+  const isReloginInProgressRef = useRef<boolean>(false)
 
   const addLog = useCallback((message: string) => {
     const ts = new Date().toLocaleTimeString()
@@ -157,6 +158,13 @@ export function useLiffAuth(): UseLiffAuthReturn {
 
   // LINE認証の実行
   const synchronizeLineSession = useCallback(async (isRetry = false) => {
+    // リログイン中の場合は処理をスキップ [REH]
+    if (isReloginInProgressRef.current) {
+      console.log('[useLiffAuth] Skipping synchronization (re-login in progress)')
+      addLog('Sync skipped: re-login in progress')
+      return
+    }
+
     updateWindowLiff('synchronizeLineSession:start')
 
     if (!window.liff) {
@@ -199,6 +207,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
         console.warn('[useLiffAuth] No ID token, triggering login')
         setError('LINE IDトークンが取得できませんでした')
         addLog('WARNING: No ID token -> calling liff.login()')
+        isReloginInProgressRef.current = true
         window.liff.login()
         return
       }
@@ -219,6 +228,9 @@ export function useLiffAuth(): UseLiffAuthReturn {
       console.log('[useLiffAuth] LINE session synchronized successfully')
       addLog('LINE session synchronized successfully')
       setLastLoginSuccessAt(getTimestamp())
+      
+      // 認証成功したらリログインフラグをリセット [REH]
+      isReloginInProgressRef.current = false
       
       setError(null)
     } catch (err) {
@@ -241,12 +253,14 @@ export function useLiffAuth(): UseLiffAuthReturn {
         addLog('ID token expired -> calling liff.login() for refresh')
         setError('LINEトークンの有効期限が切れました。再認証します...')
         
-        // 短い遅延の後に再ログイン
-        setTimeout(() => {
-          if (window.liff) {
-            window.liff.login()
-          }
-        }, 500)
+        // リログイン中フラグを立てる [REH]
+        isReloginInProgressRef.current = true
+        
+        // liff.login()はページをリダイレクトするため、即座に実行
+        if (window.liff) {
+          console.log('[useLiffAuth] Calling liff.login() to refresh token')
+          window.liff.login()
+        }
         return
       }
       
@@ -315,6 +329,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
         if (!isLoggedIn) {
           console.log('[useLiffAuth] Not logged in. Triggering liff.login()')
           addLog('Not logged in -> calling liff.login()')
+          isReloginInProgressRef.current = true
           window.liff.login()
           return
         }
@@ -383,6 +398,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
           if (!isLoggedIn) {
             console.log('[useLiffAuth] Not logged in. Triggering liff.login()')
             addLog('Not logged in -> calling liff.login()')
+            isReloginInProgressRef.current = true
             window.liff.login()
             return
           }
@@ -578,6 +594,8 @@ export function useLiffAuth(): UseLiffAuthReturn {
     setLiffInitCompletedAt(null)
     setHasWindowLiff(typeof window !== 'undefined' && !!window.liff)
     setEnvLiffIdConfigured(!!(process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID))
+    // リログインフラグもリセット [REH]
+    isReloginInProgressRef.current = false
     if (typeof window !== 'undefined' && window.liff) {
       setScriptLoadState('loaded')
     } else {

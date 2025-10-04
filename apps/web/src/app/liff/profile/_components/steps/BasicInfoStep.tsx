@@ -55,6 +55,11 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
     onUpdate('birthdate', `${year}-${paddedMonth}-${paddedDay}`)
   }
 
+  // 必須項目のバリデーション [REH]
+  const stageNameError = !formData.stageName || formData.stageName.trim() === ''
+  const genderError = !formData.gender
+  const prefectureError = !formData.prefecture
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -65,7 +70,11 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
           value={formData.stageName}
           onChange={(e) => onUpdate('stageName', e.target.value)}
           required
+          className={stageNameError && formData.stageName !== '' ? 'border-red-500' : ''}
         />
+        {stageNameError && formData.stageName === '' && (
+          <p className="text-xs text-red-500 mt-1">芸名・活動名を入力してください</p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -83,6 +92,9 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
             </Button>
           ))}
         </div>
+        {genderError && (
+          <p className="text-xs text-red-500 mt-1">性別を選択してください</p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -144,7 +156,7 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
           id="prefecture"
           value={formData.prefecture}
           onChange={(e) => onUpdate('prefecture', e.target.value)}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${prefectureError ? 'border-red-500' : 'border-input'}`}
           required
         >
           <option value="">選択</option>
@@ -152,6 +164,9 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
             <option key={pref} value={pref}>{pref}</option>
           ))}
         </select>
+        {prefectureError && (
+          <p className="text-xs text-red-500 mt-1">都道府県を選択してください</p>
+        )}
       </div>
 
       <div className="space-y-2">
