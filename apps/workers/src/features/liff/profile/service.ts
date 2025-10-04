@@ -74,9 +74,6 @@ export async function upsertTalentProfile(
     waist: input.waist ?? null,
     hip: input.hip ?? null,
     achievements: input.achievements ?? null,
-    can_move: input.can_move ?? null,
-    can_stay: input.can_stay ?? null,
-    passport_status: input.passport_status ?? null,
     affiliation_type: input.affiliation_type ?? null,
     agency: input.agency ?? null,
     twitter: input.twitter ?? null,
@@ -107,9 +104,7 @@ export async function upsertTalentProfile(
 /**
  * プロフィール行データをレスポンス型に変換
  */
-export function serializeTalentProfileResponse(
-  row: TalentProfileRow
-): TalentProfileResponse {
+export function serializeTalentProfileResponse(row: TalentProfileRow): TalentProfileResponse {
   return {
     user_id: row.user_id,
     stage_name: row.stage_name,
@@ -123,9 +118,6 @@ export function serializeTalentProfileResponse(
     waist: row.waist,
     hip: row.hip,
     achievements: row.achievements,
-    can_move: row.can_move,
-    can_stay: row.can_stay,
-    passport_status: row.passport_status,
     affiliation_type: row.affiliation_type,
     agency: row.agency,
     twitter: row.twitter,

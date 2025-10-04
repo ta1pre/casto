@@ -24,11 +24,6 @@ CREATE TABLE IF NOT EXISTS public.talent_profiles (
   -- 自己PR
   achievements TEXT,
 
-  -- 活動情報
-  can_move BOOLEAN,
-  can_stay BOOLEAN,
-  passport_status TEXT,
-
   -- 所属・ステータス
   affiliation_type TEXT CHECK (affiliation_type IN ('freelance', 'business-partner', 'exclusive')),
   agency TEXT,

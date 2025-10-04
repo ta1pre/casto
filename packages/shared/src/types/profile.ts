@@ -29,11 +29,6 @@ export interface TalentProfileInput {
   // 自己PR
   achievements?: string | null
 
-  // 活動情報（任意）
-  can_move?: boolean | null
-  can_stay?: boolean | null
-  passport_status?: string | null
-
   // 所属・ステータス
   affiliation_type?: 'freelance' | 'business-partner' | 'exclusive' | null
   agency?: string | null
@@ -66,9 +61,6 @@ export interface TalentProfileResponse {
   waist: number | null
   hip: number | null
   achievements: string | null
-  can_move: boolean | null
-  can_stay: boolean | null
-  passport_status: string | null
   affiliation_type: string | null
   agency: string | null
   twitter: string | null
@@ -100,9 +92,6 @@ export interface TalentProfileRow {
   waist: number | null
   hip: number | null
   achievements: string | null
-  can_move: boolean | null
-  can_stay: boolean | null
-  passport_status: string | null
   affiliation_type: string | null
   agency: string | null
   twitter: string | null

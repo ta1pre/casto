@@ -39,10 +39,7 @@ export function calculateTalentProfileCompletion(
     profile.bust !== null && profile.bust !== undefined ||
     profile.waist !== null && profile.waist !== undefined ||
     profile.hip !== null && profile.hip !== undefined ||
-    profile.achievements ||
-    profile.can_move !== null ||
-    profile.can_stay !== null ||
-    profile.passport_status
+    profile.achievements
   )
 
   // 所属・ステータスセクション（いずれか1つ以上）

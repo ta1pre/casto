@@ -31,12 +31,7 @@ export function calculateProfileCompletion(formData: ProfileFormData): ProfileCo
     formData.bust ||
     formData.waist ||
     formData.hip ||
-    formData.shoeSize ||
-    formData.achievements ||
-    (formData.activityAreas?.length ?? 0) > 0 ||
-    formData.canMove !== null ||
-    formData.canStay !== null ||
-    formData.passportStatus
+    formData.achievements
   )
 
   const hasAffiliation = Boolean(

@@ -8,20 +8,13 @@ export interface ProfileFormData {
   // 基本情報（任意）
   occupation: string
   
-  // 体型情報
+  // 詳細情報
   height: string
   weight: string
   bust: string
   waist: string
   hip: string
-  shoeSize: string
   achievements: string
-  
-  // 活動情報
-  activityAreas: string[]
-  canMove: boolean | null
-  canStay: boolean | null
-  passportStatus: string
   
   // 所属・ステータス
   affiliationType: string

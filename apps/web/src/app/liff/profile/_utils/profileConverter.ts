@@ -23,9 +23,6 @@ export function formDataToApiInput(formData: ProfileFormData): TalentProfileInpu
     waist: formData.waist ? parseFloat(formData.waist) : null,
     hip: formData.hip ? parseFloat(formData.hip) : null,
     achievements: formData.achievements || null,
-    can_move: formData.canMove,
-    can_stay: formData.canStay,
-    passport_status: formData.passportStatus || null,
     affiliation_type: (formData.affiliationType as 'freelance' | 'business-partner' | 'exclusive') || null,
     agency: formData.agency || null,
     twitter: formData.twitter || null,
@@ -51,12 +48,7 @@ export function apiResponseToFormData(response: TalentProfileResponse): ProfileF
     bust: response.bust !== null ? String(response.bust) : '',
     waist: response.waist !== null ? String(response.waist) : '',
     hip: response.hip !== null ? String(response.hip) : '',
-    shoeSize: '', // 廃止予定フィールド
     achievements: response.achievements || '',
-    activityAreas: [], // 廃止予定フィールド
-    canMove: response.can_move,
-    canStay: response.can_stay,
-    passportStatus: response.passport_status || '',
     affiliationType: response.affiliation_type || '',
     agency: response.agency || '',
     twitter: response.twitter || '',
