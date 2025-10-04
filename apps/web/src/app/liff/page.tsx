@@ -232,11 +232,11 @@ export default function LiffHomePage() {
                 <div>
                   <h4 className="font-semibold text-gray-800 mb-1">アプリユーザー</h4>
                   <KeyValue label="ID" value={user?.id} />
-                  <KeyValue label="Display Name" value={user?.displayName ?? user?.name ?? '—'} />
+                  <KeyValue label="Display Name" value={user?.displayName ?? '—'} />
                   <KeyValue label="メール" value={user?.email ?? '—'} />
                   <KeyValue label="LINE User ID" value={user?.lineUserId ?? '—'} />
                   <KeyValue label="Role" value={user?.role ?? '—'} />
-                  <KeyValue label="Provider" value={user?.provider ?? '—'} />
+                  <KeyValue label="Provider" value={user?.lineUserId ? 'line' : user?.email ? 'email' : '—'} />
                 </div>
               </div>
             </div>

@@ -8,6 +8,7 @@ import React, {
   type ReactNode
 } from 'react'
 import type { AuthContextType, User, AuthRole } from '../types/auth'
+import type { UserResponse } from '@casto/shared'
 import { apiFetch, ApiError } from '@/shared/lib/api'
 
 const uninitialized = () => {
@@ -43,38 +44,11 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
-type ApiUser = {
-  id: string
-  email?: string | null
-  lineUserId?: string | null
-  displayName?: string | null
-  provider: 'email' | 'line'
-  role: AuthRole
-  tokenVersion?: number
-  createdAt?: string
-  updatedAt?: string
-  pictureUrl?: string | null
-  statusMessage?: string | null
-}
-
-const mapUser = (input: ApiUser | null | undefined): User | null => {
+const mapUser = (input: UserResponse | null | undefined): User | null => {
   if (!input) {
     return null
   }
-
-  return {
-    id: input.id,
-    email: input.email ?? null,
-    lineUserId: input.lineUserId ?? null,
-    displayName: input.displayName ?? null,
-    provider: input.provider,
-    role: input.role,
-    tokenVersion: input.tokenVersion,
-    createdAt: input.createdAt,
-    updatedAt: input.updatedAt,
-    pictureUrl: input.pictureUrl ?? null,
-    statusMessage: input.statusMessage ?? null
-  }
+  return input
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
@@ -84,7 +58,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const refreshSession = useCallback(async (): Promise<User | null> => {
     try {
       console.log('[AuthProvider] Fetching session...')
-      const response = await apiFetch<{ user: ApiUser | null }>('/api/v1/auth/session', {
+      const response = await apiFetch<{ user: UserResponse | null }>('/api/v1/auth/session', {
         method: 'GET'
       })
 
@@ -121,7 +95,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const loginWithLine = useCallback(async (idToken: string): Promise<User> => {
     console.log('[AuthProvider] Logging in with LINE...')
-    const response = await apiFetch<{ user: ApiUser }>('/api/v1/auth/line/verify', {
+    const response = await apiFetch<{ user: UserResponse }>('/api/v1/auth/line/verify', {
       method: 'POST',
       body: JSON.stringify({ idToken })
     })
@@ -148,14 +122,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
           body: JSON.stringify({ email, role, redirectUrl })
         }
       )
-
       return response
     },
     []
   )
 
   const verifyMagicLink = useCallback(async (token: string): Promise<User> => {
-    const response = await apiFetch<{ user: ApiUser }>('/api/v1/auth/email/verify', {
+    const response = await apiFetch<{ user: UserResponse }>('/api/v1/auth/email/verify', {
       method: 'POST',
       body: JSON.stringify({ token })
     })
