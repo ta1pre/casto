@@ -9,9 +9,9 @@ interface SnsStepProps {
 
 export function SnsStep({ formData, onUpdate }: SnsStepProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="twitter">X（旧Twitter）</Label>
+        <Label htmlFor="twitter" className="text-base">X（旧Twitter）</Label>
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground">@</span>
           <Input
@@ -24,7 +24,7 @@ export function SnsStep({ formData, onUpdate }: SnsStepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="instagram">Instagram</Label>
+        <Label htmlFor="instagram" className="text-base">Instagram</Label>
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground">@</span>
           <Input
@@ -37,7 +37,7 @@ export function SnsStep({ formData, onUpdate }: SnsStepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="tiktok">TikTok</Label>
+        <Label htmlFor="tiktok" className="text-base">TikTok</Label>
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground">@</span>
           <Input
@@ -50,7 +50,7 @@ export function SnsStep({ formData, onUpdate }: SnsStepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="youtube">YouTube</Label>
+        <Label htmlFor="youtube" className="text-base">YouTube</Label>
         <Input
           id="youtube"
           placeholder="チャンネルURL"
@@ -60,7 +60,7 @@ export function SnsStep({ formData, onUpdate }: SnsStepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="followers">合計フォロワー数</Label>
+        <Label htmlFor="followers" className="text-base">合計フォロワー数</Label>
         <Input
           id="followers"
           type="number"

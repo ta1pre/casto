@@ -10,17 +10,26 @@ interface AffiliationStepProps {
 }
 
 export function AffiliationStep({ formData, onUpdate }: AffiliationStepProps) {
+  // トグル式: 選択済みのボタンを再度押すと解除 [SF]
+  const handleAffiliationClick = (value: string) => {
+    if (formData.affiliationType === value) {
+      onUpdate('affiliationType', '')
+    } else {
+      onUpdate('affiliationType', value)
+    }
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="space-y-2">
-        <Label>現在の所属形態</Label>
+        <Label className="text-base font-semibold">現在の所属形態</Label>
         <div className="space-y-2">
           {AFFILIATION_TYPES.map((option) => (
             <Button
               key={option.value}
               type="button"
               variant="outline"
-              onClick={() => onUpdate('affiliationType', option.value)}
+              onClick={() => handleAffiliationClick(option.value)}
               className={`w-full justify-between h-auto py-3 px-4 text-left ${formData.affiliationType === option.value ? 'bg-blue-500 text-white border-blue-500 hover:bg-blue-600' : ''}`}
             >
               <div>
@@ -33,13 +42,14 @@ export function AffiliationStep({ formData, onUpdate }: AffiliationStepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="agency">事務所名（任意）</Label>
+        <Label htmlFor="agency" className="text-base">事務所名（任意）</Label>
         <Input
           id="agency"
           placeholder="例: 株式会社キャスト"
           value={formData.agency}
           onChange={(e) => onUpdate('agency', e.target.value)}
         />
+        <p className="text-xs text-muted-foreground">専属所属の場合は事務所名を入力してください</p>
       </div>
     </div>
   )

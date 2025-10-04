@@ -26,10 +26,10 @@ export function DetailStep({ formData, onUpdate }: DetailStepProps) {
   const hipError = getFieldError(formData.hip, 50, 150, 'ヒップ')
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3">
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="height">身長（cm）</Label>
+          <Label htmlFor="height" className="text-base">身長（cm）</Label>
           <Input
             id="height"
             type="number"
@@ -46,7 +46,7 @@ export function DetailStep({ formData, onUpdate }: DetailStepProps) {
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="weight">体重（kg）</Label>
+          <Label htmlFor="weight" className="text-base">体重（kg）</Label>
           <Input
             id="weight"
             type="number"
@@ -66,7 +66,7 @@ export function DetailStep({ formData, onUpdate }: DetailStepProps) {
 
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-2">
-          <Label htmlFor="bust">バスト(cm)</Label>
+          <Label htmlFor="bust" className="text-base">バスト（cm）</Label>
           <Input
             id="bust"
             type="number"
@@ -83,7 +83,7 @@ export function DetailStep({ formData, onUpdate }: DetailStepProps) {
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="waist">ウエスト(cm)</Label>
+          <Label htmlFor="waist" className="text-base">ウエスト（cm）</Label>
           <Input
             id="waist"
             type="number"
@@ -100,7 +100,7 @@ export function DetailStep({ formData, onUpdate }: DetailStepProps) {
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="hip">ヒップ(cm)</Label>
+          <Label htmlFor="hip" className="text-base">ヒップ（cm）</Label>
           <Input
             id="hip"
             type="number"
@@ -119,7 +119,7 @@ export function DetailStep({ formData, onUpdate }: DetailStepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="achievements">自己PR（趣味・特技・実績等）</Label>
+        <Label htmlFor="achievements" className="text-base font-semibold">自己PR（趣味・特技・実績等）</Label>
         <textarea
           id="achievements"
           placeholder="趣味や特技、これまでの活動経験、これから挑戦したいことなど自由にアピールしてください"

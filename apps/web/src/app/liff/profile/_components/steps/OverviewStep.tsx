@@ -1,3 +1,4 @@
+import React from 'react'
 import { Button } from '@/shared/ui/button'
 import { Edit } from 'lucide-react'
 import { OVERVIEW_SECTIONS, AFFILIATION_TYPES } from '../constants'
@@ -10,52 +11,112 @@ interface OverviewStepProps {
 }
 
 export function OverviewStep({ formData, onStepClick, isBasicInfoValid }: OverviewStepProps) {
-  const getSectionContent = (step: number): string => {
+  const getSectionContent = (step: number): React.ReactNode => {
     switch (step) {
       case 2: // 基本情報
         const basicItems = [
-          formData.stageName && `芸名: ${formData.stageName}`,
-          formData.gender && `性別: ${formData.gender === 'male' ? '男性' : formData.gender === 'female' ? '女性' : 'その他'}`,
-          formData.birthdate && `生年月日: ${formData.birthdate}`,
-          formData.prefecture && `都道府県: ${formData.prefecture}`,
-          formData.occupation && `職業: ${formData.occupation}`
-        ].filter(Boolean)
-        return basicItems.length > 0 ? basicItems.join(' / ') : '未入力'
+          { label: '芸名', value: formData.stageName },
+          { label: '性別', value: formData.gender === 'male' ? '男性' : formData.gender === 'female' ? '女性' : formData.gender === 'other' ? 'その他' : '' },
+          { label: '生年月日', value: formData.birthdate },
+          { label: '都道府県', value: formData.prefecture },
+          { label: '職業', value: formData.occupation }
+        ]
+        const filledBasic = basicItems.filter(item => item.value)
+        
+        if (filledBasic.length === 0) {
+          return <span className="text-muted-foreground italic bg-gray-100 px-2 py-1 rounded">未入力</span>
+        }
+        
+        return (
+          <div className="space-y-1">
+            {basicItems.map((item, idx) => (
+              <div key={idx} className="text-sm">
+                <span className="font-medium">{item.label}:</span>{' '}
+                {item.value || <span className="text-muted-foreground italic bg-gray-100 px-2 py-0.5 rounded text-xs">未入力</span>}
+              </div>
+            ))}
+          </div>
+        )
 
       case 3: // 写真
-        return '未実装'
+        return <span className="text-muted-foreground italic bg-blue-50 px-2 py-1 rounded">未実装</span>
 
       case 4: // 詳細情報
         const detailItems = [
-          formData.height && `身長: ${formData.height}cm`,
-          formData.weight && `体重: ${formData.weight}kg`,
-          formData.bust && `B: ${formData.bust}`,
-          formData.waist && `W: ${formData.waist}`,
-          formData.hip && `H: ${formData.hip}`,
-          formData.achievements && '自己PR入力済み'
-        ].filter(Boolean)
-        return detailItems.length > 0 ? detailItems.join(' / ') : '未入力'
+          { label: '身長', value: formData.height ? `${formData.height}cm` : '' },
+          { label: '体重', value: formData.weight ? `${formData.weight}kg` : '' },
+          { label: 'バスト', value: formData.bust ? `${formData.bust}cm` : '' },
+          { label: 'ウエスト', value: formData.waist ? `${formData.waist}cm` : '' },
+          { label: 'ヒップ', value: formData.hip ? `${formData.hip}cm` : '' },
+          { label: '自己PR', value: formData.achievements ? '入力済み' : '' }
+        ]
+        const filledDetail = detailItems.filter(item => item.value)
+        
+        if (filledDetail.length === 0) {
+          return <span className="text-muted-foreground italic bg-gray-100 px-2 py-1 rounded">未入力</span>
+        }
+        
+        return (
+          <div className="space-y-1">
+            {detailItems.map((item, idx) => (
+              <div key={idx} className="text-sm">
+                <span className="font-medium">{item.label}:</span>{' '}
+                {item.value || <span className="text-muted-foreground italic bg-gray-100 px-2 py-0.5 rounded text-xs">未入力</span>}
+              </div>
+            ))}
+          </div>
+        )
 
       case 5: // 所属
         const affiliationType = AFFILIATION_TYPES.find(t => t.value === formData.affiliationType)
         const affiliationItems = [
-          affiliationType && `所属: ${affiliationType.label}`,
-          formData.agency && `事務所: ${formData.agency}`
-        ].filter(Boolean)
-        return affiliationItems.length > 0 ? affiliationItems.join(' / ') : '未入力'
+          { label: '所属形態', value: affiliationType?.label || '' },
+          { label: '事務所名', value: formData.agency }
+        ]
+        const filledAffiliation = affiliationItems.filter(item => item.value)
+        
+        if (filledAffiliation.length === 0) {
+          return <span className="text-muted-foreground italic bg-gray-100 px-2 py-1 rounded">未入力</span>
+        }
+        
+        return (
+          <div className="space-y-1">
+            {affiliationItems.map((item, idx) => (
+              <div key={idx} className="text-sm">
+                <span className="font-medium">{item.label}:</span>{' '}
+                {item.value || <span className="text-muted-foreground italic bg-gray-100 px-2 py-0.5 rounded text-xs">未入力</span>}
+              </div>
+            ))}
+          </div>
+        )
 
       case 6: // SNS
         const snsItems = [
-          formData.twitter && `X: @${formData.twitter}`,
-          formData.instagram && `Instagram: @${formData.instagram}`,
-          formData.tiktok && `TikTok: @${formData.tiktok}`,
-          formData.youtube && 'YouTube登録済み',
-          formData.followers && `フォロワー: ${formData.followers}`
-        ].filter(Boolean)
-        return snsItems.length > 0 ? snsItems.join(' / ') : '未入力'
+          { label: 'X', value: formData.twitter ? `@${formData.twitter}` : '' },
+          { label: 'Instagram', value: formData.instagram ? `@${formData.instagram}` : '' },
+          { label: 'TikTok', value: formData.tiktok ? `@${formData.tiktok}` : '' },
+          { label: 'YouTube', value: formData.youtube },
+          { label: 'フォロワー数', value: formData.followers ? `${formData.followers}人` : '' }
+        ]
+        const filledSns = snsItems.filter(item => item.value)
+        
+        if (filledSns.length === 0) {
+          return <span className="text-muted-foreground italic bg-gray-100 px-2 py-1 rounded">未入力</span>
+        }
+        
+        return (
+          <div className="space-y-1">
+            {snsItems.map((item, idx) => (
+              <div key={idx} className="text-sm">
+                <span className="font-medium">{item.label}:</span>{' '}
+                {item.value || <span className="text-muted-foreground italic bg-gray-100 px-2 py-0.5 rounded text-xs">未入力</span>}
+              </div>
+            ))}
+          </div>
+        )
 
       default:
-        return ''
+        return null
     }
   }
 
@@ -77,9 +138,8 @@ export function OverviewStep({ formData, onStepClick, isBasicInfoValid }: Overvi
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-sm mb-1">{section.title}</div>
-                  <div className="text-xs text-muted-foreground mb-2">{section.desc}</div>
-                  <div className="text-sm text-foreground/80 break-words">
+                  <div className="font-semibold text-base mb-3">{section.title}</div>
+                  <div className="text-foreground/80">
                     {content}
                   </div>
                 </div>

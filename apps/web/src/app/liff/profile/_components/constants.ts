@@ -30,12 +30,12 @@ export const INITIAL_FORM_DATA: ProfileFormData = {
 }
 
 export const STEPS: StepConfig[] = [
-  { id: 1, label: 'Eye', icon: Eye, name: 'プロフィール' },
-  { id: 2, label: '基', icon: User, name: '基本情報' },
-  { id: 3, label: '写', icon: Camera, name: '写真' },
-  { id: 4, label: '詳', icon: FileText, name: 'プロフィール詳細' },
-  { id: 5, label: '属', icon: Briefcase, name: '所属・ステータス' },
-  { id: 6, label: 'SNS', icon: Share2, name: 'SNS情報' }
+  { id: 1, label: 'Eye', icon: Eye, name: 'プロフィール', description: '入力状況の確認' },
+  { id: 2, label: '基', icon: User, name: '基本情報', description: '芸名・性別・都道府県など' },
+  { id: 3, label: '写', icon: Camera, name: '写真', description: '顔写真・全身写真のアップロード' },
+  { id: 4, label: '詳', icon: FileText, name: 'プロフィール詳細', description: '身長・体重・自己PRなど' },
+  { id: 5, label: '属', icon: Briefcase, name: '所属・ステータス', description: '現在の所属状況・契約窓口' },
+  { id: 6, label: 'SNS', icon: Share2, name: 'SNS情報', description: 'SNSアカウント・フォロワー数' }
 ]
 
 export const PREFECTURES = [

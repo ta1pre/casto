@@ -14,20 +14,25 @@ export function StepCard({ currentStep, children }: StepCardProps) {
 
   return (
     <Card className="border-border">
-      <CardHeader>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary">
-            {React.createElement(currentStepConfig.icon, { className: 'w-5 h-5 text-foreground' })}
+      <CardHeader className="pb-4">
+        <div className="flex items-start gap-4">
+          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 flex-shrink-0">
+            {React.createElement(currentStepConfig.icon, { className: 'w-6 h-6 text-blue-600' })}
           </div>
-          <div>
-            <CardTitle className="text-2xl">{currentStepConfig.name}</CardTitle>
-            <CardDescription>
-              ステップ {currentStep} / {STEPS.length}
+          <div className="flex-1">
+            <CardTitle className="text-2xl font-bold mb-1">{currentStepConfig.name}</CardTitle>
+            <CardDescription className="text-base text-muted-foreground mb-2">
+              {currentStepConfig.description}
             </CardDescription>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-medium">
+                ステップ {currentStep} / {STEPS.length}
+              </span>
+            </div>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-2">
         <form className="space-y-6">
           {children}
         </form>

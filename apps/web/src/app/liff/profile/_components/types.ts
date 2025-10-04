@@ -33,6 +33,7 @@ export interface StepConfig {
   label: string
   icon: React.ComponentType<{ className?: string }>
   name: string
+  description: string
 }
 
 export interface SectionConfig {

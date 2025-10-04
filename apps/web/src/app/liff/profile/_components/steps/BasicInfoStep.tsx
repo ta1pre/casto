@@ -61,9 +61,18 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
   const prefectureError = !formData.prefecture
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* 必須項目の説明 */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <p className="text-sm text-blue-800">
+          <span className="font-semibold">*</span> マークは必須項目です
+        </p>
+      </div>
+
       <div className="space-y-2">
-        <Label htmlFor="stageName">芸名・活動名 *</Label>
+        <Label htmlFor="stageName" className="text-base font-semibold">
+          芸名・活動名 <span className="text-red-500">*</span>
+        </Label>
         <Input
           id="stageName"
           placeholder="例: はらせつこ"
@@ -73,12 +82,16 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
           className={stageNameError && formData.stageName !== '' ? 'border-red-500' : ''}
         />
         {stageNameError && formData.stageName === '' && (
-          <p className="text-xs text-red-500 mt-1">芸名・活動名を入力してください</p>
+          <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+            <span>⚠️</span> 芸名・活動名を入力してください
+          </p>
         )}
       </div>
 
       <div className="space-y-2">
-        <Label>性別 *</Label>
+        <Label className="text-base font-semibold">
+          性別 <span className="text-red-500">*</span>
+        </Label>
         <div className="grid grid-cols-3 gap-2">
           {GENDERS.map((g) => (
             <Button
@@ -93,7 +106,9 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
           ))}
         </div>
         {genderError && (
-          <p className="text-xs text-red-500 mt-1">性別を選択してください</p>
+          <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+            <span>⚠️</span> 性別を選択してください
+          </p>
         )}
       </div>
 
@@ -151,7 +166,9 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="prefecture">都道府県 *</Label>
+        <Label htmlFor="prefecture" className="text-base font-semibold">
+          都道府県 <span className="text-red-500">*</span>
+        </Label>
         <select
           id="prefecture"
           value={formData.prefecture}
@@ -159,18 +176,20 @@ export function BasicInfoStep({ formData, onUpdate }: BasicInfoStepProps) {
           className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${prefectureError ? 'border-red-500' : 'border-input'}`}
           required
         >
-          <option value="">選択</option>
+          <option value="">選択してください</option>
           {PREFECTURES.map((pref) => (
             <option key={pref} value={pref}>{pref}</option>
           ))}
         </select>
         {prefectureError && (
-          <p className="text-xs text-red-500 mt-1">都道府県を選択してください</p>
+          <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+            <span>⚠️</span> 都道府県を選択してください
+          </p>
         )}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="occupation">職業</Label>
+        <Label htmlFor="occupation" className="text-base">職業（任意）</Label>
         <Input
           id="occupation"
           placeholder="例: 学生、会社員"
