@@ -25,8 +25,8 @@ export function FooterNavigation({
 
   return (
     <div
-      className="fixed left-0 right-0 bg-black border-t border-border z-40 shadow-lg"
-      style={{ bottom: bottomOffset }}
+      className="fixed left-0 right-0 bg-black/100 backdrop-blur-sm border-t border-border z-50 shadow-2xl"
+      style={{ bottom: bottomOffset, backgroundColor: 'rgb(0, 0, 0)' }}
     >
       <div className="container max-w-2xl mx-auto px-4 py-4 space-y-3">
         <div className="flex items-center gap-3">
