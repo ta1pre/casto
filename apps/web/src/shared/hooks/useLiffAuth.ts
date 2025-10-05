@@ -129,7 +129,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
          apiError.body.details.includes('expired'))
       
       if (isTokenExpiredError) {
-        console.warn('[useLiffAuth] ID token expired, attempting silent refresh via liff.init()')
+        console.warn('[useLiffAuth] ID token expired, need to re-authenticate')
         
         // 同時実行防止フラグを立てる [REH]
         if (isRefreshingRef.current) {
@@ -138,33 +138,17 @@ export function useLiffAuth(): UseLiffAuthReturn {
         }
         
         isRefreshingRef.current = true
-        setError('トークンを更新中...')
+        setError('トークンの有効期限が切れました。再認証します...')
         
-        try {
-          // liff.init()を再実行してトークンをリフレッシュ [SF]
-          // これによりログアウトせずに新しいトークンを取得できる
-          const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
-          if (window.liff && liffId) {
-            console.log('[useLiffAuth] Re-initializing LIFF to refresh token...')
-            await window.liff.init({ liffId })
-            
-            // 新しいトークンを取得
-            const freshToken = window.liff.getIDToken?.()
-            if (freshToken && freshToken !== idToken) {
-              console.log('[useLiffAuth] Got fresh token after re-init, retrying authentication')
-              isRefreshingRef.current = false
-              return synchronizeLineSession(true)
-            } else {
-              console.warn('[useLiffAuth] Re-init did not provide a fresh token')
-              setError('トークンの更新に失敗しました。ページを再読み込みしてください。')
-            }
-          }
-        } catch (reinitError) {
-          console.error('[useLiffAuth] Failed to re-initialize LIFF:', reinitError)
-          setError('トークンの更新に失敗しました。ページを再読み込みしてください。')
-        } finally {
-          isRefreshingRef.current = false
+        // LIFF SDKのトークンは自動更新されないため、liff.login()で再認証 [SF]
+        // これによりLINEの認証画面を経由して新しいトークンを取得する
+        console.log('[useLiffAuth] Calling liff.login() to get fresh token...')
+        
+        if (window.liff) {
+          // liff.login()はページをリダイレクトして新しいトークンを取得
+          window.liff.login()
         }
+        
         return
       }
       
@@ -279,22 +263,39 @@ export function useLiffAuth(): UseLiffAuthReturn {
     void initializeLiff()
   }, [initializeLiff])
 
-  // プロアクティブなトークンリフレッシュ（50分ごと）[PA][SF]
+  // プロアクティブなトークンリフレッシュ（30分ごと）[PA][SF]
   useEffect(() => {
     if (!isLiffReady || !user) return
 
     let isActive = true
 
-    const handleVisibilityChange = () => {
+    // ページがフォアグラウンドに戻ったときにトークンをリフレッシュ [REH]
+    const handleVisibilityChange = async () => {
+      const wasInactive = !isActive
       isActive = !document.hidden
+      
+      // バックグラウンド → フォアグラウンドの遷移時
+      if (wasInactive && isActive && window.liff?.isLoggedIn()) {
+        console.log('[useLiffAuth] Page became active, refreshing token...')
+        try {
+          const newToken = window.liff.getIDToken?.()
+          if (newToken) {
+            await loginWithLine(newToken)
+            await refreshSession()
+            console.log('[useLiffAuth] Token refreshed on visibility change')
+          }
+        } catch (err) {
+          console.error('[useLiffAuth] Failed to refresh token on visibility change:', err)
+        }
+      }
     }
 
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', handleVisibilityChange)
     }
 
-    const REFRESH_INTERVAL = 50 * 60 * 1000 // 50分
-    console.log('[useLiffAuth] Starting proactive token refresh timer (50min interval)')
+    const REFRESH_INTERVAL = 30 * 60 * 1000 // 30分（IDトークンの有効期限60分の半分）
+    console.log('[useLiffAuth] Starting proactive token refresh timer (30min interval)')
 
     const intervalId = setInterval(async () => {
       if (!isActive) {

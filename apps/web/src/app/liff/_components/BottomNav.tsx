@@ -29,7 +29,10 @@ export function BottomNav() {
       <div className="flex items-center justify-around h-full px-2">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href
+          // サブディレクトリにも対応: /liff/auditions/123 の場合も /liff/auditions がアクティブ [SF]
+          const isActive = item.href === '/liff' 
+            ? pathname === '/liff' 
+            : pathname.startsWith(item.href)
           
           return (
             <Link
@@ -40,8 +43,14 @@ export function BottomNav() {
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
               )}
             >
-              <Icon className="h-5 w-5 shrink-0" />
-              <span className="text-[10px] font-medium truncate w-full text-center">{item.label}</span>
+              <Icon className={cn(
+                "h-5 w-5 shrink-0 transition-all",
+                isActive && "scale-110"
+              )} />
+              <span className={cn(
+                "text-[10px] font-medium truncate w-full text-center",
+                isActive && "font-bold"
+              )}>{item.label}</span>
             </Link>
           )
         })}
