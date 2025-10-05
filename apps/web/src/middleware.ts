@@ -16,6 +16,19 @@ export function middleware(request: NextRequest) {
     if (!isLineApp) {
       return new NextResponse('Not Found', { status: 404 })
     }
+
+    // LIFF経由のアクセスかヘッダーで判別 [REH]
+    const isLiffContext = request.headers.get('x-liff-context')
+    if (!isLiffContext) {
+      // ヘッダーがなければ直接アクセスとみなし、LIFF URLへリダイレクト
+      const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID
+      if (liffId) {
+        const liffUrl = `https://liff.line.me/${liffId}`
+        return NextResponse.redirect(liffUrl)
+      }
+      // LIFF IDがなければフォールバック
+      return new NextResponse('Configuration Error', { status: 500 })
+    }
   }
   
   return NextResponse.next()

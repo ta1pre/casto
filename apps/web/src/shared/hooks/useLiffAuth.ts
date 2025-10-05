@@ -148,31 +148,41 @@ export function useLiffAuth(): UseLiffAuthReturn {
       })
       
       // トークン期限切れエラーの自動リトライ [REH][SF]
-      const isUnauthorized = apiError?.status === 401
+      const isTokenExpiredError = 
+        !isRetry &&
+        apiError?.status === 401 &&
+        apiError.body &&
+        typeof apiError.body === 'object' &&
+        'details' in apiError.body &&
+        typeof apiError.body.details === 'string' &&
+        (apiError.body.details.includes('IdToken expired') || 
+         apiError.body.details.includes('expired'))
       
-      if (isUnauthorized) {
-        console.warn('[useLiffAuth] Unauthorized response detected, triggering re-login')
-        appendLog('LINE verification returned 401 – forcing liff.login()')
-
-        if (isRetry) {
-          setError('LINEミニアプリ経由で再度アクセスしてください')
-          return
-        }
-
+      if (isTokenExpiredError) {
+        console.warn('[useLiffAuth] ID token expired, need to re-authenticate')
+        appendLog('ID token expired detected (401)')
+        
+        // 同時実行防止フラグを立てる [REH]
         if (isRefreshingRef.current) {
           console.log('[useLiffAuth] Token refresh already in progress, skipping')
           appendLog('Skip token refresh (already in progress)')
           return
         }
-
+        
         isRefreshingRef.current = true
-        setError('LINEミニアプリから再度アクセスしてください')
+        setError('トークンの有効期限が切れました。再認証します...')
         updateDiagnostics({ lastTokenExpiryDetectedAt: new Date().toISOString() })
-
-        console.log('[useLiffAuth] Calling liff.login() to obtain fresh token...')
-        appendLog('Calling liff.login() due to 401 response')
-
-        window.liff?.login()
+        
+        // LIFF SDKのトークンは自動更新されないため、liff.login()で再認証 [SF]
+        // これによりLINEの認証画面を経由して新しいトークンを取得する
+        console.log('[useLiffAuth] Calling liff.login() to get fresh token...')
+        appendLog('Calling liff.login() to refresh token')
+        
+        if (window.liff) {
+          // liff.login()はページをリダイレクトして新しいトークンを取得
+          window.liff.login()
+        }
+        
         return
       }
       
