@@ -39,6 +39,9 @@ interface UseLiffAuthReturn {
   error: string | null
   logout: () => Promise<void>
   refreshSession: ReturnType<typeof useAuth>['refreshSession']
+  debugLogs: string[]
+  diagnostics: Record<string, unknown>
+  reinitializeLiff: () => Promise<void>
 }
 
 const LIFF_SCRIPT_SRC = 'https://static.line-scdn.net/liff/edge/2/sdk.js'
@@ -55,30 +58,47 @@ export function useLiffAuth(): UseLiffAuthReturn {
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const [liffProfile, setLiffProfile] = useState<LiffProfile | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [debugLogs, setDebugLogs] = useState<string[]>([])
+  const [diagnostics, setDiagnostics] = useState<Record<string, unknown>>({})
   const isRefreshingRef = useRef<boolean>(false)
+
+  const appendLog = useCallback((message: string) => {
+    const timestamp = new Date().toISOString()
+    setDebugLogs((prev) => [...prev.slice(-49), `[${timestamp}] ${message}`])
+  }, [])
+
+  const updateDiagnostics = useCallback((values: Record<string, unknown>) => {
+    setDiagnostics((prev) => ({ ...prev, ...values }))
+  }, [])
 
   // LINE認証の実行 [REH]
   const synchronizeLineSession = useCallback(async (isRetry = false) => {
     // 同時実行防止 [REH]
     if (isRefreshingRef.current) {
       console.log('[useLiffAuth] Skipping synchronization (refresh in progress)')
+      appendLog('Skip synchronizeLineSession (refresh in progress)')
       return
     }
 
     if (!window.liff) {
       console.error('[useLiffAuth] window.liff is not defined')
       setError('LIFF SDKが読み込まれていません')
+      appendLog('window.liff is not defined')
+      updateDiagnostics({ lastSyncError: 'window.liff undefined', lastSyncAt: new Date().toISOString() })
       setIsAuthenticating(false)
       return
     }
 
     console.log('[useLiffAuth] Starting LINE session synchronization...')
+    appendLog('Starting LINE session synchronization')
     setIsAuthenticating(true)
     setError(null)
 
     const timeoutId = setTimeout(() => {
       console.error('[useLiffAuth] Authentication timeout')
       setError('認証処理がタイムアウトしました')
+      appendLog('Authentication timeout')
+      updateDiagnostics({ lastSyncError: 'timeout', lastSyncAt: new Date().toISOString() })
       setIsAuthenticating(false)
     }, 10000)
 
@@ -105,17 +125,27 @@ export function useLiffAuth(): UseLiffAuthReturn {
       const profile = await window.liff.getProfile()
       console.log('[useLiffAuth] LINE profile:', profile)
       setLiffProfile(profile)
+      appendLog(`LINE profile fetched: ${profile.userId}`)
+      updateDiagnostics({ lastProfileUserId: profile.userId })
 
       console.log('[useLiffAuth] Calling loginWithLine...')
+      appendLog('Calling loginWithLine with current token')
       await loginWithLine(idToken)
       console.log('[useLiffAuth] LINE session synchronized successfully')
+      appendLog('LINE session synchronized successfully')
       
       // 認証成功時にフラグをリセット [REH]
       isRefreshingRef.current = false
       setError(null)
+      updateDiagnostics({ lastSyncAt: new Date().toISOString(), lastSyncError: null })
     } catch (err) {
       console.error('[useLiffAuth] Failed to synchronize LINE session:', err)
       const apiError = err instanceof ApiError ? err : null
+      appendLog(`Failed to synchronize LINE session: ${err instanceof Error ? err.message : String(err)}`)
+      updateDiagnostics({
+        lastSyncAt: new Date().toISOString(),
+        lastSyncError: err instanceof Error ? err.message : 'unknown'
+      })
       
       // トークン期限切れエラーの自動リトライ [REH][SF]
       const isTokenExpiredError = 
@@ -130,19 +160,23 @@ export function useLiffAuth(): UseLiffAuthReturn {
       
       if (isTokenExpiredError) {
         console.warn('[useLiffAuth] ID token expired, need to re-authenticate')
+        appendLog('ID token expired detected (401)')
         
         // 同時実行防止フラグを立てる [REH]
         if (isRefreshingRef.current) {
           console.log('[useLiffAuth] Token refresh already in progress, skipping')
+          appendLog('Skip token refresh (already in progress)')
           return
         }
         
         isRefreshingRef.current = true
         setError('トークンの有効期限が切れました。再認証します...')
+        updateDiagnostics({ lastTokenExpiryDetectedAt: new Date().toISOString() })
         
         // LIFF SDKのトークンは自動更新されないため、liff.login()で再認証 [SF]
         // これによりLINEの認証画面を経由して新しいトークンを取得する
         console.log('[useLiffAuth] Calling liff.login() to get fresh token...')
+        appendLog('Calling liff.login() to refresh token')
         
         if (window.liff) {
           // liff.login()はページをリダイレクトして新しいトークンを取得
@@ -158,6 +192,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
           ? err.message
           : 'LINE認証に失敗しました'
       setError(errorMessage)
+      appendLog(`LINE authentication failed: ${errorMessage}`)
       
       console.error('[useLiffAuth] Error details:', {
         status: apiError?.status,
@@ -174,32 +209,41 @@ export function useLiffAuth(): UseLiffAuthReturn {
   const initializeLiff = useCallback(async () => {
     try {
       console.log('[useLiffAuth] Initializing LIFF SDK...')
+      appendLog('Initializing LIFF SDK')
       
       if (window.liff) {
         console.log('[useLiffAuth] LIFF SDK already loaded')
         const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
         console.log('[useLiffAuth] LIFF ID:', liffId ? 'configured' : 'missing')
+        appendLog(`LIFF SDK already loaded (ID configured: ${liffId ? 'yes' : 'no'})`)
 
         if (!liffId) {
           setError('LIFF IDが設定されていません')
+          appendLog('LIFF ID is missing')
           return
         }
 
         console.log('[useLiffAuth] Calling liff.init...')
+        appendLog('Calling liff.init() (already loaded path)')
         await window.liff.init({ liffId })
         console.log('[useLiffAuth] liff.init complete')
         setIsLiffReady(true)
+        appendLog('liff.init complete (already loaded path)')
+        updateDiagnostics({ lastInitAt: new Date().toISOString(), liffId })
 
         const isLoggedIn = window.liff.isLoggedIn()
         console.log('[useLiffAuth] Is logged in to LINE:', isLoggedIn)
+        appendLog(`window.liff.isLoggedIn(): ${isLoggedIn}`)
 
         if (!isLoggedIn) {
           console.log('[useLiffAuth] Not logged in. Triggering liff.login()')
+          appendLog('Not logged in – calling liff.login()')
           window.liff.login()
           return
         }
 
         console.log('[useLiffAuth] LINE logged in - synchronizing session...')
+        appendLog('LINE logged in – synchronizing session')
         await synchronizeLineSession()
         return
       }
@@ -249,12 +293,14 @@ export function useLiffAuth(): UseLiffAuthReturn {
       script.onerror = () => {
         console.error('[useLiffAuth] LIFF SDK script failed to load')
         setError('LIFF SDKの読み込みに失敗しました')
+        appendLog('LIFF SDK script failed to load')
       }
 
       document.head.appendChild(script)
     } catch (err) {
       console.error('[useLiffAuth] LIFF initialization failed:', err)
       setError('LIFFの初期化に失敗しました')
+      appendLog(`LIFF initialization failed: ${err instanceof Error ? err.message : String(err)}`)
     }
   }, [synchronizeLineSession])
 
@@ -349,6 +395,12 @@ export function useLiffAuth(): UseLiffAuthReturn {
     }
   }, [authLogout])
 
+  const reinitializeLiff = useCallback(async () => {
+    appendLog('Manual reinitialization requested')
+    updateDiagnostics({ lastManualReinitAt: new Date().toISOString() })
+    await initializeLiff()
+  }, [initializeLiff, appendLog, updateDiagnostics])
+
   return {
     user,
     isLoading: authLoading || isAuthenticating || !isLiffReady,
@@ -357,6 +409,9 @@ export function useLiffAuth(): UseLiffAuthReturn {
     liffProfile,
     error,
     logout: handleLogout,
-    refreshSession
+    refreshSession,
+    debugLogs,
+    diagnostics,
+    reinitializeLiff
   }
 }
