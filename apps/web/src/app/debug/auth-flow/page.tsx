@@ -13,9 +13,8 @@ export default function AuthFlowDebugPage() {
     liffProfile,
     error,
     refreshSession,
-    debugLogs,
-    diagnostics,
-    reinitializeLiff
+    user,
+    isLoading
   } = useLiffAuth()
   const auth = useAuth()
 
@@ -43,7 +42,9 @@ export default function AuthFlowDebugPage() {
         <div className="space-y-1 text-sm">
           <div>✓ isLiffReady: {String(isLiffReady)}</div>
           <div>✓ isAuthenticating: {String(isAuthenticating)}</div>
+          <div>✓ isLoading: {String(isLoading)}</div>
           <div>✓ liffProfile: {liffProfile ? JSON.stringify(liffProfile) : 'null'}</div>
+          <div>✓ user: {user ? JSON.stringify(user) : 'null'}</div>
           <div>✓ error: {error || 'null'}</div>
         </div>
       </div>
@@ -68,25 +69,12 @@ export default function AuthFlowDebugPage() {
         </div>
       </div>
 
-      {/* 診断情報 */}
+      {/* ブラウザ情報 */}
       <div className="border rounded-lg p-4 bg-purple-50">
-        <h2 className="font-bold mb-2">🟣 診断情報</h2>
+        <h2 className="font-bold mb-2">🟣 ブラウザ情報</h2>
         <div className="space-y-1 text-xs font-mono">
-          {Object.entries(diagnostics).map(([key, value]) => (
-            <div key={key}>
-              {key}: {String(value)}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* デバッグログ */}
-      <div className="border rounded-lg p-4 bg-gray-50">
-        <h2 className="font-bold mb-2">📝 デバッグログ</h2>
-        <div className="text-xs font-mono space-y-0.5 max-h-96 overflow-auto">
-          {debugLogs.map((log: string, index: number) => (
-            <div key={`${index}-${log}`}>{log}</div>
-          ))}
+          <div>UserAgent: {navigator.userAgent}</div>
+          <div>Location: {window.location.href}</div>
         </div>
       </div>
 
@@ -94,14 +82,6 @@ export default function AuthFlowDebugPage() {
       <div className="border rounded-lg p-4">
         <h2 className="font-bold mb-2">⚙️ アクション</h2>
         <div className="flex gap-2">
-          <button
-            onClick={() => {
-              void reinitializeLiff()
-            }}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            LIFF再初期化
-          </button>
           <button
             onClick={() => {
               void refreshSession()
@@ -116,17 +96,21 @@ export default function AuthFlowDebugPage() {
                 liff: {
                   isLiffReady,
                   isAuthenticating,
+                  isLoading,
                   liffProfile,
-                  error,
-                  diagnostics,
-                  debugLogs
+                  user,
+                  error
                 },
                 auth: {
                   isLoading: auth.isLoading,
                   isAuthenticated: auth.isAuthenticated,
                   user: auth.user
                 },
-                cookies
+                cookies,
+                browser: {
+                  userAgent: navigator.userAgent,
+                  location: window.location.href
+                }
               }, null, 2))
               alert('デバッグ情報をコピーしました')
             }}

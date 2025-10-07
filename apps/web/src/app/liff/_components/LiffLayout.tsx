@@ -9,7 +9,7 @@ interface LiffLayoutProps {
 }
 
 export function LiffLayout({ children }: LiffLayoutProps) {
-  const { isAuthenticating, error, isLiffReady } = useLiffAuth()
+  const { isLoading, error, isLiffReady } = useLiffAuth()
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -19,8 +19,8 @@ export function LiffLayout({ children }: LiffLayoutProps) {
 
   const mainBottomPadding = `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom) + 24px)`
 
-  // 認証処理中、またはLIFF初期化中はローディング画面を表示 [SF]
-  if (isAuthenticating || !isLiffReady) {
+  // 認証処理中、またはLIFF初期化中はローディング画面を表示 [SF][REH]
+  if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
