@@ -37,7 +37,7 @@ export function middleware(request: NextRequest) {
   const isMiniappCrossSite =
     secFetchSite === 'cross-site' && secFetchMode === 'navigate' && secFetchDest === 'document'
   const isDirectOrSame = secFetchSite === 'none' || secFetchSite === 'same-origin'
-  const isFromMiniappHeuristic = fromFlag || referer.includes('miniapp.line.me')
+  const isFromMiniappHeuristic = fromFlag || referer.includes('line.me') || referer.includes('liff')
 
   // 2) 既に許可済みのユーザーは通す
   if (hasSession || hasGate) {
@@ -66,7 +66,34 @@ export function middleware(request: NextRequest) {
     return res
   }
 
-  // 4) 直打ち/同一サイトからの到達は miniapp へ 302
+  // 4) LINE UAからの初回アクセスは通す（無限ループ防止）[REH]
+  // refererが空 & Sec-Fetch-Site: noneの場合、LINEミニアプリから開かれた可能性
+  console.log('[Middleware][LIFF Gate] DEBUG before line-ua check', {
+    secFetchSite,
+    refererEmpty: !referer,
+    isLineApp,
+    ua: ua.substring(0, 100),
+  })
+  
+  if (secFetchSite === 'none' && !referer && isLineApp) {
+    const res = NextResponse.next()
+    res.cookies.set('liff_gate', '1', {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 300,
+      path: '/liff',
+    })
+    console.log('[Middleware][LIFF Gate] allow-line-ua-no-referer', {
+      secFetchSite,
+      secFetchMode,
+      secFetchDest,
+      ua: ua.substring(0, 100),
+    })
+    return res
+  }
+
+  // 5) 直打ち/同一サイトからの到達は miniapp へ 302
   const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
   if (!liffId) {
     // LIFF ID 未設定なら静かに 404 とする（UI非表示を優先）
