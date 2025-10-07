@@ -51,7 +51,7 @@ export function middleware(request: NextRequest) {
     res.cookies.set('liff_gate', '1', {
       httpOnly: true,
       secure: true,
-      sameSite: 'lax',
+      sameSite: 'none',
       maxAge: 300,
       path: '/liff',
     })
