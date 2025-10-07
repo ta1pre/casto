@@ -9,7 +9,7 @@ declare global {
     liff?: {
       init: (config: { liffId: string }) => Promise<void>
       isLoggedIn: () => boolean
-      login: () => void
+      login: (config?: { redirectUri?: string }) => void
       logout: () => void
       getIDToken?: () => string | null
       getProfile: () => Promise<{
@@ -113,6 +113,12 @@ export function useLiffAuth(): UseLiffAuthReturn {
 
       idToken = window.liff.getIDToken?.() ?? null
       console.log('[useLiffAuth] ID Token obtained:', idToken ? 'YES' : 'NO')
+      console.log('[DEBUG] ID Token details:', {
+        hasToken: !!idToken,
+        tokenLength: idToken?.length,
+        tokenPreview: idToken?.substring(0, 50),
+        isLoggedIn: window.liff.isLoggedIn()
+      })
       
       if (!idToken) {
         console.warn('[useLiffAuth] No ID token, triggering login')
@@ -147,42 +153,32 @@ export function useLiffAuth(): UseLiffAuthReturn {
         lastSyncError: err instanceof Error ? err.message : 'unknown'
       })
       
-      // トークン期限切れエラーの自動リトライ [REH][SF]
-      const isTokenExpiredError = 
-        !isRetry &&
-        apiError?.status === 401 &&
-        apiError.body &&
-        typeof apiError.body === 'object' &&
-        'details' in apiError.body &&
-        typeof apiError.body.details === 'string' &&
-        (apiError.body.details.includes('IdToken expired') || 
-         apiError.body.details.includes('expired'))
+      // 401エラー時の自動再認証 [REH][SF]
+      // 詳細な理由チェックは不要、401なら必ず再認証
+      const is401Error = !isRetry && apiError?.status === 401
       
-      if (isTokenExpiredError) {
-        console.warn('[useLiffAuth] ID token expired, need to re-authenticate')
-        appendLog('ID token expired detected (401)')
+      if (is401Error) {
+        console.warn('[useLiffAuth] 401 Unauthorized detected, triggering re-authentication')
+        appendLog('401 error detected - re-login with redirectUri')
         
         // 同時実行防止フラグを立てる [REH]
         if (isRefreshingRef.current) {
-          console.log('[useLiffAuth] Token refresh already in progress, skipping')
-          appendLog('Skip token refresh (already in progress)')
+          console.log('[useLiffAuth] Re-login already in progress, skipping')
+          appendLog('Skip re-login (already in progress)')
           return
         }
         
         isRefreshingRef.current = true
-        setError('トークンの有効期限が切れました。再認証します...')
-        updateDiagnostics({ lastTokenExpiryDetectedAt: new Date().toISOString() })
+        setError('認証情報を更新しています...')
+        updateDiagnostics({ lastAuthErrorAt: new Date().toISOString() })
         
-        // LIFF SDKのトークンは自動更新されないため、liff.login()で再認証 [SF]
-        // これによりLINEの認証画面を経由して新しいトークンを取得する
-        console.log('[useLiffAuth] Calling liff.login() to get fresh token...')
-        appendLog('Calling liff.login() to refresh token')
+        try {
+          // いったん明示ログアウトしてから再ログイン（トークン再取得）[SF]
+          window.liff?.logout()
+        } catch {}
         
-        if (window.liff) {
-          // liff.login()はページをリダイレクトして新しいトークンを取得
-          window.liff.login()
-        }
-        
+        // LIFF/LINE内ブラウザいずれでも利用可能な login(redirectUri) に統一
+        window.liff?.login({ redirectUri: window.location.href })
         return
       }
       
@@ -225,20 +221,47 @@ export function useLiffAuth(): UseLiffAuthReturn {
 
         console.log('[useLiffAuth] Calling liff.init...')
         appendLog('Calling liff.init() (already loaded path)')
-        await window.liff.init({ liffId })
-        console.log('[useLiffAuth] liff.init complete')
+        
+        // デバッグ: LIFF初期化前の状態を記録
+        const preInitUrl = window.location.href
+        console.log('[DEBUG] Pre-init URL:', preInitUrl)
+        console.log('[DEBUG] Pre-init search params:', window.location.search)
+        
+        try {
+          await window.liff.init({ liffId })
+          console.log('[useLiffAuth] liff.init complete')
+        } catch (initError) {
+          console.error('[useLiffAuth] liff.init failed:', initError)
+          appendLog(`liff.init failed: ${initError instanceof Error ? initError.message : String(initError)}`)
+          setError('LIFFの初期化に失敗しました。再度起動します...')
+          // 初期化に失敗した場合はログインフローで再入場を試みる
+          window.liff?.login({ redirectUri: window.location.href })
+          return
+        }
+        
         setIsLiffReady(true)
         appendLog('liff.init complete (already loaded path)')
         updateDiagnostics({ lastInitAt: new Date().toISOString(), liffId })
 
         const isLoggedIn = window.liff.isLoggedIn()
+        const idToken = window.liff.getIDToken?.()
+        
+        console.log('[DEBUG] After liff.init:', {
+          isLoggedIn,
+          hasIdToken: !!idToken,
+          idTokenLength: idToken?.length,
+          idTokenPreview: idToken?.substring(0, 50),
+          url: window.location.href,
+          searchParams: window.location.search
+        })
+        
         console.log('[useLiffAuth] Is logged in to LINE:', isLoggedIn)
         appendLog(`window.liff.isLoggedIn(): ${isLoggedIn}`)
 
         if (!isLoggedIn) {
           console.log('[useLiffAuth] Not logged in. Triggering liff.login()')
-          appendLog('Not logged in – calling liff.login()')
-          window.liff.login()
+          appendLog('Not logged in – calling liff.login(redirectUri)')
+          window.liff.login({ redirectUri: window.location.href })
           return
         }
 
@@ -257,36 +280,67 @@ export function useLiffAuth(): UseLiffAuthReturn {
       script.onload = () => {
         console.log('[useLiffAuth] LIFF SDK script loaded')
         setTimeout(async () => {
-          if (!window.liff) {
-            console.error('[useLiffAuth] window.liff not available after script load')
-            setError('LIFF SDKの読み込みに失敗しました')
-            return
+          try {
+            if (!window.liff) {
+              console.error('[useLiffAuth] window.liff not available after script load')
+              setError('LIFF SDKの読み込みに失敗しました')
+              return
+            }
+
+            const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
+            console.log('[useLiffAuth] LIFF ID:', liffId ? 'configured' : 'missing')
+
+            if (!liffId) {
+              setError('LIFF IDが設定されていません')
+              return
+            }
+
+            console.log('[useLiffAuth] Calling liff.init...')
+            
+            // デバッグ: LIFF初期化前の状態を記録
+            const preInitUrl = window.location.href
+            console.log('[DEBUG] Pre-init URL:', preInitUrl)
+            console.log('[DEBUG] Pre-init search params:', window.location.search)
+            
+            try {
+              await window.liff.init({ liffId })
+              console.log('[useLiffAuth] liff.init complete')
+            } catch (initError) {
+              console.error('[useLiffAuth] liff.init failed:', initError)
+              setError('LIFFの初期化に失敗しました。再度起動します...')
+              window.liff?.login({ redirectUri: window.location.href })
+              return
+            }
+            
+            setIsLiffReady(true)
+
+            const isLoggedIn = window.liff.isLoggedIn()
+            const idToken = window.liff.getIDToken?.()
+            
+            console.log('[DEBUG] After liff.init:', {
+              isLoggedIn,
+              hasIdToken: !!idToken,
+              idTokenLength: idToken?.length,
+              idTokenPreview: idToken?.substring(0, 50),
+              url: window.location.href,
+              searchParams: window.location.search
+            })
+            
+            console.log('[useLiffAuth] Is logged in to LINE:', isLoggedIn)
+
+            if (!isLoggedIn) {
+              console.log('[useLiffAuth] Not logged in. Triggering liff.login()')
+              window.liff.login({ redirectUri: window.location.href })
+              return
+            }
+
+            console.log('[useLiffAuth] LINE logged in - synchronizing session...')
+            await synchronizeLineSession()
+          } catch (error) {
+            console.error('[useLiffAuth] Error in LIFF initialization callback:', error)
+            setError('LIFF初期化中にエラーが発生しました')
+            appendLog(`LIFF init callback error: ${error instanceof Error ? error.message : String(error)}`)
           }
-
-          const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
-          console.log('[useLiffAuth] LIFF ID:', liffId ? 'configured' : 'missing')
-
-          if (!liffId) {
-            setError('LIFF IDが設定されていません')
-            return
-          }
-
-          console.log('[useLiffAuth] Calling liff.init...')
-          await window.liff.init({ liffId })
-          console.log('[useLiffAuth] liff.init complete')
-          setIsLiffReady(true)
-
-          const isLoggedIn = window.liff.isLoggedIn()
-          console.log('[useLiffAuth] Is logged in to LINE:', isLoggedIn)
-
-          if (!isLoggedIn) {
-            console.log('[useLiffAuth] Not logged in. Triggering liff.login()')
-            window.liff.login()
-            return
-          }
-
-          console.log('[useLiffAuth] LINE logged in - synchronizing session...')
-          await synchronizeLineSession()
         }, 100)
       }
 

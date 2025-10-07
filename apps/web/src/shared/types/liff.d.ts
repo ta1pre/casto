@@ -17,7 +17,7 @@ declare module '@line/liff' {
   interface Liff {
     init(config: { liffId: string }): Promise<void>
     isLoggedIn(): boolean
-    login(): void
+    login(config?: { redirectUri?: string }): void
     logout(): void
     getProfile(): Promise<LiffProfile>
   }
