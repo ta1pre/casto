@@ -33,15 +33,31 @@ export function LiffLayout({ children }: LiffLayoutProps) {
     )
   }
 
-  // エラー時も何も表示しない（liff.login()でリダイレクトされる）
+  // エラー時: ミニアプリの公式URLを提示してユーザー操作で回復可能に [RP][REH]
   if (error) {
+    const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
+    const liffUrl = liffId ? `https://miniapp.line.me/${liffId}` : null
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-center">
-          <div className="mb-4 text-lg font-medium">認証中...</div>
-          <div className="text-sm text-muted-foreground">
-            LINEログイン画面へ移動しています
-          </div>
+          <div className="mb-4 text-lg font-medium">LINEミニアプリはこちらから</div>
+          {liffUrl ? (
+            <div className="space-y-2">
+              <a
+                href={liffUrl}
+                className="text-primary underline break-all"
+              >
+                {liffUrl}
+              </a>
+              <div className="text-xs text-muted-foreground">
+                エラーが続く場合は上記リンクから開いてください
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-destructive">
+              設定エラー：LIFF IDが見つかりません
+            </div>
+          )}
         </div>
       </div>
     )
