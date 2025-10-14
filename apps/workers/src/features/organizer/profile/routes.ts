@@ -23,29 +23,38 @@ const organizerProfileRoutes = new Hono<AppBindings>()
 organizerProfileRoutes.get('/profile', verifyOrganizerAuth, async (c) => {
   try {
     const userContext = c.get('user')
+    console.log('[Organizer Profile GET] User context:', userContext)
 
     if (!userContext) {
+      console.error('[Organizer Profile GET] No user context')
       return c.json({ error: 'Unauthorized' }, 401)
     }
 
+    console.log('[Organizer Profile GET] Creating Supabase client')
     const supabase = createSupabaseClient(c)
+    
+    console.log('[Organizer Profile GET] Fetching profile for user:', userContext.id)
     const profile = await getOrganizerProfile(supabase, userContext.id)
 
     if (!profile) {
+      console.log('[Organizer Profile GET] Profile not found for user:', userContext.id)
       return c.json({ error: 'Profile not found' }, 404)
     }
 
+    console.log('[Organizer Profile GET] Profile found:', profile.id)
     return c.json({
       status: 'ok',
       profile,
       fetchedAt: new Date().toISOString(),
     })
   } catch (error) {
-    console.error('Failed to fetch organizer profile:', error)
+    console.error('[Organizer Profile GET] Error:', error)
+    console.error('[Organizer Profile GET] Error stack:', error instanceof Error ? error.stack : 'No stack')
     return c.json(
       {
         error: 'Failed to fetch profile',
         details: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
       },
       500
     )

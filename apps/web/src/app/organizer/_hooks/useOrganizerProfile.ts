@@ -42,12 +42,19 @@ export function useOrganizerProfile(): UseOrganizerProfileResult {
       }
 
       if (!response.ok) {
-        throw new Error('Failed to fetch profile')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('Profile fetch error:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData,
+        })
+        throw new Error(errorData.error || errorData.details || 'Failed to fetch profile')
       }
 
       const data = await response.json()
       setProfile(data.profile)
     } catch (err) {
+      console.error('Profile fetch exception:', err)
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setIsLoading(false)
