@@ -28,6 +28,8 @@ export interface SupabaseOrganizerProfileRow {
   id: string
   organizer_id: string
   logo_url?: string | null
+  logo_position_x?: number | null
+  logo_position_y?: number | null
   name: string
   contact_person?: string | null
   prefecture: string
@@ -52,6 +54,8 @@ export interface OrganizerProfile {
   id: string
   organizerId: string
   logoUrl: string | null
+  logoPositionX: number
+  logoPositionY: number
   name: string
   contactPerson: string | null
   prefecture: string
@@ -74,6 +78,8 @@ export interface OrganizerProfile {
  */
 export interface OrganizerProfileUpsertRequest {
   logoUrl?: string | null
+  logoPositionX?: number
+  logoPositionY?: number
   name: string
   contactPerson?: string | null
   prefecture: string

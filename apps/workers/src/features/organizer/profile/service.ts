@@ -20,6 +20,8 @@ function toOrganizerProfile(row: SupabaseOrganizerProfileRow): OrganizerProfile 
     id: row.id,
     organizerId: row.organizer_id,
     logoUrl: row.logo_url || null,
+    logoPositionX: row.logo_position_x ?? 0,
+    logoPositionY: row.logo_position_y ?? 0,
     name: row.name,
     contactPerson: row.contact_person || null,
     prefecture: row.prefecture,
@@ -73,6 +75,8 @@ export async function createOrganizerProfile(
   const insertData = {
     organizer_id: organizerId,
     logo_url: input.logoUrl || null,
+    logo_position_x: input.logoPositionX ?? 0,
+    logo_position_y: input.logoPositionY ?? 0,
     name: input.name,
     contact_person: input.contactPerson || null,
     prefecture: input.prefecture,
@@ -111,6 +115,8 @@ export async function updateOrganizerProfile(
 ): Promise<OrganizerProfile> {
   const updateData = {
     logo_url: input.logoUrl || null,
+    logo_position_x: input.logoPositionX ?? 0,
+    logo_position_y: input.logoPositionY ?? 0,
     name: input.name,
     contact_person: input.contactPerson || null,
     prefecture: input.prefecture,

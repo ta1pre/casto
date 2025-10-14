@@ -38,6 +38,8 @@ export function OrganizerProfileForm({
     tiktokUrl: '',
     youtubeUrl: '',
     logoUrl: '',
+    logoPositionX: 0,
+    logoPositionY: 0,
     isActive: false,
   })
 
@@ -61,6 +63,8 @@ export function OrganizerProfileForm({
         tiktokUrl: profile.tiktokUrl ?? '',
         youtubeUrl: profile.youtubeUrl ?? '',
         logoUrl: profile.logoUrl ?? '',
+        logoPositionX: profile.logoPositionX ?? 0,
+        logoPositionY: profile.logoPositionY ?? 0,
         isActive: profile.isActive,
       })
     }
@@ -105,7 +109,12 @@ export function OrganizerProfileForm({
       }
 
       const data = await response.json()
-      setFormData((prev) => ({ ...prev, logoUrl: data.url }))
+      setFormData((prev) => ({
+        ...prev,
+        logoUrl: data.url,
+        logoPositionX: 0,
+        logoPositionY: 0,
+      }))
       
       // プロフィールを再取得してDBの最新URLを反映
       if (onLogoChange) {
@@ -129,7 +138,12 @@ export function OrganizerProfileForm({
         throw new Error(errorData.error || '削除に失敗しました')
       }
 
-      setFormData((prev) => ({ ...prev, logoUrl: '' }))
+      setFormData((prev) => ({
+        ...prev,
+        logoUrl: '',
+        logoPositionX: 0,
+        logoPositionY: 0,
+      }))
       
       // プロフィールを再取得してDBの最新状態を反映
       if (onLogoChange) {
@@ -179,8 +193,17 @@ export function OrganizerProfileForm({
           {/* ロゴ画像 */}
           <LogoUploader
             logoUrl={formData.logoUrl}
+            logoPositionX={formData.logoPositionX}
+            logoPositionY={formData.logoPositionY}
             onUpload={handleLogoUpload}
             onDelete={handleLogoDelete}
+            onPositionChange={(x, y) => {
+              setFormData((prev) => ({
+                ...prev,
+                logoPositionX: x,
+                logoPositionY: y,
+              }))
+            }}
             disabled={logoUploading || isSubmitting}
           />
 

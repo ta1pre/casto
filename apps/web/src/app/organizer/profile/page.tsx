@@ -97,6 +97,9 @@ export default function OrganizerProfilePage() {
                     src={profile.logoUrl}
                     alt="ロゴ"
                     className="w-32 h-32 object-cover rounded-full border-2 border-gray-200"
+                    style={{
+                      objectPosition: `${50 + (profile.logoPositionX ?? 0) / 2}% ${50 + (profile.logoPositionY ?? 0) / 2}%`,
+                    }}
                   />
                 </dd>
               </div>
