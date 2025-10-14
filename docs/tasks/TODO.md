@@ -71,6 +71,19 @@
 - [x] アクティブリンクのハイライト実装
 - [x] レスポンシブ対応確認（デスクトップ・タブレット・モバイル）
 
+### Phase 2.6: 主催者プロフィール機能（2025-10-15完了）
+- [x] データベース: organizer_profilesテーブル作成
+- [x] データベース: RLS設定（本人・管理者権限）
+- [x] 共有型定義: OrganizerProfile型・バリデーション
+- [x] Workers API: プロフィール取得・更新API実装
+- [x] フロントエンド: useOrganizerProfileフック実装
+- [x] フロントエンド: プロフィール表示ページ
+- [x] フロントエンド: プロフィール編集ページ
+- [x] フロントエンド: プロフィールフォームコンポーネント
+- [x] ヘッダーにプロフィールリンク統合
+- [ ] マイグレーション実行（手動: `supabase db push`）
+- **参照**: `docs/tasks/ORGANIZER_PROFILE_IMPLEMENTATION.md`
+
 ### Phase 3: オーディション機能（既存機能に影響なし）
 - [ ] auditionsテーブル作成
 - [ ] applicationsテーブル作成

@@ -9,6 +9,7 @@ import profileRoutes from './features/liff/profile/routes'
 import photosRoutes from './features/liff/profile/photos.routes'
 import adminAuthRoutes from './features/admin/auth/routes'
 import organizerAuthRoutes from './features/organizer/auth/routes'
+import organizerProfileRoutes from './features/organizer/profile/routes'
 import { getAllowedOrigins, getPrimaryOrigin } from './config/env'
 import type { AppBindings } from './types'
 
@@ -46,6 +47,7 @@ export function createApp() {
   app.route('/api/v1/liff/profile/photos', photosRoutes)
   app.route('/api/v1/admin', adminAuthRoutes)
   app.route('/api/v1/organizer', organizerAuthRoutes)
+  app.route('/api/v1/organizer', organizerProfileRoutes)
 
   app.notFound((c) => {
     return c.json({ error: 'Not Found' }, 404)
