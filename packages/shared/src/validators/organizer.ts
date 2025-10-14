@@ -82,7 +82,7 @@ export function validateAddressDetail(addressDetail: string): OrganizerProfileVa
   if (!addressDetail || addressDetail.trim().length === 0) {
     return {
       field: 'addressDetail',
-      message: '市区町村以降の住所は必須です。',
+      message: '都道府県以降の住所は必須です。',
       code: 'REQUIRED',
     }
   }

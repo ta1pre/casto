@@ -28,4 +28,4 @@ CREATE INDEX IF NOT EXISTS idx_organizer_profiles_prefecture ON public.organizer
 
 -- コメント更新
 COMMENT ON COLUMN public.organizer_profiles.prefecture IS '都道府県';
-COMMENT ON COLUMN public.organizer_profiles.address_detail IS '市区町村以降の住所';
+COMMENT ON COLUMN public.organizer_profiles.address_detail IS '都道府県以降の住所';

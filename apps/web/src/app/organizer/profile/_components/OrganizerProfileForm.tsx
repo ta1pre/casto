@@ -176,10 +176,10 @@ export function OrganizerProfileForm({
             {errors.prefecture && <p className={errorClassName}>{errors.prefecture}</p>}
           </div>
 
-          {/* 市区町村以降の住所 */}
+          {/* 都道府県以降の住所 */}
           <div>
             <label htmlFor="addressDetail" className={labelClassName}>
-              市区町村以降の住所 <span className="text-red-500">*</span>
+              都道府県以降の住所 <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
