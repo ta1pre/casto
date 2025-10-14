@@ -92,15 +92,19 @@ export default function OrganizerProfilePage() {
               <div>
                 <dt className="text-sm font-medium text-gray-500 mb-2">ロゴ</dt>
                 <dd>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={profile.logoUrl}
-                    alt="ロゴ"
-                    className="w-32 h-32 object-cover rounded-full border-2 border-gray-200"
-                    style={{
-                      objectPosition: `${50 + (profile.logoPositionX ?? 0) / 2}% ${50 + (profile.logoPositionY ?? 0) / 2}%`,
-                    }}
-                  />
+                  <div className="relative w-32 h-32 rounded-full border-2 border-gray-200 overflow-hidden">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={profile.logoUrl}
+                      alt="ロゴ"
+                      className="absolute top-1/2 left-1/2 select-none"
+                      style={{
+                        transform: `translate(calc(-50% + ${profile.logoPositionX ?? 0}px), calc(-50% + ${profile.logoPositionY ?? 0}px)) scale(${profile.logoScale ?? 1})`,
+                        maxWidth: 'none',
+                        width: '100%',
+                      }}
+                    />
+                  </div>
                 </dd>
               </div>
             )}

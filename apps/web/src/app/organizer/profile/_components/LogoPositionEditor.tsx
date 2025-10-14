@@ -6,13 +6,14 @@
  */
 
 import { useState, useRef, useEffect } from 'react'
-import { X, RotateCcw } from 'lucide-react'
+import { X, RotateCcw, ZoomIn, ZoomOut } from 'lucide-react'
 
 interface LogoPositionEditorProps {
   imageUrl: string
   initialX?: number
   initialY?: number
-  onSave: (x: number, y: number) => void
+  initialScale?: number
+  onSave: (x: number, y: number, scale: number) => void
   onCancel: () => void
 }
 
@@ -20,10 +21,12 @@ export function LogoPositionEditor({
   imageUrl,
   initialX = 0,
   initialY = 0,
+  initialScale = 1,
   onSave,
   onCancel,
 }: LogoPositionEditorProps) {
   const [position, setPosition] = useState({ x: initialX, y: initialY })
+  const [scale, setScale] = useState(initialScale)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
@@ -38,25 +41,13 @@ export function LogoPositionEditor({
   }
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !containerRef.current || !imageRef.current) return
-
-    const containerRect = containerRef.current.getBoundingClientRect()
-    const imageRect = imageRef.current.getBoundingClientRect()
+    if (!isDragging) return
 
     // 新しい位置を計算
     const newX = e.clientX - dragStart.x
     const newY = e.clientY - dragStart.y
 
-    // 画像がコンテナからはみ出さないように制限
-    const maxX = 0
-    const minX = containerRect.width - imageRect.width
-    const maxY = 0
-    const minY = containerRect.height - imageRect.height
-
-    const clampedX = Math.max(minX, Math.min(maxX, newX))
-    const clampedY = Math.max(minY, Math.min(maxY, newY))
-
-    setPosition({ x: clampedX, y: clampedY })
+    setPosition({ x: newX, y: newY })
   }
 
   const handleMouseUp = () => {
@@ -74,24 +65,13 @@ export function LogoPositionEditor({
   }
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !containerRef.current || !imageRef.current) return
+    if (!isDragging) return
 
     const touch = e.touches[0]
-    const containerRect = containerRef.current.getBoundingClientRect()
-    const imageRect = imageRef.current.getBoundingClientRect()
-
     const newX = touch.clientX - dragStart.x
     const newY = touch.clientY - dragStart.y
 
-    const maxX = 0
-    const minX = containerRect.width - imageRect.width
-    const maxY = 0
-    const minY = containerRect.height - imageRect.height
-
-    const clampedX = Math.max(minX, Math.min(maxX, newX))
-    const clampedY = Math.max(minY, Math.min(maxY, newY))
-
-    setPosition({ x: clampedX, y: clampedY })
+    setPosition({ x: newX, y: newY })
   }
 
   const handleTouchEnd = () => {
@@ -100,19 +80,28 @@ export function LogoPositionEditor({
 
   const handleReset = () => {
     setPosition({ x: 0, y: 0 })
+    setScale(1)
+  }
+
+  const handleZoomIn = () => {
+    setScale((prev) => Math.min(prev + 0.1, 3))
+  }
+
+  const handleZoomOut = () => {
+    setScale((prev) => Math.max(prev - 0.1, 0.5))
+  }
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault()
+    if (e.deltaY < 0) {
+      handleZoomIn()
+    } else {
+      handleZoomOut()
+    }
   }
 
   const handleSave = () => {
-    if (!containerRef.current || !imageRef.current) return
-
-    const containerRect = containerRef.current.getBoundingClientRect()
-    const imageRect = imageRef.current.getBoundingClientRect()
-
-    // パーセンテージに変換（-100 ~ 100）
-    const percentX = (position.x / (containerRect.width - imageRect.width)) * 100
-    const percentY = (position.y / (containerRect.height - imageRect.height)) * 100
-
-    onSave(Math.round(percentX) || 0, Math.round(percentY) || 0)
+    onSave(Math.round(position.x), Math.round(position.y), scale)
   }
 
   return (
@@ -131,33 +120,60 @@ export function LogoPositionEditor({
 
         {/* 説明 */}
         <p className="text-sm text-gray-600 mb-4">
-          画像をドラッグして、円形エリアに表示したい部分を調整してください
+          画像をドラッグして位置を調整、マウスホイールまたはボタンでズーム
         </p>
 
         {/* プレビューエリア */}
-        <div
-          ref={containerRef}
-          className="relative w-full h-64 bg-gray-100 rounded-full overflow-hidden mb-4 cursor-move"
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            ref={imageRef}
-            src={imageUrl}
-            alt="ロゴ"
-            className="absolute min-w-full min-h-full object-cover select-none"
-            style={{
-              transform: `translate(${position.x}px, ${position.y}px)`,
-              cursor: isDragging ? 'grabbing' : 'grab',
-            }}
-            onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
-            draggable={false}
-          />
+        <div className="relative w-full mb-4">
+          <div
+            ref={containerRef}
+            className="relative w-64 h-64 mx-auto bg-gray-300 overflow-hidden cursor-move"
+            style={{ borderRadius: '50%' }}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onWheel={handleWheel}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              ref={imageRef}
+              src={imageUrl}
+              alt="ロゴ"
+              className="absolute top-1/2 left-1/2 select-none"
+              style={{
+                transform: `translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px)) scale(${scale})`,
+                cursor: isDragging ? 'grabbing' : 'grab',
+                maxWidth: 'none',
+                width: '100%',
+              }}
+              onMouseDown={handleMouseDown}
+              onTouchStart={handleTouchStart}
+              draggable={false}
+            />
+          </div>
+        </div>
+
+        {/* ズームコントロール */}
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <button
+            type="button"
+            onClick={handleZoomOut}
+            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </button>
+          <span className="text-sm text-gray-600 min-w-[60px] text-center">
+            {Math.round(scale * 100)}%
+          </span>
+          <button
+            type="button"
+            onClick={handleZoomIn}
+            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <ZoomIn className="w-4 h-4" />
+          </button>
         </div>
 
         {/* ボタン */}

@@ -40,6 +40,7 @@ export function OrganizerProfileForm({
     logoUrl: '',
     logoPositionX: 0,
     logoPositionY: 0,
+    logoScale: 1,
     isActive: false,
   })
 
@@ -65,6 +66,7 @@ export function OrganizerProfileForm({
         logoUrl: profile.logoUrl ?? '',
         logoPositionX: profile.logoPositionX ?? 0,
         logoPositionY: profile.logoPositionY ?? 0,
+        logoScale: profile.logoScale ?? 1,
         isActive: profile.isActive,
       })
     }
@@ -114,6 +116,7 @@ export function OrganizerProfileForm({
         logoUrl: data.url,
         logoPositionX: 0,
         logoPositionY: 0,
+        logoScale: 1,
       }))
       
       // プロフィールを再取得してDBの最新URLを反映
@@ -143,6 +146,7 @@ export function OrganizerProfileForm({
         logoUrl: '',
         logoPositionX: 0,
         logoPositionY: 0,
+        logoScale: 1,
       }))
       
       // プロフィールを再取得してDBの最新状態を反映
@@ -195,13 +199,15 @@ export function OrganizerProfileForm({
             logoUrl={formData.logoUrl}
             logoPositionX={formData.logoPositionX}
             logoPositionY={formData.logoPositionY}
+            logoScale={formData.logoScale}
             onUpload={handleLogoUpload}
             onDelete={handleLogoDelete}
-            onPositionChange={(x, y) => {
+            onPositionChange={(x, y, scale) => {
               setFormData((prev) => ({
                 ...prev,
                 logoPositionX: x,
                 logoPositionY: y,
+                logoScale: scale,
               }))
             }}
             disabled={logoUploading || isSubmitting}

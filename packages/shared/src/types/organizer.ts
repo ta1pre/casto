@@ -30,6 +30,7 @@ export interface SupabaseOrganizerProfileRow {
   logo_url?: string | null
   logo_position_x?: number | null
   logo_position_y?: number | null
+  logo_scale?: number | null
   name: string
   contact_person?: string | null
   prefecture: string
@@ -56,6 +57,7 @@ export interface OrganizerProfile {
   logoUrl: string | null
   logoPositionX: number
   logoPositionY: number
+  logoScale: number
   name: string
   contactPerson: string | null
   prefecture: string
@@ -80,6 +82,7 @@ export interface OrganizerProfileUpsertRequest {
   logoUrl?: string | null
   logoPositionX?: number
   logoPositionY?: number
+  logoScale?: number
   name: string
   contactPerson?: string | null
   prefecture: string

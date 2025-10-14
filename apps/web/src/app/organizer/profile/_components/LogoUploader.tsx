@@ -13,9 +13,10 @@ interface LogoUploaderProps {
   logoUrl?: string | null
   logoPositionX?: number
   logoPositionY?: number
+  logoScale?: number
   onUpload: (file: File) => Promise<void>
   onDelete: () => Promise<void>
-  onPositionChange?: (x: number, y: number) => void
+  onPositionChange?: (x: number, y: number, scale: number) => void
   disabled?: boolean
 }
 
@@ -29,6 +30,7 @@ export function LogoUploader({
   logoUrl,
   logoPositionX = 0,
   logoPositionY = 0,
+  logoScale = 1,
   onUpload,
   onDelete,
   onPositionChange,
@@ -131,9 +133,9 @@ export function LogoUploader({
     }
   }
 
-  const handlePositionSave = (x: number, y: number) => {
+  const handlePositionSave = (x: number, y: number, scale: number) => {
     if (onPositionChange) {
-      onPositionChange(x, y)
+      onPositionChange(x, y, scale)
     }
     setShowPositionEditor(false)
   }
@@ -154,6 +156,7 @@ export function LogoUploader({
           imageUrl={logoUrl}
           initialX={logoPositionX}
           initialY={logoPositionY}
+          initialScale={logoScale}
           onSave={handlePositionSave}
           onCancel={handlePositionCancel}
         />
@@ -220,9 +223,11 @@ export function LogoUploader({
           <img
             src={logoUrl}
             alt="ロゴ"
-            className="w-full h-full object-cover"
+            className="absolute top-1/2 left-1/2 select-none"
             style={{
-              objectPosition: `${50 + logoPositionX / 2}% ${50 + logoPositionY / 2}%`,
+              transform: `translate(calc(-50% + ${logoPositionX}px), calc(-50% + ${logoPositionY}px)) scale(${logoScale})`,
+              maxWidth: 'none',
+              width: '100%',
             }}
           />
         ) : (
