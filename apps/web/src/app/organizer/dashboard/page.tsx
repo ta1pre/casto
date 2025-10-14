@@ -10,7 +10,8 @@ import { useOrganizerAuth } from '../_hooks/useOrganizerAuth'
 export default function OrganizerDashboardPage() {
   const { user, isLoading, logout } = useOrganizerAuth()
 
-  if (isLoading) {
+  // 認証チェック中、または認証されていない場合はローディング表示
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

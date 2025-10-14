@@ -61,6 +61,7 @@
 - [x] 共通レイアウト実装（`admin/layout.tsx`, `organizer/layout.tsx`）
 - [x] useAdminAuth, useOrganizerAuth フック実装（認証ガード付き）
 - [x] ダッシュボードページ作成（admin/dashboard, organizer/dashboard）
+- [x] Next.js 15対応（useSearchParams Suspense対応）
 
 ### Phase 3: オーディション機能（既存機能に影響なし）
 - [ ] auditionsテーブル作成

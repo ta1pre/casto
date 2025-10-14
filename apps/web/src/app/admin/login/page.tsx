@@ -31,13 +31,13 @@ export default function AdminLoginPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'ログインに失敗しました')
+        throw new Error(data.error || 'メールアドレスまたはパスワードが正しくありません')
       }
 
       // ログイン成功
       router.push(data.redirectUrl || '/admin/dashboard')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'ログインに失敗しました')
+      setError(err instanceof Error ? err.message : 'メールアドレスまたはパスワードが正しくありません')
     } finally {
       setIsLoading(false)
     }
