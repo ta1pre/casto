@@ -5,10 +5,10 @@
  * [SF][SFT] リセットトークンを使ってパスワードを更新
  */
 
-import { useState, useEffect, FormEvent } from 'react'
+import { useState, useEffect, FormEvent, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function OrganizerResetPasswordConfirmPage() {
+function ResetPasswordConfirmContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [accessToken, setAccessToken] = useState<string | null>(null)
@@ -298,5 +298,22 @@ export default function OrganizerResetPasswordConfirmPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function OrganizerResetPasswordConfirmPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-4" />
+            <p className="text-gray-600">読み込み中...</p>
+          </div>
+        </div>
+      }
+    >
+      <ResetPasswordConfirmContent />
+    </Suspense>
   )
 }
