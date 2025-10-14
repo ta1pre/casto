@@ -2,7 +2,7 @@
 
 /**
  * ロゴアップロードコンポーネント
- * [SF][CA] 既存のPhotoUploaderパターンを踏襲
+ * [SF][CA] 円形表示 + ドラッグ&ドロップ対応
  */
 
 import { Upload, X, Loader2 } from 'lucide-react'
@@ -30,12 +30,10 @@ export function LogoUploader({
   const [uploading, setUploading] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  const validateAndUpload = async (file: File) => {
     setError(null)
 
     // ファイル形式チェック
@@ -62,6 +60,44 @@ export function LogoUploader({
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
+    }
+  }
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    await validateAndUpload(file)
+  }
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!disabled && !uploading && !deleting) {
+      setIsDragging(true)
+    }
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    if (disabled || uploading || deleting) return
+
+    const file = e.dataTransfer.files[0]
+    if (file) {
+      await validateAndUpload(file)
     }
   }
 
@@ -116,15 +152,21 @@ export function LogoUploader({
       {/* ロゴプレビューまたはアップロードボタン */}
       <div
         onClick={logoUrl ? undefined : handleClick}
-        className={`relative border-2 border-dashed rounded-lg overflow-hidden ${
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        className={`relative border-2 border-dashed rounded-full overflow-hidden transition-all ${
           logoUrl
             ? 'border-gray-300'
+            : isDragging
+            ? 'border-purple-500 bg-purple-50'
             : 'border-gray-300 hover:border-purple-400 cursor-pointer'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-        style={{ aspectRatio: '1 / 1', maxWidth: '200px' }}
+        style={{ width: '200px', height: '200px' }}
       >
         {logoUrl ? (
-          // 既存のロゴを表示
+          // 既存のロゴを表示（円形）
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={logoUrl}
@@ -133,19 +175,25 @@ export function LogoUploader({
           />
         ) : (
           // アップロードプロンプト
-          <div className="flex flex-col items-center justify-center h-full text-gray-400">
+          <div className="flex flex-col items-center justify-center h-full text-gray-400 px-4">
             {uploading ? (
               <>
                 <Loader2 className="w-8 h-8 animate-spin mb-2" />
-                <span className="text-sm">アップロード中...</span>
+                <span className="text-sm text-center">アップロード中...</span>
               </>
             ) : (
               <>
-                <Upload className="w-8 h-8 mb-2" />
-                <span className="text-sm">クリックして選択</span>
-                <span className="text-xs mt-1">
+                <div className="mb-2 p-3 rounded-full bg-gray-100">
+                  <Upload className="w-6 h-6" />
+                </div>
+                <span className="text-sm text-center font-medium">クリックまたは</span>
+                <span className="text-sm text-center font-medium">ドラッグ&ドロップ</span>
+                <span className="text-xs mt-2 text-center">
                   {LOGO_CONFIG.MAX_SIZE_MB}MB以下
                 </span>
+                <div className="mt-2 text-xs text-center text-gray-500">
+                  円形で表示されます
+                </div>
               </>
             )}
           </div>
@@ -169,7 +217,7 @@ export function LogoUploader({
 
       {/* ヒント */}
       <p className="text-xs text-gray-500 mt-1">
-        正方形の画像を推奨します
+        💡 正方形の画像を推奨します（円形表示）
       </p>
     </div>
   )

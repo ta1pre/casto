@@ -96,7 +96,7 @@ export default function OrganizerProfilePage() {
                   <img
                     src={profile.logoUrl}
                     alt="ロゴ"
-                    className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+                    className="w-32 h-32 object-cover rounded-full border-2 border-gray-200"
                   />
                 </dd>
               </div>
