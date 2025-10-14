@@ -7,9 +7,9 @@ export default function OrganizerDashboardPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* ウェルカムカード */}
-      <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl shadow-lg p-8 mb-8 text-white">
+      <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl shadow-lg p-8 mb-8 text-white">
         <h2 className="text-3xl font-bold mb-2">ようこそ！</h2>
-        <p className="text-purple-100">Casto オーディション管理システムへようこそ</p>
+        <p className="text-gray-300">Casto オーディション管理システムへようこそ</p>
       </div>
 
       {/* 統計カード */}
@@ -20,9 +20,9 @@ export default function OrganizerDashboardPage() {
               <p className="text-sm font-medium text-gray-500">開催中オーディション</p>
               <p className="text-3xl font-bold text-gray-900 mt-2">0</p>
             </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
               <svg
-                className="w-6 h-6 text-purple-600"
+                className="w-6 h-6 text-gray-900"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -97,16 +97,16 @@ export default function OrganizerDashboardPage() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">クイックアクション</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors">
+          <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors">
             <span className="text-sm font-medium text-gray-600">オーディション作成</span>
           </button>
-          <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors">
+          <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors">
             <span className="text-sm font-medium text-gray-600">応募者管理</span>
           </button>
-          <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors">
+          <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors">
             <span className="text-sm font-medium text-gray-600">メッセージ送信</span>
           </button>
-          <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors">
+          <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors">
             <span className="text-sm font-medium text-gray-600">設定</span>
           </button>
         </div>

@@ -45,11 +45,11 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
       {/* アバターボタン */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 rounded-lg p-2 hover:bg-gray-50 transition-colors"
+        className="flex items-center space-x-3 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 rounded-lg p-2 hover:bg-gray-50 transition-colors"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+        <div className="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center text-white font-semibold text-sm">
           {initials}
         </div>
         <svg
@@ -74,7 +74,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
               {user.roles.map((role) => (
                 <span
                   key={role}
-                  className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800"
+                  className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
                 >
                   {role}
                 </span>
@@ -86,7 +86,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
           <div className="py-1">
             <a
               href="/organizer/profile"
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
             >
               <div className="flex items-center">
                 <svg
@@ -108,7 +108,7 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
 
             <a
               href="/organizer/settings"
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
             >
               <div className="flex items-center">
                 <svg

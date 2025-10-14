@@ -39,7 +39,7 @@ export function OrganizerHeader({ user, onLogout }: OrganizerHeaderProps) {
           <div className="flex items-center space-x-8">
             {/* ロゴ */}
             <a href="/organizer/dashboard" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg flex items-center justify-center">
                 <svg
                   className="w-6 h-6 text-white"
                   fill="none"
@@ -68,8 +68,8 @@ export function OrganizerHeader({ user, onLogout }: OrganizerHeaderProps) {
                   href={link.href}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                     isActive(link.href)
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                      : 'text-gray-700 hover:bg-purple-50 hover:text-purple-700'
+                      ? 'bg-gray-900 text-white'
+                      : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
                   <span className="mr-2">{link.icon}</span>
@@ -84,7 +84,7 @@ export function OrganizerHeader({ user, onLogout }: OrganizerHeaderProps) {
             {/* CTAボタン */}
             <a
               href="/organizer/auditions/new"
-              className="hidden md:inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-pink-600 transition-colors"
+              className="hidden md:inline-flex items-center px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
             >
               <svg
                 className="w-4 h-4 mr-2"
@@ -151,8 +151,8 @@ export function OrganizerHeader({ user, onLogout }: OrganizerHeaderProps) {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                   isActive(link.href)
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                    : 'text-gray-700 hover:bg-purple-50'
+                    ? 'bg-gray-900 text-white'
+                    : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
                 <span className="mr-2">{link.icon}</span>
@@ -164,7 +164,7 @@ export function OrganizerHeader({ user, onLogout }: OrganizerHeaderProps) {
             <a
               href="/organizer/auditions/new"
               onClick={() => setIsMobileMenuOpen(false)}
-              className="block px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-lg text-center"
+              className="block px-4 py-3 bg-gray-900 text-white text-sm font-medium rounded-lg text-center"
             >
               <svg
                 className="w-4 h-4 inline-block mr-2"
@@ -190,7 +190,7 @@ export function OrganizerHeader({ user, onLogout }: OrganizerHeaderProps) {
                   {user.roles.map((role) => (
                     <span
                       key={role}
-                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800"
+                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800"
                     >
                       {role}
                     </span>
