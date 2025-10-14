@@ -7,7 +7,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { LoginForm } from '../_components/LoginForm'
+import { LoginForm } from '@/app/organizer/_components/LoginForm'
 
 export default function OrganizerLoginPage() {
   const router = useRouter()

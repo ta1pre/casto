@@ -7,7 +7,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { SignupForm } from '../_components/SignupForm'
+import { SignupForm } from '@/app/admin/_components/SignupForm'
 
 export default function AdminSignupPage() {
   const router = useRouter()

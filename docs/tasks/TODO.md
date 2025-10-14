@@ -63,6 +63,14 @@
 - [x] ダッシュボードページ作成（admin/dashboard, organizer/dashboard）
 - [x] Next.js 15対応（useSearchParams Suspense対応）
 
+### Phase 2.5: 主催者共通UI強化
+- [x] OrganizerHeader コンポーネント作成（基本構造・ロゴ・ナビゲーション）
+- [x] UserMenu コンポーネント作成（ユーザードロップダウン・ログアウト）
+- [x] MobileDrawer コンポーネント作成（モバイルメニュー・ハンバーガー）
+- [x] organizer/layout.tsx にヘッダー統合
+- [x] アクティブリンクのハイライト実装
+- [x] レスポンシブ対応確認（デスクトップ・タブレット・モバイル）
+
 ### Phase 3: オーディション機能（既存機能に影響なし）
 - [ ] auditionsテーブル作成
 - [ ] applicationsテーブル作成
