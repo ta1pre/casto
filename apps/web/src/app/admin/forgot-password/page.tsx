@@ -21,16 +21,28 @@ export default function AdminForgotPasswordPage() {
     setError(null)
 
     try {
-      // TODO: パスワードリセットAPI実装後に有効化
-      // 現在は仮実装（成功メッセージのみ表示）
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const response = await fetch('/api/v1/admin/auth/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+        credentials: 'include',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'パスワードリセットメールの送信に失敗しました')
+      }
+
       setSuccess(true)
       
       setTimeout(() => {
         router.push('/admin/login')
       }, 3000)
     } catch (err) {
-      setError('パスワードリセットメールの送信に失敗しました')
+      setError(err instanceof Error ? err.message : 'パスワードリセットメールの送信に失敗しました')
     } finally {
       setIsLoading(false)
     }

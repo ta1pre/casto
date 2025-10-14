@@ -10,4 +10,6 @@ export {
   signInWithEmail,
   assignRole,
   getUserRoles,
+  sendPasswordResetEmail,
+  updatePassword,
 } from '../../admin/auth/service'

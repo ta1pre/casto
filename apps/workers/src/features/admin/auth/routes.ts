@@ -5,7 +5,14 @@
 
 import { Hono } from 'hono'
 import type { AppBindings } from '../../../types'
-import { signUpWithEmail, signInWithEmail, assignRole, getUserRoles } from './service'
+import { 
+  signUpWithEmail, 
+  signInWithEmail, 
+  assignRole, 
+  getUserRoles,
+  sendPasswordResetEmail,
+  updatePassword,
+} from './service'
 import { createJWT, setAuthCookie } from '../../../lib/auth'
 import { verifyAdminAuth } from '../../../middleware/verifyRoleAuth'
 
@@ -138,6 +145,85 @@ adminAuthRoutes.get('/auth/session', verifyAdminAuth, async (c) => {
     roles,
     provider: userContext.provider,
   })
+})
+
+/**
+ * パスワードリセット要求
+ * POST /api/v1/admin/auth/reset-password
+ */
+adminAuthRoutes.post('/auth/reset-password', async (c) => {
+  try {
+    const body = await c.req.json<{ email: string }>()
+    
+    if (!body.email) {
+      return c.json({ error: 'Email is required' }, 400)
+    }
+    
+    // メールアドレスの簡易バリデーション
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(body.email)) {
+      return c.json({ error: 'Invalid email format' }, 400)
+    }
+    
+    // パスワードリセットメールを送信
+    const webUrl = c.env.WEB_URL || 'http://localhost:3000'
+    await sendPasswordResetEmail(
+      c, 
+      body.email, 
+      `${webUrl}/admin/reset-password/confirm`
+    )
+    
+    return c.json({
+      success: true,
+      message: 'Password reset email sent. Please check your inbox.',
+    })
+  } catch (error) {
+    console.error('[Admin Auth] Password reset request failed:', error)
+    // セキュリティ上、メールアドレスの存在を明かさない
+    return c.json({
+      success: true,
+      message: 'If the email exists, a password reset link has been sent.',
+    })
+  }
+})
+
+/**
+ * パスワード更新
+ * POST /api/v1/admin/auth/update-password
+ */
+adminAuthRoutes.post('/auth/update-password', async (c) => {
+  try {
+    const body = await c.req.json<{ 
+      accessToken: string
+      newPassword: string 
+    }>()
+    
+    if (!body.accessToken || !body.newPassword) {
+      return c.json({ error: 'Access token and new password are required' }, 400)
+    }
+    
+    // パスワードの強度チェック（最低8文字）
+    if (body.newPassword.length < 8) {
+      return c.json({ error: 'Password must be at least 8 characters' }, 400)
+    }
+    
+    // パスワードを更新
+    await updatePassword(c, body.accessToken, body.newPassword)
+    
+    return c.json({
+      success: true,
+      message: 'Password updated successfully',
+    })
+  } catch (error) {
+    console.error('[Admin Auth] Password update failed:', error)
+    return c.json(
+      {
+        error: 'Password update failed',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      400
+    )
+  }
 })
 
 export default adminAuthRoutes

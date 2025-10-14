@@ -47,8 +47,10 @@
 - [x] Workers: app.tsにルーティング追加
 - [x] マイグレーションファイル作成（`migrations/20251014_172328_add_roles_and_user_roles.sql`）
 - [x] マイグレーション適用完了（Supabase MCPで適用済み）
+- [x] Workers: パスワードリセットAPI実装（`/api/v1/admin/auth/reset-password`等）
+- [x] フロントエンド: パスワードリセット機能完全実装
 - [ ] Supabase Authのメール認証設定確認（Dashboard確認）
-- [ ] Workers: ロール切替API実装（`/api/v1/auth/switch-role`）
+- [ ] Workers: ロール切替API実装（`/api/v1/auth/switch-role`・オプション）
 
 ### Phase 2: フロントエンド構成の整備（既存機能に影響なし）
 - [x] 管理者ログインUI（`admin/login/page.tsx`）

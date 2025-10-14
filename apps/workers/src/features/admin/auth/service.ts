@@ -160,3 +160,57 @@ export async function getUserRoles(
     .map((item: any) => item.roles?.name)
     .filter((name): name is RoleName => !!name)
 }
+
+/**
+ * パスワードリセットメールを送信
+ * 
+ * Supabase Authのパスワードリセット機能を使用
+ */
+export async function sendPasswordResetEmail(
+  c: AppContext,
+  email: string,
+  redirectTo: string
+): Promise<void> {
+  const supabase = createSupabaseClient(c)
+  
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo,
+  })
+  
+  if (error) {
+    console.error('[sendPasswordResetEmail] Failed to send reset email:', error)
+    throw new Error(`Failed to send password reset email: ${error.message}`)
+  }
+}
+
+/**
+ * パスワードを更新
+ * 
+ * リセットトークンを使ってパスワードを更新
+ */
+export async function updatePassword(
+  c: AppContext,
+  accessToken: string,
+  newPassword: string
+): Promise<void> {
+  const supabase = createSupabaseClient(c)
+  
+  // アクセストークンでセッションを設定
+  const { error: sessionError } = await supabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: '', // リセットトークンの場合は不要
+  })
+  
+  if (sessionError) {
+    throw new Error(`Invalid session: ${sessionError.message}`)
+  }
+  
+  // パスワードを更新
+  const { error: updateError } = await supabase.auth.updateUser({
+    password: newPassword,
+  })
+  
+  if (updateError) {
+    throw new Error(`Failed to update password: ${updateError.message}`)
+  }
+}
