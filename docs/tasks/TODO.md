@@ -2,7 +2,11 @@
 
 ## 🔄 進行中
 
-（現在進行中のタスクなし）
+### フロントエンド・バックエンド構成の整理と管理者認証基盤
+- **目的**: 役割別（運営・主催者・タレント）のディレクトリ構成を整備し、管理者認証を実装
+- **作業中**: 構成案の策定とタスク分解完了
+- **参照**: `docs/tasks/DIRECTORY_STRUCTURE.md`
+- **重要**: 既存のLIFF機能には一切影響しません。新規機能の追加のみです。
 
 ## ✅ 完了
 
@@ -33,15 +37,55 @@
 
 ## 📋 今後の予定
 
-### オーディション機能
-- オーディション一覧表示
-- オーディション詳細ページ
-- 応募機能
+### Phase 1: データベース・認証基盤の整備（既存機能に影響なし）
+- [x] rolesテーブル作成（admin, organizer, talent, fan）
+- [x] user_rolesテーブル作成（多対多の中間テーブル）
+- [x] packages/shared: ロール関連の型・ユーティリティ追加
+- [x] Workers: 認証ミドルウェア作成（verifyAdminAuth, verifyOrganizerAuth等）
+- [x] Workers: 管理者認証API実装（`features/admin/auth/`）
+- [x] Workers: 主催者認証API実装（`features/organizer/auth/`）
+- [x] Workers: app.tsにルーティング追加
+- [x] マイグレーションファイル作成（`migrations/20251014_172328_add_roles_and_user_roles.sql`）
+- [x] マイグレーション適用完了（Supabase MCPで適用済み）
+- [ ] Supabase Authのメール認証設定確認（Dashboard確認）
+- [ ] Workers: ロール切替API実装（`/api/v1/auth/switch-role`）
 
-### プロフィール機能拡張
-- タレントプロフィール詳細編集
-- メディアアップロード機能
+### Phase 2: フロントエンド構成の整備（既存機能に影響なし）
+- [x] 管理者ログインUI（`admin/login/page.tsx`）
+- [x] 主催者ログインUI（`organizer/login/page.tsx`）
+- [x] 共通ログインフォームコンポーネント（`admin/_components/LoginForm.tsx`）
+- [ ] 共通レイアウト・認証ガード実装
+- [ ] useAdminAuth, useOrganizerAuth フック実装
+- [ ] ダッシュボードページ作成（admin/dashboard, organizer/dashboard）
+
+### Phase 3: オーディション機能（既存機能に影響なし）
+- [ ] auditionsテーブル作成
+- [ ] applicationsテーブル作成
+- [ ] 主催者: オーディションCRUD API
+- [ ] 主催者: オーディション管理UI
+- [ ] タレント: オーディション一覧・詳細・応募UI
+
+### Phase 4: クラウドファンディング機能
+- [ ] campaignsテーブル設計
+- [ ] 主催者: クラファン管理UI
+- [ ] 公開: クラファン一覧・詳細ページ
+
+### Phase 5: メディアアップロード機能
+- [ ] Supabase Storage設定
+- [ ] アップロードAPI実装
+- [ ] プロフィール写真・動画統合
+
+### Phase 6: ディレクトリリファクタリング（最後に実施・慎重に）
+- [ ] `(public)/`グループ作成
+- [ ] インポートパス修正
+- [ ] 動作確認
 
 ---
 
-**最終更新**: 2025-10-05
+## 📂 関連ドキュメント
+- [ディレクトリ構成詳細](./DIRECTORY_STRUCTURE.md)
+- [アーキテクチャ](../ARCHITECTURE.md)
+
+---
+
+**最終更新**: 2025-10-14

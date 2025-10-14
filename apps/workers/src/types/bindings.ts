@@ -10,6 +10,7 @@ export type Bindings = {
   STRIPE_SECRET_KEY?: string
   ENVIRONMENT?: string
   ALLOWED_ORIGINS?: string
+  WEB_URL?: string
   CACHE?: KVNamespace
   NOTIFICATION_QUEUE?: Queue
   TALENT_PHOTOS?: R2Bucket

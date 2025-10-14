@@ -10,11 +10,15 @@
 # schema/*.sql を編集した後に差分を生成
 cd supabase
 ./sync
+
+# マイグレーションを本番環境に適用（手動）
+supabase db push --linked
 ```
 
 - `schema/` でテーブル定義を編集し、`schema.sql` は自動生成物として直接編集しません。[SF][PEC]
 - 新しい `supabase/migrations/*.sql` が生成された場合は内容をレビューしてコミットします。[CA]
-- 詳細手順は [`docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md`](./docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md) を参照してください。[SD]
+- **マイグレーションは手動で適用する必要があります。** GitHub Actionsでは自動適用されません。
+- 詳細手順は [`docs/setup/MANUAL_MIGRATION.md`](./docs/setup/MANUAL_MIGRATION.md) を参照してください。[SD]
 
 <details>
 <summary>手動セットアップ（クリックして展開）</summary>
