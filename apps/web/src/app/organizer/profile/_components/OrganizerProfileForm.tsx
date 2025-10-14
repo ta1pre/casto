@@ -15,12 +15,14 @@ interface OrganizerProfileFormProps {
   profile: OrganizerProfile | null
   onSubmit: (data: OrganizerProfileUpsertRequest) => Promise<void>
   isLoading?: boolean
+  onLogoChange?: () => Promise<void>
 }
 
 export function OrganizerProfileForm({
   profile,
   onSubmit,
   isLoading = false,
+  onLogoChange,
 }: OrganizerProfileFormProps) {
   const [formData, setFormData] = useState<OrganizerProfileUpsertRequest>({
     name: '',
@@ -104,6 +106,11 @@ export function OrganizerProfileForm({
 
       const data = await response.json()
       setFormData((prev) => ({ ...prev, logoUrl: data.url }))
+      
+      // プロフィールを再取得してDBの最新URLを反映
+      if (onLogoChange) {
+        await onLogoChange()
+      }
     } finally {
       setLogoUploading(false)
     }
@@ -123,6 +130,11 @@ export function OrganizerProfileForm({
       }
 
       setFormData((prev) => ({ ...prev, logoUrl: '' }))
+      
+      // プロフィールを再取得してDBの最新状態を反映
+      if (onLogoChange) {
+        await onLogoChange()
+      }
     } finally {
       setLogoUploading(false)
     }

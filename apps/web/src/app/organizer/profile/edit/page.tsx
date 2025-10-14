@@ -13,7 +13,7 @@ import type { OrganizerProfileUpsertRequest } from '@casto/shared'
 
 export default function OrganizerProfileEditPage() {
   const router = useRouter()
-  const { profile, isLoading, updateProfile } = useOrganizerProfile()
+  const { profile, isLoading, updateProfile, refetch } = useOrganizerProfile()
   const [successMessage, setSuccessMessage] = useState('')
 
   const handleSubmit = async (data: OrganizerProfileUpsertRequest) => {
@@ -67,6 +67,7 @@ export default function OrganizerProfileEditPage() {
           profile={profile}
           onSubmit={handleSubmit}
           isLoading={isLoading}
+          onLogoChange={refetch}
         />
       </div>
     </div>

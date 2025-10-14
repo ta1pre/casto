@@ -85,10 +85,11 @@ logoRoutes.delete('/', async (c) => {
 
     // データベースを更新
     const supabase = createSupabaseClient(c)
-    await deleteLogoUrlFromDB(supabase, user.id)
+    const logoUrl = await deleteLogoUrlFromDB(supabase, user.id)
 
     return c.json({
       success: true,
+      logoUrl,
       message: 'ロゴを削除しました'
     }, 200)
   } catch (error) {
@@ -113,6 +114,9 @@ logoRoutes.get('/view/:organizerId', async (c) => {
     }
 
     const organizerId = c.req.param('organizerId')
+    
+    // クエリパラメータでバージョンを取得（キャッシュバスティング用）
+    const version = c.req.query('v')
 
     // 可能性のある拡張子を試す
     const extensions = ['.jpg', '.jpeg', '.png', '.webp']
@@ -122,11 +126,17 @@ logoRoutes.get('/view/:organizerId', async (c) => {
       const object = await r2Bucket.get(filename)
       
       if (object) {
+        // キャッシュ戦略: バージョンパラメータがあれば長期キャッシュ、なければ短期
+        const cacheControl = version 
+          ? 'public, max-age=31536000, immutable' // 1年キャッシュ（バージョン付き）
+          : 'public, max-age=300' // 5分キャッシュ（バージョンなし）
+        
         // 画像を返す
         return new Response(object.body, {
           headers: {
             'Content-Type': object.httpMetadata?.contentType || 'image/jpeg',
-            'Cache-Control': 'public, max-age=31536000', // 1年キャッシュ
+            'Cache-Control': cacheControl,
+            'ETag': `"${organizerId}-${ext}-${version || 'latest'}"`,
           },
         })
       }

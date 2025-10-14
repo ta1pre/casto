@@ -21,6 +21,9 @@ export async function uploadLogoToR2(
     throw new Error(validation.errors[0]?.message || 'Invalid logo')
   }
 
+  // 既存のロゴをすべて削除（上書き前のクリーンアップ）
+  await deleteLogoFromR2(r2Bucket, organizerId)
+
   // ファイル名生成（organizersディレクトリ配下）
   const filename = `organizers/${organizerId}/logo${getExtension(file.type)}`
 
@@ -32,8 +35,9 @@ export async function uploadLogoToR2(
     },
   })
 
-  // Workers経由の公開URL
-  const publicUrl = `/api/v1/organizer/profile/logo/view/${organizerId}`
+  // Workers経由の公開URL（キャッシュバスティング用のタイムスタンプ付き）
+  const timestamp = Date.now()
+  const publicUrl = `/api/v1/organizer/profile/logo/view/${organizerId}?v=${timestamp}`
 
   return publicUrl
 }
@@ -87,15 +91,19 @@ export async function updateLogoUrlInDB(
 export async function deleteLogoUrlFromDB(
   supabase: SupabaseClient,
   organizerId: string
-): Promise<void> {
-  const { error } = await supabase
+): Promise<string | null> {
+  const { data, error } = await supabase
     .from('organizer_profiles')
     .update({ logo_url: null })
     .eq('organizer_id', organizerId)
+    .select('logo_url')
+    .single()
 
   if (error) {
     throw new Error(`Failed to delete logo_url: ${error.message}`)
   }
+
+  return data.logo_url
 }
 
 /**
