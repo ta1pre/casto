@@ -79,10 +79,18 @@ export default function OrganizerLoginPage() {
           <LoginForm onSubmit={handleLogin} isLoading={isLoading} />
 
           {/* フッター */}
-          <div className="mt-6 text-center">
-            <p className="text-xs text-gray-500">
-              アカウント作成をご希望の場合は、お問い合わせください
-            </p>
+          <div className="mt-6 text-center space-y-3">
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-px bg-gray-300 flex-1" />
+              <span className="text-xs text-gray-500">または</span>
+              <div className="h-px bg-gray-300 flex-1" />
+            </div>
+            <a
+              href="./signup"
+              className="block text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+            >
+              新規アカウント作成
+            </a>
           </div>
         </div>
       </div>

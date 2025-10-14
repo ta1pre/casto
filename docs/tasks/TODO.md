@@ -54,6 +54,8 @@
 - [x] 管理者ログインUI（`admin/login/page.tsx`）
 - [x] 主催者ログインUI（`organizer/login/page.tsx`）
 - [x] 共通ログインフォームコンポーネント（`admin/_components/LoginForm.tsx`）
+- [x] 新規アカウント作成UI（`admin/signup/page.tsx`, `organizer/signup/page.tsx`）
+- [x] パスワードリセットUI（`admin/forgot-password/page.tsx`, `organizer/forgot-password/page.tsx`）
 - [ ] 共通レイアウト・認証ガード実装
 - [ ] useAdminAuth, useOrganizerAuth フック実装
 - [ ] ダッシュボードページ作成（admin/dashboard, organizer/dashboard）

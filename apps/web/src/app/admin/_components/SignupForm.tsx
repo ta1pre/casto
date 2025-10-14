@@ -1,25 +1,45 @@
 'use client'
 
 /**
- * ログインフォームコンポーネント
+ * サインアップフォームコンポーネント
  * [SF][DRY] admin/organizerで共通利用
  */
 
 import { useState, FormEvent } from 'react'
 
-interface LoginFormProps {
-  onSubmit: (email: string, password: string) => Promise<void>
+interface SignupFormProps {
+  onSubmit: (email: string, password: string, confirmPassword: string) => Promise<void>
   isLoading: boolean
 }
 
-export function LoginForm({ onSubmit, isLoading }: LoginFormProps) {
+export function SignupForm({ onSubmit, isLoading }: SignupFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+
+  const validatePassword = (pwd: string, confirm: string) => {
+    if (pwd.length < 8) {
+      setPasswordError('パスワードは8文字以上で入力してください')
+      return false
+    }
+    if (pwd !== confirm) {
+      setPasswordError('パスワードが一致しません')
+      return false
+    }
+    setPasswordError(null)
+    return true
+  }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    await onSubmit(email, password)
+    
+    if (!validatePassword(password, confirmPassword)) {
+      return
+    }
+    
+    await onSubmit(email, password, confirmPassword)
   }
 
   return (
@@ -51,12 +71,17 @@ export function LoginForm({ onSubmit, isLoading }: LoginFormProps) {
             id="password"
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value)
+              if (confirmPassword) {
+                validatePassword(e.target.value, confirmPassword)
+              }
+            }}
             required
             disabled={isLoading}
             minLength={8}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:bg-gray-50 disabled:text-gray-500"
-            placeholder="••••••••"
+            placeholder="8文字以上"
           />
           <button
             type="button"
@@ -91,12 +116,41 @@ export function LoginForm({ onSubmit, isLoading }: LoginFormProps) {
             )}
           </button>
         </div>
+        <p className="text-xs text-gray-500 mt-1">
+          ※ 半角英数字を含む8文字以上で設定してください
+        </p>
       </div>
 
-      {/* ログインボタン */}
+      {/* パスワード確認 */}
+      <div>
+        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+          パスワード（確認）
+        </label>
+        <input
+          id="confirmPassword"
+          type={showPassword ? 'text' : 'password'}
+          value={confirmPassword}
+          onChange={(e) => {
+            setConfirmPassword(e.target.value)
+            if (password) {
+              validatePassword(password, e.target.value)
+            }
+          }}
+          required
+          disabled={isLoading}
+          minLength={8}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:bg-gray-50 disabled:text-gray-500"
+          placeholder="もう一度入力してください"
+        />
+        {passwordError && (
+          <p className="text-xs text-red-600 mt-1">{passwordError}</p>
+        )}
+      </div>
+
+      {/* サインアップボタン */}
       <button
         type="submit"
-        disabled={isLoading}
+        disabled={isLoading || !!passwordError}
         className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium py-3 px-4 rounded-lg hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
       >
         {isLoading ? (
@@ -121,22 +175,12 @@ export function LoginForm({ onSubmit, isLoading }: LoginFormProps) {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            ログイン中...
+            アカウント作成中...
           </>
         ) : (
-          'ログイン'
+          'アカウントを作成'
         )}
       </button>
-
-      {/* パスワードリセットリンク */}
-      <div className="text-center">
-        <a
-          href="./forgot-password"
-          className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
-        >
-          パスワードを忘れた方はこちら
-        </a>
-      </div>
     </form>
   )
 }
