@@ -102,7 +102,9 @@ export default function OrganizerProfilePage() {
 
             <div>
               <dt className="text-sm font-medium text-gray-500">住所</dt>
-              <dd className="mt-1 text-gray-900">{profile.address}</dd>
+              <dd className="mt-1 text-gray-900">
+                {profile.prefecture} {profile.addressDetail}
+              </dd>
             </div>
 
             <div>

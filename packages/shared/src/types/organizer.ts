@@ -4,6 +4,24 @@
  */
 
 /**
+ * 日本の都道府県リスト
+ */
+export const PREFECTURES = [
+  '北海道',
+  '青森県', '岩手県', '宮城県', '秋田県', '山形県', '福島県',
+  '茨城県', '栃木県', '群馬県', '埼玉県', '千葉県', '東京都', '神奈川県',
+  '新潟県', '富山県', '石川県', '福井県', '山梨県', '長野県',
+  '岐阜県', '静岡県', '愛知県', '三重県',
+  '滋賀県', '京都府', '大阪府', '兵庫県', '奈良県', '和歌山県',
+  '鳥取県', '島根県', '岡山県', '広島県', '山口県',
+  '徳島県', '香川県', '愛媛県', '高知県',
+  '福岡県', '佐賀県', '長崎県', '熊本県', '大分県', '宮崎県', '鹿児島県',
+  '沖縄県',
+] as const
+
+export type Prefecture = typeof PREFECTURES[number]
+
+/**
  * Supabaseから取得する主催者プロフィールの生データ
  */
 export interface SupabaseOrganizerProfileRow {
@@ -12,7 +30,8 @@ export interface SupabaseOrganizerProfileRow {
   logo_url?: string | null
   name: string
   contact_person?: string | null
-  address: string
+  prefecture: string
+  address_detail: string
   phone: string
   email?: string | null
   website?: string | null
@@ -35,7 +54,8 @@ export interface OrganizerProfile {
   logoUrl: string | null
   name: string
   contactPerson: string | null
-  address: string
+  prefecture: string
+  addressDetail: string
   phone: string
   email: string | null
   website: string | null
@@ -56,7 +76,8 @@ export interface OrganizerProfileUpsertRequest {
   logoUrl?: string | null
   name: string
   contactPerson?: string | null
-  address: string
+  prefecture: string
+  addressDetail: string
   phone: string
   email?: string | null
   website?: string | null
@@ -111,7 +132,7 @@ export const ORGANIZER_PROFILE_CONFIG = {
   DESCRIPTION_MAX_LENGTH: 1000,
   NAME_MAX_LENGTH: 100,
   CONTACT_PERSON_MAX_LENGTH: 50,
-  ADDRESS_MAX_LENGTH: 200,
+  ADDRESS_DETAIL_MAX_LENGTH: 200,
   PHONE_PATTERN: /^[0-9\-+() ]+$/,
   URL_PATTERN: /^https?:\/\/.+/,
   EMAIL_PATTERN: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,

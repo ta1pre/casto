@@ -5,18 +5,23 @@ CREATE TABLE IF NOT EXISTS public.organizer_profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organizer_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   logo_url TEXT,
+  -- 基本情報
   name TEXT NOT NULL,
   contact_person TEXT,
-  address TEXT NOT NULL,
+  prefecture TEXT NOT NULL,
+  address_detail TEXT NOT NULL,
   phone TEXT NOT NULL,
   email TEXT,
   website TEXT,
   description TEXT NOT NULL,
+  -- SNSリンク
   instagram_url TEXT,
   x_url TEXT,
   tiktok_url TEXT,
   youtube_url TEXT,
+  -- 公開フラグ
   is_active BOOLEAN NOT NULL DEFAULT false,
+  -- 監査情報
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT unique_organizer_id UNIQUE (organizer_id)

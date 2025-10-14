@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react'
 import type { OrganizerProfile, OrganizerProfileUpsertRequest } from '@casto/shared'
-import { validateOrganizerProfile } from '@casto/shared/validators'
+import { validateOrganizerProfile, PREFECTURES } from '@casto/shared/validators'
 
 interface OrganizerProfileFormProps {
   profile: OrganizerProfile | null
@@ -22,7 +22,8 @@ export function OrganizerProfileForm({
 }: OrganizerProfileFormProps) {
   const [formData, setFormData] = useState<OrganizerProfileUpsertRequest>({
     name: '',
-    address: '',
+    prefecture: '',
+    addressDetail: '',
     phone: '',
     description: '',
     contactPerson: '',
@@ -43,7 +44,8 @@ export function OrganizerProfileForm({
     if (profile) {
       setFormData({
         name: profile.name,
-        address: profile.address,
+        prefecture: profile.prefecture,
+        addressDetail: profile.addressDetail,
         phone: profile.phone,
         description: profile.description,
         contactPerson: profile.contactPerson ?? '',
@@ -60,7 +62,7 @@ export function OrganizerProfileForm({
   }, [profile])
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target
     const checked = (e.target as HTMLInputElement).checked
@@ -151,22 +153,45 @@ export function OrganizerProfileForm({
             )}
           </div>
 
-          {/* 住所 */}
+          {/* 都道府県 */}
           <div>
-            <label htmlFor="address" className={labelClassName}>
-              住所 <span className="text-red-500">*</span>
+            <label htmlFor="prefecture" className={labelClassName}>
+              都道府県 <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="prefecture"
+              name="prefecture"
+              value={formData.prefecture}
+              onChange={handleChange}
+              className={inputClassName}
+              required
+            >
+              <option value="">選択してください</option>
+              {PREFECTURES.map((pref) => (
+                <option key={pref} value={pref}>
+                  {pref}
+                </option>
+              ))}
+            </select>
+            {errors.prefecture && <p className={errorClassName}>{errors.prefecture}</p>}
+          </div>
+
+          {/* 市区町村以降の住所 */}
+          <div>
+            <label htmlFor="addressDetail" className={labelClassName}>
+              市区町村以降の住所 <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              id="address"
-              name="address"
-              value={formData.address}
+              id="addressDetail"
+              name="addressDetail"
+              value={formData.addressDetail}
               onChange={handleChange}
               className={inputClassName}
-              placeholder="都道府県＋市区町村まででOK"
+              placeholder="例: 渋谷区神南1-2-3"
               required
             />
-            {errors.address && <p className={errorClassName}>{errors.address}</p>}
+            {errors.addressDetail && <p className={errorClassName}>{errors.addressDetail}</p>}
           </div>
 
           {/* 電話番号 */}

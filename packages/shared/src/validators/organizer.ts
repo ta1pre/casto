@@ -8,7 +8,7 @@ import type {
   OrganizerProfileValidationError,
   OrganizerProfileValidationResult,
 } from '../types/organizer'
-import { ORGANIZER_PROFILE_CONFIG } from '../types/organizer'
+import { ORGANIZER_PROFILE_CONFIG, PREFECTURES } from '../types/organizer'
 
 /**
  * 団体名のバリデーション
@@ -53,21 +53,44 @@ export function validateContactPerson(
 }
 
 /**
- * 住所のバリデーション
+ * 都道府県のバリデーション
  */
-export function validateAddress(address: string): OrganizerProfileValidationError | null {
-  if (!address || address.trim().length === 0) {
+export function validatePrefecture(prefecture: string): OrganizerProfileValidationError | null {
+  if (!prefecture || prefecture.trim().length === 0) {
     return {
-      field: 'address',
-      message: '住所は必須です。',
+      field: 'prefecture',
+      message: '都道府県は必須です。',
       code: 'REQUIRED',
     }
   }
 
-  if (address.length > ORGANIZER_PROFILE_CONFIG.ADDRESS_MAX_LENGTH) {
+  if (!PREFECTURES.includes(prefecture as any)) {
     return {
-      field: 'address',
-      message: `住所は${ORGANIZER_PROFILE_CONFIG.ADDRESS_MAX_LENGTH}文字以内で入力してください。`,
+      field: 'prefecture',
+      message: '有効な都道府県を選択してください。',
+      code: 'INVALID_VALUE',
+    }
+  }
+
+  return null
+}
+
+/**
+ * 住所詳細のバリデーション
+ */
+export function validateAddressDetail(addressDetail: string): OrganizerProfileValidationError | null {
+  if (!addressDetail || addressDetail.trim().length === 0) {
+    return {
+      field: 'addressDetail',
+      message: '市区町村以降の住所は必須です。',
+      code: 'REQUIRED',
+    }
+  }
+
+  if (addressDetail.length > ORGANIZER_PROFILE_CONFIG.ADDRESS_DETAIL_MAX_LENGTH) {
+    return {
+      field: 'addressDetail',
+      message: `住所は${ORGANIZER_PROFILE_CONFIG.ADDRESS_DETAIL_MAX_LENGTH}文字以内で入力してください。`,
       code: 'TOO_LONG',
     }
   }
@@ -178,8 +201,11 @@ export function validateOrganizerProfile(
   const nameError = validateName(data.name)
   if (nameError) errors.push(nameError)
 
-  const addressError = validateAddress(data.address)
-  if (addressError) errors.push(addressError)
+  const prefectureError = validatePrefecture(data.prefecture)
+  if (prefectureError) errors.push(prefectureError)
+
+  const addressDetailError = validateAddressDetail(data.addressDetail)
+  if (addressDetailError) errors.push(addressDetailError)
 
   const phoneError = validatePhone(data.phone)
   if (phoneError) errors.push(phoneError)
