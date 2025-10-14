@@ -8,6 +8,8 @@
 import { useState, useEffect } from 'react'
 import type { OrganizerProfile, OrganizerProfileUpsertRequest } from '@casto/shared'
 import { validateOrganizerProfile, PREFECTURES } from '@casto/shared/validators'
+import { LogoUploader } from './LogoUploader'
+import { resolveApiUrl } from '@/shared/lib/api'
 
 interface OrganizerProfileFormProps {
   profile: OrganizerProfile | null
@@ -39,6 +41,7 @@ export function OrganizerProfileForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [logoUploading, setLogoUploading] = useState(false)
 
   useEffect(() => {
     if (profile) {
@@ -82,6 +85,49 @@ export function OrganizerProfileForm({
     }
   }
 
+  const handleLogoUpload = async (file: File) => {
+    setLogoUploading(true)
+    try {
+      const formDataPayload = new FormData()
+      formDataPayload.append('file', file)
+
+      const response = await fetch(resolveApiUrl('/api/v1/organizer/profile/logo/upload'), {
+        method: 'POST',
+        credentials: 'include',
+        body: formDataPayload,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'アップロードに失敗しました')
+      }
+
+      const data = await response.json()
+      setFormData((prev) => ({ ...prev, logoUrl: data.url }))
+    } finally {
+      setLogoUploading(false)
+    }
+  }
+
+  const handleLogoDelete = async () => {
+    setLogoUploading(true)
+    try {
+      const response = await fetch(resolveApiUrl('/api/v1/organizer/profile/logo'), {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '削除に失敗しました')
+      }
+
+      setFormData((prev) => ({ ...prev, logoUrl: '' }))
+    } finally {
+      setLogoUploading(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -118,6 +164,14 @@ export function OrganizerProfileForm({
         <h2 className="text-xl font-bold text-gray-900 mb-4">🏢 基本情報</h2>
 
         <div className="space-y-4">
+          {/* ロゴ画像 */}
+          <LogoUploader
+            logoUrl={formData.logoUrl}
+            onUpload={handleLogoUpload}
+            onDelete={handleLogoDelete}
+            disabled={logoUploading || isSubmitting}
+          />
+
           {/* 団体名 */}
           <div>
             <label htmlFor="name" className={labelClassName}>

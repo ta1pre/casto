@@ -13,8 +13,12 @@ import {
 } from './service'
 import { validateOrganizerProfile } from '@casto/shared/validators'
 import type { OrganizerProfileUpsertRequest } from '@casto/shared'
+import logoRoutes from './logo.routes'
 
 const organizerProfileRoutes = new Hono<AppBindings>()
+
+// ロゴアップロードルート
+organizerProfileRoutes.route('/profile/logo', logoRoutes)
 
 /**
  * プロフィール取得

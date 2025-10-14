@@ -88,6 +88,20 @@ export default function OrganizerProfilePage() {
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4">🏢 基本情報</h2>
           <dl className="space-y-4">
+            {profile.logoUrl && (
+              <div>
+                <dt className="text-sm font-medium text-gray-500 mb-2">ロゴ</dt>
+                <dd>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={profile.logoUrl}
+                    alt="ロゴ"
+                    className="w-32 h-32 object-cover rounded-lg border border-gray-200"
+                  />
+                </dd>
+              </div>
+            )}
+
             <div>
               <dt className="text-sm font-medium text-gray-500">団体名 / 社名</dt>
               <dd className="mt-1 text-lg text-gray-900">{profile.name}</dd>
