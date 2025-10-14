@@ -58,9 +58,9 @@
 - [x] 共通ログインフォームコンポーネント（`admin/_components/LoginForm.tsx`）
 - [x] 新規アカウント作成UI（`admin/signup/page.tsx`, `organizer/signup/page.tsx`）
 - [x] パスワードリセットUI（`admin/forgot-password/page.tsx`, `organizer/forgot-password/page.tsx`）
-- [ ] 共通レイアウト・認証ガード実装
-- [ ] useAdminAuth, useOrganizerAuth フック実装
-- [ ] ダッシュボードページ作成（admin/dashboard, organizer/dashboard）
+- [x] 共通レイアウト実装（`admin/layout.tsx`, `organizer/layout.tsx`）
+- [x] useAdminAuth, useOrganizerAuth フック実装（認証ガード付き）
+- [x] ダッシュボードページ作成（admin/dashboard, organizer/dashboard）
 
 ### Phase 3: オーディション機能（既存機能に影響なし）
 - [ ] auditionsテーブル作成
