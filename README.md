@@ -4,39 +4,32 @@
 
 ## 🚀 クイックスタート
 
-### Supabase スキーマ更新
+### データベーススキーマ更新
+
+**必読:** [`docs/DATABASE_MANAGEMENT.md`](./docs/DATABASE_MANAGEMENT.md)
 
 ```bash
-# schema/*.sql を編集した後に差分を生成
-cd supabase
-./sync
+# 1. 新しいマイグレーション作成
+supabase migration new add_feature_name
 
-# マイグレーションを本番環境に適用（手動）
-supabase db push --linked
+# 2. マイグレーションファイル編集
+vim supabase/migrations/YYYYMMDDHHMMSS_add_feature_name.sql
+
+# 3. 整合性確認
+supabase migration list
+
+# 4. リモートに適用
+supabase db push
+
+# 5. Workers再デプロイ（スキーマキャッシュ更新）
+cd apps/workers
+npx wrangler deploy --env development
 ```
 
-- `schema/` でテーブル定義を編集し、`schema.sql` は自動生成物として直接編集しません。[SF][PEC]
-- 新しい `supabase/migrations/*.sql` が生成された場合は内容をレビューしてコミットします。[CA]
-- **マイグレーションは手動で適用する必要があります。** GitHub Actionsでは自動適用されません。
-- 詳細手順は [`docs/setup/MANUAL_MIGRATION.md`](./docs/setup/MANUAL_MIGRATION.md) を参照してください。[SD]
-
-<details>
-<summary>手動セットアップ（クリックして展開）</summary>
-
-```bash
-# 1. ログイン
-supabase login
-
-# 2. リンク（Project Refは Supabase Dashboard → Settings → General から取得）
-supabase link --project-ref <YOUR_PROJECT_REF>
-
-# 3. マイグレーション適用
-supabase db push --linked
-```
-
-</details>
-
-👉 **詳細:** [Supabase スキーマ運用ガイド](./docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md)
+**重要ルール:**
+- マイグレーションには必ず `DROP ... IF EXISTS` を使用
+- デプロイ前に `supabase migration list` で整合性確認
+- Workers再デプロイでスキーマキャッシュをリフレッシュ
 
 ### ローカル開発
 
@@ -62,22 +55,27 @@ docker compose up -d casto
 
 ## 🧭 開発の道しるべ
 
-- **テーブル追加・スキーマ変更**: `supabase/schema/` を編集し、`./supabase/sync` を実行 → 生成されたマイグレーションをレビュー → [`docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md`](./docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md)。
-- **Workers 機能追加**: `apps/workers/src/features/` に機能ディレクトリを作成し、構成は [`docs/setup/WORKERS_STRUCTURE.md`](./docs/setup/WORKERS_STRUCTURE.md) を参照。API のレスポンス設計は `apps/web/src/app/test/` をリファレンスに統一します。
-- **Web UI 追加**: `apps/web/src/app/` へページ・コンポーネントを配置し、データ連携は `apps/web/src/app/test/` のテストハーネスを参考に共通型を利用します。
-- **タスク着手前**: `docs/tasks/TODO.md` を更新し、完了後はチェックを付けて履歴を残します。
+- **テーブル追加・スキーマ変更**: `supabase migration new` でマイグレーション作成 → DDL記述（`DROP ... IF EXISTS`必須） → `supabase db push` → Workers再デプロイ → [`docs/DATABASE_MANAGEMENT.md`](./docs/DATABASE_MANAGEMENT.md)
+- **Workers 機能追加**: `apps/workers/src/features/` に機能ディレクトリを作成 → [`docs/setup/WORKERS_STRUCTURE.md`](./docs/setup/WORKERS_STRUCTURE.md)
+- **Web UI 追加**: `apps/web/src/app/` へページ・コンポーネントを配置 → API呼び出し実装
+- **タスク管理**: `docs/tasks/TODO.md` を更新、完了後はチェック
 
 ---
 
 ## 📖 ドキュメント
 
+### 必読
+- **[docs/DATABASE_MANAGEMENT.md](./docs/DATABASE_MANAGEMENT.md)** - データベース管理標準手順
+- **[docs/CRITICAL_RULES.md](./docs/CRITICAL_RULES.md)** - 重要な開発ルール
+- **[docs/README.md](./docs/README.md)** - ドキュメント全体の目次
+
 ### 開発準備
-- Supabase: [`docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md`](./docs/setup/SUPABASE_SCHEMA_MANAGEMENT.md)
 - ローカル開発: [`docs/setup/LOCAL_DEVELOPMENT.md`](./docs/setup/LOCAL_DEVELOPMENT.md)
+- Supabase認証: [`docs/setup/SUPABASE_AUTH_SETUP.md`](./docs/setup/SUPABASE_AUTH_SETUP.md)
 
 ### 実装リファレンス
-- Workers API 構成: [`docs/setup/WORKERS_STRUCTURE.md`](./docs/setup/WORKERS_STRUCTURE.md)
-- Web / テストハーネス: `apps/web/src/app/test/`（API レスポンスと UI のサンプル）
+- Workers API: [`docs/setup/WORKERS_STRUCTURE.md`](./docs/setup/WORKERS_STRUCTURE.md)
+- アーキテクチャ: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
 
 ### タスク管理
 - [`docs/tasks/TODO.md`](./docs/tasks/TODO.md)

@@ -2,6 +2,7 @@
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
 -- Service Role (Workers API) only access policy
+DROP POLICY IF EXISTS "Service role only access" ON users;
 CREATE POLICY "Service role only access"
   ON users
   FOR ALL
