@@ -6,6 +6,7 @@
  */
 
 import { ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
 import { useOrganizerAuth } from '../_hooks/useOrganizerAuth'
 import { OrganizerHeader } from './OrganizerHeader'
 
@@ -13,8 +14,18 @@ interface OrganizerLayoutProps {
   children: ReactNode
 }
 
+// 認証不要なパス
+const PUBLIC_PATHS = ['/organizer/login', '/organizer/signup', '/organizer/forgot-password', '/organizer/reset-password']
+
 export function OrganizerLayout({ children }: OrganizerLayoutProps) {
+  const pathname = usePathname()
+  const isPublicPath = PUBLIC_PATHS.some(path => pathname.startsWith(path))
   const { user, isLoading, logout } = useOrganizerAuth()
+
+  // 認証不要なページはそのまま表示
+  if (isPublicPath) {
+    return <div className="min-h-screen bg-gray-50">{children}</div>
+  }
 
   // 認証チェック中、または認証されていない場合はローディング表示
   if (isLoading || !user) {
