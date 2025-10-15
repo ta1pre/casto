@@ -16,6 +16,7 @@ export default function AuditionsPage() {
 
   useEffect(() => {
     fetchAuditions()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter])
 
   const fetchAuditions = async () => {

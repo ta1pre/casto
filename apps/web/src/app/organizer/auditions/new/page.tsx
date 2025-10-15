@@ -88,7 +88,7 @@ export default function NewAuditionPage() {
       } else {
         if (data.errors) {
           const errorMap: Record<string, string> = {}
-          data.errors.forEach((err: any) => {
+          data.errors.forEach((err: { path?: string[]; message: string }) => {
             errorMap[err.path?.[0] || 'general'] = err.message
           })
           setErrors(errorMap)

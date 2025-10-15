@@ -18,6 +18,7 @@ export default function ApplicationsPage({ params }: { params: { id: string } })
   useEffect(() => {
     fetchAudition()
     fetchApplications()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id, filter])
 
   const fetchAudition = async () => {

@@ -3,6 +3,8 @@
  * [SF] シンプルな動作確認用ダッシュボード
  */
 
+import Link from 'next/link'
+
 export default function OrganizerDashboardPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -97,27 +99,27 @@ export default function OrganizerDashboardPage() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">クイックアクション</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <a
+          <Link
             href="/organizer/auditions/new"
             className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors"
           >
             <span className="text-sm font-medium text-gray-600">オーディション作成</span>
-          </a>
-          <a
+          </Link>
+          <Link
             href="/organizer/auditions"
             className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors"
           >
             <span className="text-sm font-medium text-gray-600">オーディション管理</span>
-          </a>
+          </Link>
           <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors">
             <span className="text-sm font-medium text-gray-600">メッセージ送信</span>
           </button>
-          <a
+          <Link
             href="/organizer/profile"
             className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors"
           >
             <span className="text-sm font-medium text-gray-600">プロフィール設定</span>
-          </a>
+          </Link>
         </div>
       </div>
     </div>

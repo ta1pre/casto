@@ -7,6 +7,7 @@
 
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { UserMenu } from './UserMenu'
 
 interface OrganizerHeaderProps {
@@ -82,7 +83,7 @@ export function OrganizerHeader({ user, onLogout }: OrganizerHeaderProps) {
           {/* 右側：CTAボタン + ユーザーメニュー */}
           <div className="flex items-center space-x-4">
             {/* CTAボタン */}
-            <a
+            <Link
               href="/organizer/auditions/new"
               className="hidden md:inline-flex items-center px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
             >
@@ -100,7 +101,7 @@ export function OrganizerHeader({ user, onLogout }: OrganizerHeaderProps) {
                 />
               </svg>
               オーディション作成
-            </a>
+            </Link>
 
             {/* ユーザーメニュー（デスクトップ） */}
             <div className="hidden lg:block">
@@ -161,7 +162,7 @@ export function OrganizerHeader({ user, onLogout }: OrganizerHeaderProps) {
             ))}
 
             {/* モバイルCTAボタン */}
-            <a
+            <Link
               href="/organizer/auditions/new"
               onClick={() => setIsMobileMenuOpen(false)}
               className="block px-4 py-3 bg-gray-900 text-white text-sm font-medium rounded-lg text-center"
@@ -180,7 +181,7 @@ export function OrganizerHeader({ user, onLogout }: OrganizerHeaderProps) {
                 />
               </svg>
               オーディション作成
-            </a>
+            </Link>
 
             {/* モバイルユーザー情報 */}
             <div className="pt-4 border-t border-gray-200 mt-4">
