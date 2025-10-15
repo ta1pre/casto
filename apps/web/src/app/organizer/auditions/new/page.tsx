@@ -66,6 +66,9 @@ export default function NewAuditionPage() {
     try {
       const payload = {
         ...formData,
+        // datetime-local形式をISO 8601形式に変換
+        applicationStartDate: new Date(formData.applicationStartDate).toISOString(),
+        applicationEndDate: new Date(formData.applicationEndDate).toISOString(),
         maxApplicants: formData.maxApplicants ? parseInt(formData.maxApplicants) : undefined,
         coverImageUrl: formData.coverImageUrl || undefined,
         coverImageAlt: formData.coverImageAlt || undefined,
