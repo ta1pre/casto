@@ -95,15 +95,42 @@ docker exec casto npm install
 
 ### 環境変数設定
 
-`apps/web/.env.local` に以下を設定:
+ローカル開発環境では、メインの `docker-compose.yml` で環境変数が設定されます：
 
 ```bash
-NEXT_PUBLIC_API_BASE_URL="https://casto-workers-dev.casto-api.workers.dev"
+NEXT_PUBLIC_API_BASE_URL="https://casto.sb2024.xyz/api"
 ```
 
-- フロントエンドは Workers API 経由でデータ取得
-- Supabase への直接接続は行わない
-- `.env.local` は `apps/web/` 直下に配置
+### Workers APIの運用方針
+
+**⚠️ 重要**: Workersはローカルで実行せず、Cloudflare環境を使用します
+
+#### アーキテクチャ
+- **ローカル Next.js**: `https://casto.sb2024.xyz`（Dockerコンテナ、Traefik経由）
+- **Workers API**: `https://casto.sb2024.xyz/api/*`（Cloudflare Routes経由でWorkers）
+- **Workers直接URL（開発）**: `https://casto-workers-dev.casto-api.workers.dev`
+- **Workers直接URL（本番）**: `https://casto-workers.casto-api.workers.dev`
+
+#### ルーティング
+`wrangler.toml`で設定されたCloudflare Routesにより、`casto.sb2024.xyz/api/*` のリクエストが自動的にWorkersにルーティングされます：
+
+```toml
+[env.development]
+routes = [
+  { pattern = "casto.sb2024.xyz/api/*", zone_name = "sb2024.xyz" }
+]
+```
+
+#### Workersをローカル実行しない理由
+- ARM64環境（Apple Silicon）でのwrangler dev実行に技術的制約
+- Cloudflare固有機能（R2、KV等）はローカルで完全再現不可
+- デプロイ環境での動作確認が確実
+
+#### Workers APIの更新
+```bash
+cd apps/workers
+npx wrangler deploy --env development
+```
 
 ## 🧰 よく使うコマンド
 

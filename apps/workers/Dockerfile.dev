@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 # 必要なパッケージをインストール
 RUN apk add --no-cache python3 make g++
@@ -9,11 +9,8 @@ WORKDIR /app
 # package.jsonとpackage-lock.jsonをコピー
 COPY package*.json ./
 
-# 依存関係をインストール（最新のwranglerを使用）
-RUN npm install
-
-# wranglerを最新バージョンに更新
-RUN npm install --save-dev wrangler@latest
+# node_modulesをクリーンインストール（package.jsonのwrangler ^4.42.0を使用）
+RUN npm ci || npm install
 
 # ソースコードをコピー
 COPY . .
