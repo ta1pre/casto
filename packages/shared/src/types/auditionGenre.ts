@@ -42,15 +42,4 @@ export interface AuditionGenresResponse {
 /**
  * ジャンルスラッグ型（よく使われるジャンル）
  */
-export type GenreSlug = 
-  | 'idol'
-  | 'dance'
-  | 'vocal'
-  | 'acting'
-  | 'model'
-  | 'voice_actor'
-  | 'mc_host'
-  | 'creator'
-  | 'influencer'
-  | 'campaign'
-  | 'other'
+export type GenreSlug = 'belonging' | 'appearance' | 'sns_completed'

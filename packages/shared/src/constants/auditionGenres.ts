@@ -9,28 +9,18 @@ import type { GenreSlug } from '../types/auditionGenre'
  * ジャンルスラッグとラベルのマッピング
  */
 export const GENRE_LABELS: Record<GenreSlug, string> = {
-  idol: 'アイドル',
-  dance: 'ダンサー',
-  vocal: 'ボーカル・歌手',
-  acting: '俳優・女優',
-  model: 'モデル',
-  voice_actor: '声優',
-  mc_host: 'MC・司会',
-  creator: 'クリエイター',
-  influencer: 'インフルエンサー',
-  campaign: 'キャンペーンモデル',
-  other: 'その他',
+  belonging: '所属',
+  appearance: '出演',
+  sns_completed: 'SNS完結',
 }
 
 /**
  * ジャンルカテゴリ
  */
 export const GENRE_CATEGORIES = {
-  entertainment: 'エンタメ',
-  fashion: 'ファッション',
-  digital: 'デジタル',
-  promotion: 'プロモーション',
-  other: 'その他',
+  belonging: '所属',
+  appearance: '出演',
+  sns_completed: 'SNS完結',
 } as const
 
 /**

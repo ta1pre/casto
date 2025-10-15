@@ -144,7 +144,7 @@
 - [x] `GET /api/v1/organizer/auditions/:id` - オーディション詳細（ジャンル情報含む）
 - [x] `PATCH /api/v1/organizer/auditions/:id` - オーディション更新（ジャンル更新対応）
 - [x] `DELETE /api/v1/organizer/auditions/:id` - オーディション削除
-- [x] `GET /api/v1/organizer/genres` - ジャンルマスタ一覧取得（10件のジャンル対応）
+- [x] `GET /api/v1/organizer/genres` - ジャンルマスタ一覧取得（「所属」「出演」「SNS完結」の3件対応）
 - [ ] `GET /api/v1/organizer/auditions/:id/applications` - 応募一覧
 - [ ] `GET /api/v1/organizer/applications/:id` - 応募詳細
 - [ ] `POST /api/v1/organizer/applications/:id/review` - 審査・合否決定（通知送信含む）
