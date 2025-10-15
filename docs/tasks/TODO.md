@@ -110,44 +110,41 @@
 #### タスクリスト
 
 **データベース**
-- [ ] `supabase/schema/auditions.sql` 作成
-- [ ] `supabase/schema/applications.sql` 作成（applicant_profile/additional_message/additional_urls）
-- [ ] `supabase/schema/notifications.sql` 作成（通知管理）
-- [ ] `supabase/schema/application_reviews.sql` 作成
-- [ ] `supabase/schema/audition_genres.sql` 作成（ジャンルマスタ）
-- [ ] `supabase/schema/audition_genre_map.sql` 作成（中間テーブル）
-- [ ] RLS ポリシー設定
-- [ ] `./supabase/sync` 実行してマイグレーション生成
-- [ ] マイグレーション内容レビュー
-- [ ] 手動適用: `supabase db push --linked`
-- [ ] `supabase/seed/audition_genres.sql` 作成（初期ジャンル投入）
+- [x] `supabase/schema/auditions.sql` 作成
+- [x] `supabase/schema/applications.sql` 作成（applicant_profile/additional_message/additional_urls）
+- [x] `supabase/schema/notifications.sql` 作成（通知管理）
+- [x] `supabase/schema/application_reviews.sql` 作成
+- [x] `supabase/schema/audition_genres.sql` 作成（ジャンルマスタ）
+- [x] `supabase/schema/audition_genre_map.sql` 作成（中間テーブル）
+- [x] RLS ポリシー設定
+- [x] マイグレーション生成・適用完了
+- [x] `supabase/migrations/20251016000000_seed_audition_genres.sql` 作成・適用（初期ジャンル10件投入）
 
 **共通型定義・バリデーション**（packages/shared）
-- [ ] `types/audition.ts` 作成
+- [x] `types/audition.ts` 作成
   - `Audition`, `AuditionStatus`, `EvaluationMode`, `ProjectType` 型
-- [ ] `types/auditionGenre.ts` 作成
-- [ ] `constants/auditionGenres.ts` 作成（マスタから取得した結果の型/ラベルマッピング）
-- [ ] `types/application.ts` 作成
+- [x] `types/auditionGenre.ts` 作成
+- [x] `types/application.ts` 作成
   - `Application`, `ApplicationStatus` 型
-- [ ] `types/notification.ts` 作成
+- [x] `types/notification.ts` 作成
   - `Notification`, `NotificationType` 型
-- [ ] `types/review.ts` 作成
+- [x] `types/review.ts` 作成
   - `ApplicationReview`, `ReviewDecision` 型
-- [ ] `validators/audition.ts` 作成
+- [x] `validators/audition.ts` 作成
   - Zod スキーマ: `createAuditionSchema`, `updateAuditionSchema`（short_description/cover_image_url/project_type/genreIds[] をバリデート）
-- [ ] `validators/application.ts` 作成
+- [x] `validators/application.ts` 作成
   - Zod スキーマ: `submitApplicationSchema`（additional_message/additional_urls をバリデート）
-- [ ] `validators/review.ts` 作成
+- [x] `validators/review.ts` 作成
   - Zod スキーマ: `createReviewSchema`
 
 **Workers API**（apps/workers）
-- [ ] `features/organizer/auditions/` ディレクトリ作成
-- [ ] `GET /api/v1/organizer/auditions` - 自分のオーディション一覧（project_type フィルタ対応）
-- [ ] `POST /api/v1/organizer/auditions` - オーディション作成（project_type 必須）
-- [ ] `GET /api/v1/organizer/auditions/:id` - オーディション詳細
-- [ ] `PATCH /api/v1/organizer/auditions/:id` - オーディション更新
-- [ ] `DELETE /api/v1/organizer/auditions/:id` - オーディション削除
-- [ ] `GET /api/v1/organizer/genres` - ジャンルマスタ一覧取得
+- [x] `features/organizer/auditions/` ディレクトリ作成
+- [x] `GET /api/v1/organizer/auditions` - 自分のオーディション一覧（project_type フィルタ対応）
+- [x] `POST /api/v1/organizer/auditions` - オーディション作成（project_type 必須、genreIds対応）
+- [x] `GET /api/v1/organizer/auditions/:id` - オーディション詳細（ジャンル情報含む）
+- [x] `PATCH /api/v1/organizer/auditions/:id` - オーディション更新（ジャンル更新対応）
+- [x] `DELETE /api/v1/organizer/auditions/:id` - オーディション削除
+- [x] `GET /api/v1/organizer/genres` - ジャンルマスタ一覧取得（10件のジャンル対応）
 - [ ] `GET /api/v1/organizer/auditions/:id/applications` - 応募一覧
 - [ ] `GET /api/v1/organizer/applications/:id` - 応募詳細
 - [ ] `POST /api/v1/organizer/applications/:id/review` - 審査・合否決定（通知送信含む）
@@ -169,10 +166,10 @@
 **Web UI - 主催者側**（apps/web）
 - [ ] `hooks/useAuditions.ts` - オーディション CRUD フック
 - [ ] `hooks/useApplications.ts` - 応募管理フック
-- [ ] `organizer/auditions/page.tsx` - オーディション一覧ページ
-- [ ] `organizer/auditions/new/page.tsx` - オーディション作成ページ
-- [ ] `organizer/auditions/[id]/page.tsx` - オーディション詳細ページ
-- [ ] `organizer/auditions/[id]/edit/page.tsx` - オーディション編集ページ
+- [x] `organizer/auditions/page.tsx` - オーディション一覧ページ
+- [x] `organizer/auditions/new/page.tsx` - オーディション作成ページ（ジャンル選択UI実装済み）
+- [x] `organizer/auditions/[id]/page.tsx` - オーディション詳細ページ
+- [x] `organizer/auditions/[id]/edit/page.tsx` - オーディション編集ページ（ジャンル編集対応）
 - [ ] `organizer/auditions/[id]/applications/page.tsx` - 応募者一覧ページ
 - [ ] `organizer/auditions/[id]/applications/[applicationId]/page.tsx` - 応募詳細ページ
 - [ ] `organizer/auditions/_components/AuditionForm.tsx` - オーディションフォーム

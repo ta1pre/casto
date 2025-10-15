@@ -1,20 +1,36 @@
 # データベース管理ガイド
 
-このドキュメントは、Supabaseデータベースのマイグレーションとローカル/リモート間の整合性管理の標準手順を定義します。
+**シンプル・イズ・ベスト [SF][CA][DRY]**
+
+このドキュメントは、Supabaseデータベースのマイグレーション管理の標準手順を定義します。
+
+## 🎯 基本原則
+
+### 1. リモートDBが常に正
+**リモート（Supabase）のデータベース状態が唯一の正解です。**
+- ローカルのマイグレーションファイルはリモートの記録
+- ローカルとリモートの不整合は即座に修正
+
+### 2. マイグレーションのみで管理
+- ✅ `supabase/migrations/` のみ使用
+- ❌ `supabase/schema/` 不使用（混乱の元）
+- ❌ `supabase/seed/` 不使用（seedもマイグレーションで管理）
+
+### 3. べき等性の保証
+すべてのマイグレーションは何度実行しても同じ結果になること。
 
 ## 前提条件
 
 - Supabase CLI v2.51.0以上がインストール済み
 - プロジェクトが `sfscmpjplvxtikmifqhe` にリンク済み
 
-## 重要な原則
+## 🔴 絶対ルール
 
-### 🔴 絶対ルール
-
-1. **マイグレーションファイルは直接編集しない**（適用後）
-2. **本番DBで直接SQLを実行しない**（緊急時を除く）
-3. **必ず `DROP ... IF EXISTS` を使う**（ポリシー、トリガー、関数など）
-4. **デプロイ前に整合性を確認する**
+1. **リモートDBが常に正** - ローカルはリモートに従う
+2. **マイグレーションファイルは直接編集しない**（適用後）
+3. **必ず `DROP ... IF EXISTS` を使う**（べき等性のため）
+4. **seedデータもマイグレーションとして管理**
+5. **デプロイ前に `supabase migration list` で整合性確認**
 
 ## 標準ワークフロー
 
@@ -60,28 +76,36 @@ CREATE POLICY "example_select_policy"
 
 -- コメント
 COMMENT ON TABLE public.example IS '例示用テーブル';
+
+-- 初期データ投入（必要に応じて）
+INSERT INTO public.example (name) VALUES
+  ('初期データ1'),
+  ('初期データ2')
+ON CONFLICT (name) DO NOTHING;  -- べき等性保証
 ```
+
+**重要:** seedデータは別ファイルではなく、マイグレーションとして管理します。
 
 ### 3. ローカル/リモート整合性チェック
 
 **デプロイ前に必ず実行:**
 
 ```bash
-# 1. マイグレーション履歴確認
-supabase migration list
+# 1. マイグレーション履歴確認（最重要）
+supabase migration list --linked
 
 # 出力例:
 #   Local          | Remote         | Time (UTC)
 #  ----------------|----------------|---------------------
-#   20251015000000 | 20251015000000 | 2025-10-15 00:00:00  ← 整合性OK
-#   20251015000001 |                | 2025-10-15 00:00:01  ← リモート未適用
+#   20251015000000 | 20251015000000 | 2025-10-15 00:00:00  ← ✅ 整合性OK
+#   20251015000001 |                | 2025-10-15 00:00:01  ← ❌ リモート未適用
+#                  | 20251015000002 | 2025-10-15 00:00:02  ← ❌ ローカルにない
 
-# 2. リモートDBの実際の状態確認
-supabase db dump --linked | grep "CREATE TABLE" | grep -v "^--"
-
-# 3. ローカルマイグレーション確認
-ls -la supabase/migrations/
+# ✅ 理想状態: すべての行でLocal列とRemote列が一致
+# ❌ 問題状態: どれか1つでも不一致があれば修正が必要
 ```
+
+**整合性が取れていない場合は、このガイドの「トラブルシューティング」を参照してください。**
 
 ### 4. マイグレーション適用
 
@@ -154,18 +178,51 @@ curl https://casto.sb2024.xyz/api/v1/health
 
 ## トラブルシューティング
 
-### 問題: マイグレーションがリモートに適用されない
+### 問題1: ローカルのマイグレーションがリモートに適用されていない
 
 **症状:**
 ```bash
-supabase migration list
+supabase migration list --linked
 # Local列にはあるが、Remote列が空白
 ```
 
 **解決:**
 ```bash
+# 1. 履歴を修復（未適用扱いにする）
 supabase migration repair --status reverted <version>
+
+# 2. すべてのマイグレーションを適用
 supabase db push --include-all
+
+# 3. Workers再デプロイ
+cd apps/workers && npx wrangler deploy --env development
+```
+
+### 問題2: リモートのマイグレーションがローカルにない
+
+**症状:**
+```bash
+supabase migration list --linked
+# Remote列にはあるが、Local列が空白
+```
+
+**原因:** 他の開発者がマイグレーションを適用したか、直接DBで作業した
+
+**解決（推奨）:**
+```bash
+# リモートDBを正として、ローカルを同期
+supabase db pull
+
+# これにより、不足しているマイグレーションファイルがローカルに作成される
+```
+
+**解決（代替案）:**
+```bash
+# ローカルに手動でマイグレーションファイルを作成
+# ファイル名はRemote列のバージョンと一致させる
+
+# 例: 20251015211706_seed_audition_genres.sql
+# 内容はリモートDBから推測または確認して作成
 ```
 
 ### 問題: "table not found in schema cache"
@@ -200,34 +257,37 @@ connection refused
 2. `supabase db push` を再実行
 3. Supabase Dashboardでプロジェクト状態を確認
 
-## チェックリスト
+## ✅ デプロイ前チェックリスト
 
-デプロイ前に確認:
+**すべて✅になるまでデプロイしないこと:**
 
-- [ ] `supabase migration list` でLocal/Remote列が一致
-- [ ] マイグレーションファイルに `DROP ... IF EXISTS` を使用
-- [ ] ローカルでビルド成功: `npm run build`
-- [ ] `supabase db dump --linked` で目的のテーブルが存在
-- [ ] Workers再デプロイ完了
-- [ ] APIヘルスチェック: `curl https://casto.sb2024.xyz/api/v1/health`
-- [ ] ブラウザで実機能確認
+1. [ ] **整合性確認** - `supabase migration list --linked` でLocal/Remote列が完全一致
+2. [ ] **べき等性確認** - マイグレーションファイルに `DROP ... IF EXISTS` を使用
+3. [ ] **ローカルビルド** - `npm run build` が成功
+4. [ ] **Workers再デプロイ** - `cd apps/workers && npx wrangler deploy --env development`
+5. [ ] **APIヘルスチェック** - `curl https://casto.sb2024.xyz/api/v1/health` が成功
+6. [ ] **実機能確認** - ブラウザで実際の機能をテスト
 
-## 緊急時の手順
+**これらを守れば、マイグレーションの問題は起きません。**
 
-### リモートDBを完全にローカルと同期
+## 🚨 緊急時の手順
+
+### すべてがおかしくなった場合
 
 ```bash
-# ⚠️ 本番環境では絶対に実行しない
-# 開発環境のみ
+# ⚠️ 本番環境では絶対に実行しない - 開発環境のみ
 
-# 1. リモートDBをローカルにpull
+# 1. リモートDBを正として、ローカルを同期
 supabase db pull
 
-# 2. ローカルDBをリセット
-supabase db reset
+# 2. 整合性を確認
+supabase migration list --linked
+# → すべてのLocal/Remote列が一致していることを確認
 
-# 3. すべてのマイグレーションを再適用
-supabase db push --include-all
+# 3. Workers再デプロイ
+cd apps/workers && npx wrangler deploy --env development
+
+# これで解決しない場合は、このドキュメントを最初から読み直してください
 ```
 
 ## 参考コマンド
