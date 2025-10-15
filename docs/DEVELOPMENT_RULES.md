@@ -85,9 +85,11 @@ const { data } = await supabase.from('users').select('*') // 禁止
 
 ### フロントエンド (`apps/web/.env.local`)
 ```bash
-NEXT_PUBLIC_API_BASE_URL="https://casto.sb2024.xyz/api"
+NEXT_PUBLIC_API_BASE_URL="https://casto.sb2024.xyz"
 NEXT_PUBLIC_LINE_LIFF_ID="..."
 ```
+
+**注意**: ベースURLに `/api` を含めない（コード内で `/api/v1/...` を使用）
 
 ### Workers (Cloudflare Secrets)
 ```bash

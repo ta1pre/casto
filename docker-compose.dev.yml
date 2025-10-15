@@ -10,7 +10,7 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_BASE_URL=https://casto.sb2024.xyz/api
+      - NEXT_PUBLIC_API_BASE_URL=https://casto.sb2024.xyz
     volumes:
       - .:/app
       - /app/node_modules

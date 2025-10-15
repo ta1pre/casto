@@ -98,8 +98,10 @@ docker exec casto npm install
 ローカル開発環境では、メインの `docker-compose.yml` で環境変数が設定されます：
 
 ```bash
-NEXT_PUBLIC_API_BASE_URL="https://casto.sb2024.xyz/api"
+NEXT_PUBLIC_API_BASE_URL="https://casto.sb2024.xyz"
 ```
+
+**重要**: ベースURLに `/api` を含めません。コード内で `/api/v1/...` を使用しているためです。
 
 ### Workers APIの運用方針
 
