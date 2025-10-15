@@ -7,7 +7,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { SignupForm } from '@/app/organizer/_components/SignupForm'
+import { SignupForm } from '../../_components/SignupForm'
 
 export default function OrganizerSignupPage() {
   const router = useRouter()
