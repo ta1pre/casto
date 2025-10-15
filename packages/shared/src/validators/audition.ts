@@ -97,7 +97,6 @@ export const updateAuditionSchema = z.object({
   maxApplicants: z.number()
     .int({ message: '整数で入力してください' })
     .positive({ message: '1以上の値を入力してください' })
-    .nullable()
     .optional(),
   
   status: z.enum(['draft', 'published', 'closed', 'cancelled'], {
