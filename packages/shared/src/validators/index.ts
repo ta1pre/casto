@@ -1,3 +1,6 @@
 export * from './photo'
 export * from './organizer'
+export * from './audition'
+export * from './application'
+export * from './review'
 export { PREFECTURES } from '../types/organizer'

@@ -83,6 +83,43 @@ export async function verifyOrganizerAuth(c: AppContext, next: Next) {
 }
 
 /**
+ * 応募者認証ミドルウェア
+ * 
+ * userContextが存在し、かつroleが'talent'であることを確認
+ */
+export async function verifyTalentAuth(c: AppContext, next: Next) {
+  const userContext = c.get('user')
+
+  if (!userContext) {
+    return c.json({ error: 'Unauthorized: Authentication required' }, 401)
+  }
+
+  // DBから最新のロール情報を取得
+  const roles = await getUserRoles(c, userContext.id)
+  
+  if (!roles.includes('talent')) {
+    return c.json({ error: 'Forbidden: Talent role required' }, 403)
+  }
+
+  await next()
+}
+
+/**
+ * 認証済みユーザーチェック（ロール不問）
+ * 
+ * userContextが存在することのみを確認
+ */
+export async function verifyAuth(c: AppContext, next: Next) {
+  const userContext = c.get('user')
+
+  if (!userContext) {
+    return c.json({ error: 'Unauthorized: Authentication required' }, 401)
+  }
+
+  await next()
+}
+
+/**
  * 汎用ロール認証ミドルウェア
  * 
  * 指定されたロールのいずれかを持つユーザーのみアクセス可能

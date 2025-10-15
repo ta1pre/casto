@@ -10,6 +10,12 @@ import photosRoutes from './features/liff/profile/photos.routes'
 import adminAuthRoutes from './features/admin/auth/routes'
 import organizerAuthRoutes from './features/organizer/auth/routes'
 import organizerProfileRoutes from './features/organizer/profile/routes'
+import organizerAuditionRoutes from './features/organizer/auditions/routes'
+import organizerGenreRoutes from './features/organizer/auditions/genres.routes'
+import organizerApplicationRoutes from './features/organizer/applications/routes'
+import talentAuditionRoutes from './features/talent/auditions/routes'
+import talentApplicationRoutes from './features/talent/applications/routes'
+import talentGenreRoutes from './features/talent/genres/routes'
 import { getAllowedOrigins, getPrimaryOrigin } from './config/env'
 import type { AppBindings } from './types'
 
@@ -48,6 +54,12 @@ export function createApp() {
   app.route('/api/v1/admin', adminAuthRoutes)
   app.route('/api/v1/organizer', organizerAuthRoutes)
   app.route('/api/v1/organizer', organizerProfileRoutes)
+  app.route('/api/v1/organizer/auditions', organizerAuditionRoutes)
+  app.route('/api/v1/organizer/genres', organizerGenreRoutes)
+  app.route('/api/v1/organizer', organizerApplicationRoutes)
+  app.route('/api/v1/talent/auditions', talentAuditionRoutes)
+  app.route('/api/v1/talent/applications', talentApplicationRoutes)
+  app.route('/api/v1/talent/genres', talentGenreRoutes)
 
   app.notFound((c) => {
     return c.json({ error: 'Not Found' }, 404)

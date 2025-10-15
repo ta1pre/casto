@@ -97,18 +97,27 @@ export default function OrganizerDashboardPage() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">クイックアクション</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors">
+          <a
+            href="/organizer/auditions/new"
+            className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors"
+          >
             <span className="text-sm font-medium text-gray-600">オーディション作成</span>
-          </button>
-          <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors">
-            <span className="text-sm font-medium text-gray-600">応募者管理</span>
-          </button>
+          </a>
+          <a
+            href="/organizer/auditions"
+            className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors"
+          >
+            <span className="text-sm font-medium text-gray-600">オーディション管理</span>
+          </a>
           <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors">
             <span className="text-sm font-medium text-gray-600">メッセージ送信</span>
           </button>
-          <button className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors">
-            <span className="text-sm font-medium text-gray-600">設定</span>
-          </button>
+          <a
+            href="/organizer/profile"
+            className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-900 hover:bg-gray-50 transition-colors"
+          >
+            <span className="text-sm font-medium text-gray-600">プロフィール設定</span>
+          </a>
         </div>
       </div>
     </div>
