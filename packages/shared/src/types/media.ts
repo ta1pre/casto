@@ -59,7 +59,7 @@ export interface MediaDeleteResponse {
 export interface MediaValidationError {
   field: string
   message: string
-  code: 'INVALID_TYPE' | 'FILE_TOO_LARGE' | 'UNSUPPORTED_FORMAT' | 'UPLOAD_FAILED'
+  code: 'INVALID_TYPE' | 'FILE_TOO_LARGE' | 'UNSUPPORTED_FORMAT' | 'UPLOAD_FAILED' | 'INVALID_ASPECT_RATIO'
 }
 
 /**

@@ -5,10 +5,11 @@
  * [SF][CA] スクエア表示 + ドラッグ&ドロップ対応（画像・動画両対応）
  */
 
-import { Upload, X, Loader2 } from 'lucide-react'
+import { Upload, X, Loader2, AlertCircle } from 'lucide-react'
 import { useState, useRef } from 'react'
 import type { MediaType } from '@casto/shared/types/media'
 import { MEDIA_CONFIG } from '@casto/shared/types/media'
+import { validateAspectRatio } from '@casto/shared/validators/media'
 
 interface MediaUploaderProps {
   mediaUrl?: string | null
@@ -60,8 +61,19 @@ export function MediaUploader({
       return
     }
 
+    // アスペクト比チェック（1:1のみ許可）
+    setUploading(true)
+    const aspectRatioError = await validateAspectRatio(file)
+    if (aspectRatioError) {
+      setError(aspectRatioError.message)
+      setUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+      return
+    }
+
     try {
-      setUploading(true)
       await onUpload(file)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'アップロードに失敗しました')
@@ -210,9 +222,20 @@ export function MediaUploader({
                 </div>
                 <span className="text-sm text-center font-medium">クリックまたは</span>
                 <span className="text-sm text-center font-medium">ドラッグ&ドロップ</span>
-                <div className="mt-3 text-xs text-center text-gray-500 space-y-1">
-                  <div>画像: 最大{MEDIA_CONFIG.IMAGE.MAX_SIZE_MB}MB (JPG/PNG/WebP)</div>
-                  <div>動画: 最大{MEDIA_CONFIG.VIDEO.MAX_SIZE_MB}MB (MP4/WebM)</div>
+                <div className="mt-4 text-xs text-center space-y-2">
+                  <div className="flex items-center justify-center gap-1 font-semibold text-purple-700">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>必須: 正方形（1:1）のメディアのみ</span>
+                  </div>
+                  <div className="text-gray-500">
+                    画像: 最大{MEDIA_CONFIG.IMAGE.MAX_SIZE_MB}MB (JPG/PNG/WebP)
+                  </div>
+                  <div className="text-gray-500">
+                    動画: 最大{MEDIA_CONFIG.VIDEO.MAX_SIZE_MB}MB (MP4/WebM)
+                  </div>
+                  <div className="text-purple-600 font-medium mt-2">
+                    💡 推奨解像度: 1080×1080px
+                  </div>
                 </div>
               </>
             )}
@@ -235,13 +258,18 @@ export function MediaUploader({
 
       {/* エラーメッセージ */}
       {error && (
-        <p className="text-xs text-red-500 mt-1">{error}</p>
+        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-red-700">{error}</p>
+        </div>
       )}
 
       {/* ヒント */}
-      <p className="text-xs text-gray-500 mt-1">
-        💡 推奨: 正方形（1080x1080px）の画像・動画
-      </p>
+      {!error && (
+        <p className="text-xs text-gray-500 mt-2">
+          💡 広告素材としても使用できるよう、正方形（1:1）のメディアをご用意ください
+        </p>
+      )}
     </div>
   )
 }
