@@ -9,7 +9,7 @@ import { Upload, X, Loader2, AlertCircle } from 'lucide-react'
 import { useState, useRef } from 'react'
 import type { MediaType } from '@casto/shared/types/media'
 import { MEDIA_CONFIG } from '@casto/shared/types/media'
-import { validateAspectRatio } from '@casto/shared/validators/media'
+import { validateAspectRatio } from '@casto/shared/validators/media.browser'
 
 interface MediaUploaderProps {
   mediaUrl?: string | null
