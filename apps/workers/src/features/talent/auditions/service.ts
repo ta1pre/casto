@@ -9,6 +9,8 @@ import type {
   Audition,
   AuditionGenre,
   SupabaseAuditionGenreRow,
+  AuditionArea,
+  SupabaseAuditionAreaRow,
 } from '@casto/shared'
 
 export type GenericSupabaseClient = SupabaseClient<any, any, any>
@@ -51,6 +53,18 @@ function toAuditionGenre(row: SupabaseAuditionGenreRow): AuditionGenre {
     description: row.description || undefined,
     sortOrder: row.sort_order,
     isActive: row.is_active,
+  }
+}
+
+/**
+ * エリア変換
+ */
+function toAuditionArea(row: SupabaseAuditionAreaRow): AuditionArea {
+  return {
+    id: row.id,
+    code: row.code,
+    name: row.name,
+    sortOrder: row.sort_order,
   }
 }
 
@@ -156,6 +170,18 @@ export async function getPublishedAuditionById(
     audition.genres = genreData
       .filter((row: any) => row.audition_genres)
       .map((row: any) => toAuditionGenre(row.audition_genres))
+  }
+
+  // エリア情報を取得
+  const { data: areaData, error: areaError } = await client
+    .from('audition_area_map')
+    .select('area_id, audition_areas(*)')
+    .eq('audition_id', auditionId)
+
+  if (!areaError && areaData) {
+    audition.areas = areaData
+      .filter((row: any) => row.audition_areas)
+      .map((row: any) => toAuditionArea(row.audition_areas))
   }
 
   return audition

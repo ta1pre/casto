@@ -4,6 +4,7 @@
  */
 
 import type { AuditionGenre } from './auditionGenre'
+import type { AuditionArea } from './auditionArea'
 import type { MediaType } from './media'
 
 /**
@@ -66,6 +67,7 @@ export interface Audition {
   projectType: ProjectType
   evaluationMode: EvaluationMode
   genres?: AuditionGenre[]
+  areas?: AuditionArea[]
   createdAt: string
   updatedAt: string
 }
@@ -95,6 +97,7 @@ export interface CreateAuditionRequest {
   maxApplicants?: number
   projectType: ProjectType
   genreIds?: string[]
+  areaIds?: string[]
 }
 
 /**
@@ -112,6 +115,7 @@ export interface UpdateAuditionRequest {
   maxApplicants?: number
   status?: AuditionStatus
   genreIds?: string[]
+  areaIds?: string[]
 }
 
 /**

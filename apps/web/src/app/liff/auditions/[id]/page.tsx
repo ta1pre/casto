@@ -168,6 +168,29 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
               定員: {audition.maxApplicants}名
             </div>
           )}
+
+          {/* エリア */}
+          {audition.areas && audition.areas.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs text-muted-foreground mb-1">エリア</p>
+              <div className="flex flex-wrap gap-1">
+                {audition.areas.length === 47 ? (
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                    全国
+                  </span>
+                ) : (
+                  audition.areas.map((area) => (
+                    <span
+                      key={area.id}
+                      className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                    >
+                      {area.name}
+                    </span>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 短い説明 */}

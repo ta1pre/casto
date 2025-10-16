@@ -11,6 +11,8 @@ import type {
   UpdateAuditionRequest,
   AuditionGenre,
   SupabaseAuditionGenreRow,
+  AuditionArea,
+  SupabaseAuditionAreaRow,
 } from '@casto/shared'
 
 export type GenericSupabaseClient = SupabaseClient<any, any, any>
@@ -53,6 +55,18 @@ function toAuditionGenre(row: SupabaseAuditionGenreRow): AuditionGenre {
     description: row.description || undefined,
     sortOrder: row.sort_order,
     isActive: row.is_active,
+  }
+}
+
+/**
+ * エリア変換
+ */
+function toAuditionArea(row: SupabaseAuditionAreaRow): AuditionArea {
+  return {
+    id: row.id,
+    code: row.code,
+    name: row.name,
+    sortOrder: row.sort_order,
   }
 }
 
@@ -139,6 +153,18 @@ export async function getAuditionById(
       .map((row: any) => toAuditionGenre(row.audition_genres))
   }
 
+  // エリア情報を取得
+  const { data: areaData, error: areaError } = await client
+    .from('audition_area_map')
+    .select('area_id, audition_areas(*)')
+    .eq('audition_id', auditionId)
+
+  if (!areaError && areaData) {
+    audition.areas = areaData
+      .filter((row: any) => row.audition_areas)
+      .map((row: any) => toAuditionArea(row.audition_areas))
+  }
+
   return audition
 }
 
@@ -150,7 +176,7 @@ export async function createAudition(
   organizerId: string,
   data: CreateAuditionRequest
 ): Promise<Audition> {
-  const { genreIds, ...auditionData } = data
+  const { genreIds, areaIds, ...auditionData } = data
 
   // オーディション作成
   const { data: newAudition, error: auditionError } = await client
@@ -191,6 +217,22 @@ export async function createAudition(
     }
   }
 
+  // エリア紐付け
+  if (areaIds && areaIds.length > 0) {
+    const areaMapData = areaIds.map((areaId) => ({
+      audition_id: newAudition.id,
+      area_id: areaId,
+    }))
+
+    const { error: areaMapError } = await client
+      .from('audition_area_map')
+      .insert(areaMapData)
+
+    if (areaMapError) {
+      console.error('Failed to create area mappings:', areaMapError)
+    }
+  }
+
   return toAudition(newAudition)
 }
 
@@ -203,7 +245,7 @@ export async function updateAudition(
   organizerId: string,
   data: UpdateAuditionRequest
 ): Promise<Audition> {
-  const { genreIds, ...auditionData } = data
+  const { genreIds, areaIds, ...auditionData } = data
 
   // 更新用データオブジェクト作成
   const updateData: any = {}
@@ -256,6 +298,28 @@ export async function updateAudition(
 
       if (genreMapError) {
         console.error('Failed to update genre mappings:', genreMapError)
+      }
+    }
+  }
+
+  // エリア更新
+  if (areaIds !== undefined) {
+    // 既存のエリア紐付けを削除
+    await client.from('audition_area_map').delete().eq('audition_id', auditionId)
+
+    // 新しいエリア紐付けを作成
+    if (areaIds.length > 0) {
+      const areaMapData = areaIds.map((areaId) => ({
+        audition_id: auditionId,
+        area_id: areaId,
+      }))
+
+      const { error: areaMapError } = await client
+        .from('audition_area_map')
+        .insert(areaMapData)
+
+      if (areaMapError) {
+        console.error('Failed to update area mappings:', areaMapError)
       }
     }
   }

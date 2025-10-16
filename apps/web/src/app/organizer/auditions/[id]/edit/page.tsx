@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Audition, AuditionGenre } from '@casto/shared'
+import type { Audition, AuditionGenre, AuditionArea } from '@casto/shared'
 import type { MediaType } from '@casto/shared/types/media'
 import { MediaUploader } from '@/shared/components/MediaUploader'
 import { resolveApiUrl } from '@/shared/lib/api'
@@ -17,6 +17,7 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
   const router = useRouter()
   const [audition, setAudition] = useState<Audition | null>(null)
   const [genres, setGenres] = useState<AuditionGenre[]>([])
+  const [areas, setAreas] = useState<AuditionArea[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
@@ -31,6 +32,7 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
     maxApplicants: '',
     projectType: 'audition' as 'audition' | 'job',
     genreIds: [] as string[],
+    areaIds: [] as string[],
   })
   const [mainVisualUrl, setMainVisualUrl] = useState<string | null>(null)
   const [mainVisualType, setMainVisualType] = useState<MediaType | null>(null)
@@ -42,6 +44,7 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
       setAuditionId(id)
       fetchAudition(id)
       fetchGenres()
+      fetchAreas()
     })
   }, [params])
 
@@ -74,6 +77,7 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
           maxApplicants: aud.maxApplicants ? String(aud.maxApplicants) : '',
           projectType: aud.projectType || 'audition',
           genreIds: aud.genres?.map((g: AuditionGenre) => g.id) || [],
+          areaIds: aud.areas?.map((a: AuditionArea) => a.id) || [],
         })
         setMainVisualUrl(aud.mainVisualUrl || null)
         setMainVisualType(aud.mainVisualType || null)
@@ -99,6 +103,20 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
       }
     } catch (error) {
       console.error('Failed to fetch genres:', error)
+    }
+  }
+
+  const fetchAreas = async () => {
+    try {
+      const response = await fetch('/api/v1/organizer/areas', {
+        credentials: 'include',
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setAreas(data.areas || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch areas:', error)
     }
   }
 
@@ -156,6 +174,15 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
       genreIds: prev.genreIds.includes(genreId)
         ? prev.genreIds.filter((id) => id !== genreId)
         : [...prev.genreIds, genreId],
+    }))
+  }
+
+  const toggleArea = (areaId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      areaIds: prev.areaIds.includes(areaId)
+        ? prev.areaIds.filter((id) => id !== areaId)
+        : [...prev.areaIds, areaId],
     }))
   }
 
@@ -362,6 +389,30 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
                 disabled={!formData.genreIds.includes(genre.id) && formData.genreIds.length >= 3}
               >
                 {genre.displayName}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* エリア */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">エリア（複数選択可）</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            ※ 「全国」選択時は自動的に47都道府県が選択されます
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+            {areas.map((area) => (
+              <button
+                key={area.id}
+                type="button"
+                onClick={() => toggleArea(area.id)}
+                className={`px-3 py-2 rounded-lg border text-sm transition-colors ${
+                  formData.areaIds.includes(area.id)
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
+                }`}
+              >
+                {area.name}
               </button>
             ))}
           </div>
