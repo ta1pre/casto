@@ -134,6 +134,7 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
         coverImageUrl: formData.coverImageUrl || undefined,
         coverImageAlt: formData.coverImageAlt || undefined,
         shortDescription: formData.shortDescription || undefined,
+        areaId: formData.areaId || undefined,
       }
 
       const response = await fetch(`/api/v1/organizer/auditions/${auditionId}`, {
