@@ -120,6 +120,8 @@ export function AuditionDetailPageClient({ auditionId }: { auditionId: string })
     return null
   }
 
+  const statusBadge = getStatusBadge(audition.status)
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* ヘッダー */}
@@ -134,29 +136,34 @@ export function AuditionDetailPageClient({ auditionId }: { auditionId: string })
           一覧に戻る
         </Link>
 
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col gap-2 order-2 sm:order-1">
+            <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold text-gray-900">{audition.title}</h1>
-              {getStatusBadge(audition.status)}
+              <div className="hidden sm:block">{statusBadge}</div>
             </div>
             <p className="text-gray-500">
               作成日: {new Date(audition.createdAt).toLocaleDateString()}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href={`/organizer/auditions/${auditionId}/edit`}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-            >
-              編集
-            </Link>
-            <button
-              onClick={deleteAudition}
-              className="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50"
-            >
-              削除
-            </button>
+          <div className="flex flex-col gap-2 order-1 sm:order-2 sm:items-end">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+              <div className="sm:hidden">{statusBadge}</div>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/organizer/auditions/${auditionId}/edit`}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                >
+                  編集
+                </Link>
+                <button
+                  onClick={deleteAudition}
+                  className="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50"
+                >
+                  削除
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
