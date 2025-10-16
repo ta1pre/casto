@@ -50,6 +50,9 @@ export const createAuditionSchema = z.object({
   genreIds: z.array(z.string().uuid({ message: '有効なジャンルIDを指定してください' }))
     .max(3, { message: 'ジャンルは最大3件まで選択可能です' })
     .optional(),
+  
+  areaId: z.string().uuid({ message: '有効なエリアIDを指定してください' })
+    .optional(),
 }).refine(
   (data) => new Date(data.applicationEndDate) > new Date(data.applicationStartDate),
   {
@@ -105,6 +108,9 @@ export const updateAuditionSchema = z.object({
   
   genreIds: z.array(z.string().uuid({ message: '有効なジャンルIDを指定してください' }))
     .max(3, { message: 'ジャンルは最大3件まで選択可能です' })
+    .optional(),
+  
+  areaId: z.string().uuid({ message: '有効なエリアIDを指定してください' })
     .optional(),
 }).refine(
   (data) => {
