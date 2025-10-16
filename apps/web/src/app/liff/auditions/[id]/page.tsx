@@ -1,37 +1,19 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+/**
+ * LIFFオーディション詳細ページ
+ * [SF][CA] Workers APIレスポンス形式に完全対応、メインビジュアル1:1表示
+ */
+
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
+import { Calendar, ArrowLeft } from 'lucide-react'
 import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
 import { LoadingScreen } from '@/shared/components/LoadingScreen'
 import { ErrorScreen } from '@/shared/components/ErrorScreen'
 import { apiFetch, ApiError } from '@/shared/lib/api'
-
-interface Audition {
-  id: string
-  title: string
-  description: string
-  thumbnailUrl?: string
-  organizerName: string
-  organizerId: string
-  deadline: string
-  applicationStartDate: string
-  status: 'draft' | 'published' | 'closed'
-  requirements?: string
-  prizes?: string
-  contactInfo?: string
-}
-
-interface RecentAudition {
-  id: string
-  title: string
-  thumbnailUrl?: string
-  organizerName: string
-  deadline: string
-  viewedAt: string
-}
+import type { Audition } from '@casto/shared'
 
 export default function AuditionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -64,14 +46,6 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
         )
         
         setAudition(response.audition)
-
-        // 閲覧履歴に保存（localStorage）
-        saveToRecentAuditions(response.audition)
-
-        // DB保存（非同期・バックグラウンド）
-        saveToHistory(auditionId).catch(err => {
-          console.error('Failed to save history:', err)
-        })
       } catch (err: unknown) {
         console.error('Failed to fetch audition:', err)
 
@@ -79,7 +53,7 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
           if (err.status === 404) {
             setAuditionError('オーディションが見つかりませんでした')
             setTimeout(() => {
-              router.push('/liff')
+              router.push('/liff/auditions')
             }, 2000)
           } else {
             setAuditionError('オーディション情報の取得に失敗しました')
@@ -97,52 +71,6 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
     }
   }, [user, auditionId, router])
 
-  // localStorageに閲覧履歴を保存
-  const saveToRecentAuditions = (audition: Audition) => {
-    try {
-      const recent = localStorage.getItem('recentAuditions')
-      let auditions: RecentAudition[] = recent ? JSON.parse(recent) : []
-
-      // 既存のものは削除
-      auditions = auditions.filter(auditionEntry => auditionEntry.id !== audition.id)
-
-      // 先頭に追加
-      const updatedAudition: RecentAudition = {
-        id: audition.id,
-        title: audition.title,
-        thumbnailUrl: audition.thumbnailUrl,
-        organizerName: audition.organizerName,
-        deadline: audition.deadline,
-        viewedAt: new Date().toISOString()
-      }
-
-      auditions.unshift(updatedAudition)
-
-      // 最大10件まで保存
-      auditions = auditions.slice(0, 10)
-
-      localStorage.setItem('recentAuditions', JSON.stringify(auditions))
-    } catch (e) {
-      console.error('Failed to save to recent auditions:', e)
-    }
-  }
-
-  // DBに閲覧履歴を保存（非同期）
-  const saveToHistory = async (auditionId: string) => {
-    try {
-      await apiFetch('/api/v1/users/me/history', {
-        method: 'POST',
-        body: JSON.stringify({
-          auditionId,
-          action: 'view'
-        })
-      })
-    } catch (err) {
-      // エラーは無視（バックグラウンド保存）
-      console.warn('Failed to save history to DB:', err)
-    }
-  }
-
   if (isLoading || isLoadingAudition) {
     return <LoadingScreen message="読み込み中..." />
   }
@@ -159,7 +87,7 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
     return (
       <ErrorScreen 
         message={auditionError}
-        onRetry={() => router.push('/liff')}
+        onRetry={() => router.push('/liff/auditions')}
       />
     )
   }
@@ -169,107 +97,128 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24">
+      {/* ヘッダー */}
+      <div className="bg-card border-b border-border sticky top-0 z-40">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <Link href="/liff/auditions" className="text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <h1 className="text-lg font-semibold text-foreground truncate">オーディション詳細</h1>
+        </div>
+      </div>
+
       {/* メインコンテンツ */}
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        {/* サムネイル */}
-        {audition.thumbnailUrl ? (
-          <Image
-            src={audition.thumbnailUrl}
-            alt={audition.title}
-            width={800}
-            height={400}
-            className="w-full h-64 object-cover rounded-lg mb-6"
-          />
-        ) : (
-          <div className="w-full h-64 bg-secondary flex items-center justify-center rounded-lg mb-6">
-            <span className="text-6xl">🎭</span>
+      <main className="px-4 py-6 space-y-4">
+        {/* メインビジュアル（1:1） */}
+        {audition.mainVisualUrl && (
+          <div className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
+            {audition.mainVisualType === 'video' ? (
+              // eslint-disable-next-line jsx-a11y/media-has-caption
+              <video
+                src={audition.mainVisualUrl}
+                controls
+                className="w-full h-full object-cover"
+                playsInline
+              />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={audition.mainVisualUrl}
+                alt={audition.title}
+                className="w-full h-full object-cover"
+              />
+            )}
           </div>
         )}
 
-        {/* タイトルと主催者 */}
-        <div className="bg-card border border-border rounded-lg p-6 mb-4">
-          <h2 className="text-2xl font-bold text-foreground mb-2">
+        {/* タイトルと基本情報 */}
+        <div className="bg-card border border-border rounded-lg p-4">
+          <h2 className="text-2xl font-bold text-foreground mb-3">
             {audition.title}
           </h2>
-          <p className="text-muted-foreground mb-4">
-            主催: {audition.organizerName}
-          </p>
 
-          {/* 締切情報 */}
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">応募期間:</span>
-              <span className="font-medium text-foreground">
-                {new Date(audition.applicationStartDate).toLocaleDateString('ja-JP')}
-                {' 〜 '}
-                {new Date(audition.deadline).toLocaleDateString('ja-JP')}
-              </span>
+          {/* ジャンル */}
+          {audition.genres && audition.genres.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-3">
+              {audition.genres.map((genre) => (
+                <span
+                  key={genre.id}
+                  className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                >
+                  {genre.displayName}
+                </span>
+              ))}
             </div>
+          )}
+
+          {/* 応募期間 */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Calendar className="h-4 w-4" />
+            <span>
+              応募期間: {new Date(audition.applicationStartDate).toLocaleDateString()}
+              {' 〜 '}
+              {new Date(audition.applicationEndDate).toLocaleDateString()}
+            </span>
           </div>
+
+          {/* 定員 */}
+          {audition.maxApplicants && (
+            <div className="mt-2 text-sm text-muted-foreground">
+              定員: {audition.maxApplicants}名
+            </div>
+          )}
         </div>
 
-        {/* 説明 */}
-        <div className="bg-card border border-border rounded-lg p-6 mb-4">
-          <h3 className="font-bold text-lg mb-3 text-foreground">オーディション概要</h3>
-          <p className="text-foreground/80 whitespace-pre-wrap">
-            {audition.description}
-          </p>
-        </div>
+        {/* 短い説明 */}
+        {audition.shortDescription && (
+          <div className="bg-card border border-border rounded-lg p-4">
+            <p className="text-foreground font-medium">
+              {audition.shortDescription}
+            </p>
+          </div>
+        )}
+
+        {/* 詳細説明 */}
+        {audition.description && (
+          <div className="bg-card border border-border rounded-lg p-4">
+            <h3 className="font-bold text-lg mb-3 text-foreground">詳細</h3>
+            <p className="text-foreground/80 whitespace-pre-wrap">
+              {audition.description}
+            </p>
+          </div>
+        )}
 
         {/* 応募条件 */}
         {audition.requirements && (
-          <div className="bg-card border border-border rounded-lg p-6 mb-4">
+          <div className="bg-card border border-border rounded-lg p-4">
             <h3 className="font-bold text-lg mb-3 text-foreground">応募条件</h3>
             <p className="text-foreground/80 whitespace-pre-wrap">
               {audition.requirements}
             </p>
           </div>
         )}
-
-        {/* 賞金・特典 */}
-        {audition.prizes && (
-          <div className="bg-card border border-border rounded-lg p-6 mb-4">
-            <h3 className="font-bold text-lg mb-3 text-foreground">賞金・特典</h3>
-            <p className="text-foreground/80 whitespace-pre-wrap">
-              {audition.prizes}
-            </p>
-          </div>
-        )}
-
-        {/* お問い合わせ */}
-        {audition.contactInfo && (
-          <div className="bg-card border border-border rounded-lg p-6 mb-4">
-            <h3 className="font-bold text-lg mb-3 text-foreground">お問い合わせ</h3>
-            <p className="text-foreground/80 whitespace-pre-wrap">
-              {audition.contactInfo}
-            </p>
-          </div>
-        )}
-
-        {/* 応募ボタン */}
-        <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-50">
-          <div className="max-w-7xl mx-auto">
-            {audition.status === 'published' ? (
-              <Link href={`/liff/auditions/${audition.id}/apply`}>
-                <button className="w-full bg-primary text-primary-foreground py-4 rounded-lg font-bold hover:bg-primary/90 transition">
-                  今すぐ応募する
-                </button>
-              </Link>
-            ) : (
-              <button 
-                disabled 
-                className="w-full bg-muted text-muted-foreground py-4 rounded-lg font-bold cursor-not-allowed"
-              >
-                {audition.status === 'closed' ? '応募受付終了' : '準備中'}
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* 下部スペース（固定ボタンの高さ分） */}
-        <div className="h-20"></div>
       </main>
+
+      {/* 応募ボタン（固定） */}
+      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-50">
+        <div className="max-w-7xl mx-auto">
+          {audition.status === 'published' ? (
+            <Link href={`/liff/auditions/${audition.id}/apply`}>
+              <button className="w-full bg-primary text-primary-foreground py-4 rounded-lg font-bold hover:bg-primary/90 transition">
+                今すぐ応募する
+              </button>
+            </Link>
+          ) : (
+            <button 
+              disabled 
+              className="w-full bg-muted text-muted-foreground py-4 rounded-lg font-bold cursor-not-allowed"
+            >
+              {audition.status === 'closed' ? '応募受付終了' : '下書き'}
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
