@@ -59,9 +59,8 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
         setIsLoadingAudition(true)
         setAuditionError(null)
 
-        // TODO: 実際のAPI実装後に置き換え
         const response = await apiFetch<{ audition: Audition }>(
-          `/api/v1/auditions/${auditionId}`
+          `/api/v1/talent/auditions/${auditionId}`
         )
         
         setAudition(response.audition)
