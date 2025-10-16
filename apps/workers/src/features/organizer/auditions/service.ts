@@ -301,7 +301,12 @@ export async function updateAudition(
   }
 
   // エリア更新（単一）
+  console.log('🔍 [Workers DEBUG] areaId received:', areaId, 'type:', typeof areaId)
+  console.log('🔍 [Workers DEBUG] areaId !== undefined:', areaId !== undefined)
+  
   if (areaId !== undefined) {
+    console.log('🔍 [Workers DEBUG] Entering area update logic')
+    
     // 既存のエリア紐付けを削除
     const { error: deleteError } = await client
       .from('audition_area_map')
@@ -309,12 +314,15 @@ export async function updateAudition(
       .eq('audition_id', auditionId)
 
     if (deleteError) {
-      console.error('Failed to delete area mapping:', deleteError)
+      console.error('❌ [Workers DEBUG] Failed to delete area mapping:', deleteError)
       throw new Error(`Failed to delete area mapping: ${deleteError.message}`)
     }
+    console.log('✅ [Workers DEBUG] Successfully deleted existing area mapping')
 
     // 新しいエリア紐付けを作成
     if (areaId) {
+      console.log('🔍 [Workers DEBUG] Inserting new area mapping:', { audition_id: auditionId, area_id: areaId })
+      
       const { error: areaMapError } = await client
         .from('audition_area_map')
         .insert({
@@ -323,10 +331,15 @@ export async function updateAudition(
         })
 
       if (areaMapError) {
-        console.error('Failed to update area mapping:', areaMapError)
+        console.error('❌ [Workers DEBUG] Failed to update area mapping:', areaMapError)
         throw new Error(`Failed to update area mapping: ${areaMapError.message}`)
       }
+      console.log('✅ [Workers DEBUG] Successfully inserted new area mapping')
+    } else {
+      console.log('⚠️ [Workers DEBUG] areaId is falsy, skipping insert')
     }
+  } else {
+    console.log('⚠️ [Workers DEBUG] areaId is undefined, skipping area update')
   }
 
   return toAudition(updatedAudition)

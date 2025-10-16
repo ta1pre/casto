@@ -140,6 +140,10 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
         areaId: formData.areaId || undefined,
       }
 
+      console.log('🔍 [DEBUG] formData.areaId:', formData.areaId)
+      console.log('🔍 [DEBUG] payload.areaId:', payload.areaId)
+      console.log('🔍 [DEBUG] Full payload:', JSON.stringify(payload, null, 2))
+
       const response = await fetch(`/api/v1/organizer/auditions/${auditionId}`, {
         method: 'PATCH',
         headers: {
