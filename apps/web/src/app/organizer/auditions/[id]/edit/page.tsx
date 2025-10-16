@@ -127,13 +127,16 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
 
     try {
       const payload = {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
+        requirements: formData.requirements,
+        shortDescription: formData.shortDescription || undefined,
+        coverImageUrl: formData.coverImageUrl || undefined,
+        coverImageAlt: formData.coverImageAlt || undefined,
         applicationStartDate: new Date(formData.applicationStartDate).toISOString(),
         applicationEndDate: new Date(formData.applicationEndDate).toISOString(),
         maxApplicants: formData.maxApplicants ? parseInt(formData.maxApplicants) : undefined,
-        coverImageUrl: formData.coverImageUrl || undefined,
-        coverImageAlt: formData.coverImageAlt || undefined,
-        shortDescription: formData.shortDescription || undefined,
+        genreIds: formData.genreIds,
         areaId: formData.areaId || undefined,
       }
 
