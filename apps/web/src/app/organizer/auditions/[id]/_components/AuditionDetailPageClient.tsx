@@ -242,25 +242,14 @@ export function AuditionDetailPageClient({ auditionId }: { auditionId: string })
             </div>
           )}
 
-          {/* エリア */}
-          {audition.areas && audition.areas.length > 0 && (
+          {/* 実施エリア */}
+          {audition.area && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">エリア</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">実施エリア</h2>
               <div className="flex flex-wrap gap-2">
-                {audition.areas.length === 47 ? (
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                    全国
-                  </span>
-                ) : (
-                  audition.areas.map((area) => (
-                    <span
-                      key={area.id}
-                      className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm"
-                    >
-                      {area.name}
-                    </span>
-                  ))
-                )}
+                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                  {audition.area.name}
+                </span>
               </div>
             </div>
           )}

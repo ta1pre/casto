@@ -153,16 +153,16 @@ export async function getAuditionById(
       .map((row: any) => toAuditionGenre(row.audition_genres))
   }
 
-  // エリア情報を取得
+  // エリア情報を取得（単一）
   const { data: areaData, error: areaError } = await client
     .from('audition_area_map')
     .select('area_id, audition_areas(*)')
     .eq('audition_id', auditionId)
+    .limit(1)
+    .maybeSingle()
 
-  if (!areaError && areaData) {
-    audition.areas = areaData
-      .filter((row: any) => row.audition_areas)
-      .map((row: any) => toAuditionArea(row.audition_areas))
+  if (!areaError && areaData && areaData.audition_areas) {
+    audition.area = toAuditionArea(areaData.audition_areas as any)
   }
 
   return audition
@@ -176,7 +176,7 @@ export async function createAudition(
   organizerId: string,
   data: CreateAuditionRequest
 ): Promise<Audition> {
-  const { genreIds, areaIds, ...auditionData } = data
+  const { genreIds, areaId, ...auditionData } = data
 
   // オーディション作成
   const { data: newAudition, error: auditionError } = await client
@@ -217,19 +217,17 @@ export async function createAudition(
     }
   }
 
-  // エリア紐付け
-  if (areaIds && areaIds.length > 0) {
-    const areaMapData = areaIds.map((areaId) => ({
-      audition_id: newAudition.id,
-      area_id: areaId,
-    }))
-
+  // エリア紐付け（単一）
+  if (areaId) {
     const { error: areaMapError } = await client
       .from('audition_area_map')
-      .insert(areaMapData)
+      .insert({
+        audition_id: newAudition.id,
+        area_id: areaId,
+      })
 
     if (areaMapError) {
-      console.error('Failed to create area mappings:', areaMapError)
+      console.error('Failed to create area mapping:', areaMapError)
     }
   }
 
@@ -245,7 +243,7 @@ export async function updateAudition(
   organizerId: string,
   data: UpdateAuditionRequest
 ): Promise<Audition> {
-  const { genreIds, areaIds, ...auditionData } = data
+  const { genreIds, areaId, ...auditionData } = data
 
   // 更新用データオブジェクト作成
   const updateData: any = {}
@@ -302,24 +300,22 @@ export async function updateAudition(
     }
   }
 
-  // エリア更新
-  if (areaIds !== undefined) {
+  // エリア更新（単一）
+  if (areaId !== undefined) {
     // 既存のエリア紐付けを削除
     await client.from('audition_area_map').delete().eq('audition_id', auditionId)
 
     // 新しいエリア紐付けを作成
-    if (areaIds.length > 0) {
-      const areaMapData = areaIds.map((areaId) => ({
-        audition_id: auditionId,
-        area_id: areaId,
-      }))
-
+    if (areaId) {
       const { error: areaMapError } = await client
         .from('audition_area_map')
-        .insert(areaMapData)
+        .insert({
+          audition_id: auditionId,
+          area_id: areaId,
+        })
 
       if (areaMapError) {
-        console.error('Failed to update area mappings:', areaMapError)
+        console.error('Failed to update area mapping:', areaMapError)
       }
     }
   }

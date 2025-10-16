@@ -172,16 +172,16 @@ export async function getPublishedAuditionById(
       .map((row: any) => toAuditionGenre(row.audition_genres))
   }
 
-  // エリア情報を取得
+  // エリア情報を取得（単一）
   const { data: areaData, error: areaError } = await client
     .from('audition_area_map')
     .select('area_id, audition_areas(*)')
     .eq('audition_id', auditionId)
+    .limit(1)
+    .maybeSingle()
 
-  if (!areaError && areaData) {
-    audition.areas = areaData
-      .filter((row: any) => row.audition_areas)
-      .map((row: any) => toAuditionArea(row.audition_areas))
+  if (!areaError && areaData && areaData.audition_areas) {
+    audition.area = toAuditionArea(areaData.audition_areas as any)
   }
 
   return audition

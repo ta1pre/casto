@@ -67,7 +67,7 @@ export interface Audition {
   projectType: ProjectType
   evaluationMode: EvaluationMode
   genres?: AuditionGenre[]
-  areas?: AuditionArea[]
+  area?: AuditionArea
   createdAt: string
   updatedAt: string
 }
@@ -97,7 +97,7 @@ export interface CreateAuditionRequest {
   maxApplicants?: number
   projectType: ProjectType
   genreIds?: string[]
-  areaIds?: string[]
+  areaId?: string
 }
 
 /**
@@ -115,7 +115,7 @@ export interface UpdateAuditionRequest {
   maxApplicants?: number
   status?: AuditionStatus
   genreIds?: string[]
-  areaIds?: string[]
+  areaId?: string
 }
 
 /**

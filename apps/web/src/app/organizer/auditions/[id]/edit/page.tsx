@@ -32,7 +32,7 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
     maxApplicants: '',
     projectType: 'audition' as 'audition' | 'job',
     genreIds: [] as string[],
-    areaIds: [] as string[],
+    areaId: '',
   })
   const [mainVisualUrl, setMainVisualUrl] = useState<string | null>(null)
   const [mainVisualType, setMainVisualType] = useState<MediaType | null>(null)
@@ -77,7 +77,7 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
           maxApplicants: aud.maxApplicants ? String(aud.maxApplicants) : '',
           projectType: aud.projectType || 'audition',
           genreIds: aud.genres?.map((g: AuditionGenre) => g.id) || [],
-          areaIds: aud.areas?.map((a: AuditionArea) => a.id) || [],
+          areaId: aud.area?.id || '',
         })
         setMainVisualUrl(aud.mainVisualUrl || null)
         setMainVisualType(aud.mainVisualType || null)
@@ -177,12 +177,10 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
     }))
   }
 
-  const toggleArea = (areaId: string) => {
+  const selectArea = (areaId: string) => {
     setFormData((prev) => ({
       ...prev,
-      areaIds: prev.areaIds.includes(areaId)
-        ? prev.areaIds.filter((id) => id !== areaId)
-        : [...prev.areaIds, areaId],
+      areaId: areaId,
     }))
   }
 
@@ -394,26 +392,29 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
 
-        {/* エリア */}
+        {/* 実施エリア */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">エリア（複数選択可）</h2>
-          <p className="text-sm text-gray-600 mb-4">
-            ※ 「全国」選択時は自動的に47都道府県が選択されます
-          </p>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">実施エリア</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
             {areas.map((area) => (
-              <button
+              <label
                 key={area.id}
-                type="button"
-                onClick={() => toggleArea(area.id)}
-                className={`px-3 py-2 rounded-lg border text-sm transition-colors ${
-                  formData.areaIds.includes(area.id)
+                className={`px-3 py-2 rounded-lg border text-sm transition-colors cursor-pointer ${
+                  formData.areaId === area.id
                     ? 'bg-blue-600 text-white border-blue-600'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
                 }`}
               >
+                <input
+                  type="radio"
+                  name="areaId"
+                  value={area.id}
+                  checked={formData.areaId === area.id}
+                  onChange={() => selectArea(area.id)}
+                  className="sr-only"
+                />
                 {area.name}
-              </button>
+              </label>
             ))}
           </div>
         </div>
