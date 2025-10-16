@@ -26,6 +26,8 @@ function toAudition(row: SupabaseAuditionRow): Audition {
     shortDescription: row.short_description || undefined,
     coverImageUrl: row.cover_image_url || undefined,
     coverImageAlt: row.cover_image_alt || undefined,
+    mainVisualUrl: row.main_visual_url || undefined,
+    mainVisualType: row.main_visual_type || undefined,
     applicationStartDate: row.application_start_date,
     applicationEndDate: row.application_end_date,
     maxApplicants: row.max_applicants || undefined,
