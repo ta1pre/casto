@@ -164,6 +164,35 @@ export function AuditionDetailPageClient({ auditionId }: { auditionId: string })
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* メインコンテンツ */}
         <div className="lg:col-span-2 space-y-6">
+          {/* メインビジュアル */}
+          {audition.mainVisualUrl && (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">メインビジュアル</h2>
+              <div className="flex justify-center">
+                <div 
+                  className="relative rounded-lg overflow-hidden bg-gray-100"
+                  style={{ width: '100%', maxWidth: '500px', aspectRatio: '1/1' }}
+                >
+                  {audition.mainVisualType === 'video' ? (
+                    // eslint-disable-next-line jsx-a11y/media-has-caption
+                    <video
+                      src={audition.mainVisualUrl}
+                      controls
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={audition.mainVisualUrl}
+                      alt={audition.title}
+                      className="w-full h-full object-contain"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* 基本情報 */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">基本情報</h2>
