@@ -4,6 +4,7 @@
  */
 
 import type { AuditionGenre } from './auditionGenre'
+import type { MediaType } from './media'
 
 /**
  * オーディションステータス
@@ -32,6 +33,8 @@ export interface SupabaseAuditionRow {
   short_description: string | null
   cover_image_url: string | null
   cover_image_alt: string | null
+  main_visual_url: string | null
+  main_visual_type: MediaType | null
   application_start_date: string
   application_end_date: string
   max_applicants: number | null
@@ -54,6 +57,8 @@ export interface Audition {
   shortDescription?: string
   coverImageUrl?: string
   coverImageAlt?: string
+  mainVisualUrl?: string
+  mainVisualType?: MediaType
   applicationStartDate: string
   applicationEndDate: string
   maxApplicants?: number

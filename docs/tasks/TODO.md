@@ -163,6 +163,24 @@
 - [ ] `services/emailNotification.ts` - Supabase Auth メール通知
 - [ ] `app.ts` にルーティング追加
 
+**メインビジュアル機能**（画像・動画対応）
+- [ ] `supabase/migrations/{timestamp}_add_main_visual_to_auditions.sql` - マイグレーション作成
+- [ ] `packages/shared/src/types/media.ts` - メディア型定義
+- [ ] `packages/shared/src/validators/media.ts` - メディアバリデーション（画像5MB/動画50MB）
+- [ ] `packages/shared/src/types/audition.ts` - Audition型に main_visual_url/type 追加
+- [ ] `apps/workers/src/features/organizer/auditions/mainVisual.service.ts` - R2操作サービス
+- [ ] `apps/workers/src/features/organizer/auditions/mainVisual.routes.ts` - メインビジュアルAPI
+  - [ ] POST /api/v1/organizer/auditions/:id/main-visual/upload
+  - [ ] DELETE /api/v1/organizer/auditions/:id/main-visual
+  - [ ] GET /api/v1/organizer/auditions/:id/main-visual/view
+- [ ] `apps/workers/src/app.ts` - ルーティング追加
+- [ ] `packages/shared/src/components/MediaUploader.tsx` - 汎用メディアアップローダー（スクエア表示）
+- [ ] `organizer/auditions/new/page.tsx` - メインビジュアルUI統合
+- [ ] `organizer/auditions/[id]/edit/page.tsx` - メインビジュアルUI統合
+- [ ] `organizer/auditions/[id]/page.tsx` - メインビジュアル表示追加
+- [ ] 動作確認・テスト（画像/動画アップロード、削除、プレビュー）
+- 📋 詳細: [AUDITION_MAIN_VISUAL_IMPLEMENTATION.md](./AUDITION_MAIN_VISUAL_IMPLEMENTATION.md)
+
 **Web UI - 主催者側**（apps/web）
 - [ ] `hooks/useAuditions.ts` - オーディション CRUD フック
 - [ ] `hooks/useApplications.ts` - 応募管理フック

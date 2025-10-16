@@ -12,6 +12,7 @@ import organizerAuthRoutes from './features/organizer/auth/routes'
 import organizerProfileRoutes from './features/organizer/profile/routes'
 import organizerAuditionRoutes from './features/organizer/auditions/routes'
 import organizerGenreRoutes from './features/organizer/auditions/genres.routes'
+import organizerMainVisualRoutes from './features/organizer/auditions/mainVisual.routes'
 import organizerApplicationRoutes from './features/organizer/applications/routes'
 import talentAuditionRoutes from './features/talent/auditions/routes'
 import talentApplicationRoutes from './features/talent/applications/routes'
@@ -55,6 +56,7 @@ export function createApp() {
   app.route('/api/v1/organizer', organizerAuthRoutes)
   app.route('/api/v1/organizer', organizerProfileRoutes)
   app.route('/api/v1/organizer/auditions', organizerAuditionRoutes)
+  app.route('/api/v1/organizer/auditions', organizerMainVisualRoutes)
   app.route('/api/v1/organizer/genres', organizerGenreRoutes)
   app.route('/api/v1/organizer', organizerApplicationRoutes)
   app.route('/api/v1/talent/auditions', talentAuditionRoutes)

@@ -8,6 +8,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Audition, AuditionGenre } from '@casto/shared'
+import type { MediaType } from '@casto/shared/types/media'
+import { MediaUploader } from '@/shared/components/MediaUploader'
+import { resolveApiUrl } from '@/shared/lib/api'
 
 export default function EditAuditionPage({ params }: { params: Promise<{ id: string }> }) {
   const [auditionId, setAuditionId] = useState<string>('')
@@ -29,6 +32,9 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
     projectType: 'audition' as 'audition' | 'job',
     genreIds: [] as string[],
   })
+  const [mainVisualUrl, setMainVisualUrl] = useState<string | null>(null)
+  const [mainVisualType, setMainVisualType] = useState<MediaType | null>(null)
+  const [mediaUploading, setMediaUploading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -69,6 +75,8 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
           projectType: aud.projectType || 'audition',
           genreIds: aud.genres?.map((g: AuditionGenre) => g.id) || [],
         })
+        setMainVisualUrl(aud.mainVisualUrl || null)
+        setMainVisualType(aud.mainVisualType || null)
       } else {
         router.push('/organizer/auditions')
       }
@@ -149,6 +157,57 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
         ? prev.genreIds.filter((id) => id !== genreId)
         : [...prev.genreIds, genreId],
     }))
+  }
+
+  const handleMainVisualUpload = async (file: File) => {
+    setMediaUploading(true)
+    try {
+      const formDataPayload = new FormData()
+      formDataPayload.append('file', file)
+
+      const response = await fetch(
+        resolveApiUrl(`/api/v1/organizer/auditions/${auditionId}/main-visual/upload`),
+        {
+          method: 'POST',
+          credentials: 'include',
+          body: formDataPayload,
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'アップロードに失敗しました')
+      }
+
+      const data = await response.json()
+      setMainVisualUrl(data.url)
+      setMainVisualType(data.mediaType)
+    } finally {
+      setMediaUploading(false)
+    }
+  }
+
+  const handleMainVisualDelete = async () => {
+    setMediaUploading(true)
+    try {
+      const response = await fetch(
+        resolveApiUrl(`/api/v1/organizer/auditions/${auditionId}/main-visual`),
+        {
+          method: 'DELETE',
+          credentials: 'include',
+        }
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '削除に失敗しました')
+      }
+
+      setMainVisualUrl(null)
+      setMainVisualType(null)
+    } finally {
+      setMediaUploading(false)
+    }
   }
 
   if (loading) {
@@ -270,6 +329,17 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                 placeholder="年齢、経験、スキルなど"
+              />
+            </div>
+
+            {/* メインビジュアル */}
+            <div>
+              <MediaUploader
+                mediaUrl={mainVisualUrl}
+                mediaType={mainVisualType}
+                onUpload={handleMainVisualUpload}
+                onDelete={handleMainVisualDelete}
+                disabled={mediaUploading || saving}
               />
             </div>
           </div>
