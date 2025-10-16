@@ -303,7 +303,15 @@ export async function updateAudition(
   // エリア更新（単一）
   if (areaId !== undefined) {
     // 既存のエリア紐付けを削除
-    await client.from('audition_area_map').delete().eq('audition_id', auditionId)
+    const { error: deleteError } = await client
+      .from('audition_area_map')
+      .delete()
+      .eq('audition_id', auditionId)
+
+    if (deleteError) {
+      console.error('Failed to delete area mapping:', deleteError)
+      throw new Error(`Failed to delete area mapping: ${deleteError.message}`)
+    }
 
     // 新しいエリア紐付けを作成
     if (areaId) {
@@ -316,6 +324,7 @@ export async function updateAudition(
 
       if (areaMapError) {
         console.error('Failed to update area mapping:', areaMapError)
+        throw new Error(`Failed to update area mapping: ${areaMapError.message}`)
       }
     }
   }
