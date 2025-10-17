@@ -11,6 +11,7 @@ import type { Audition, AuditionGenre, AuditionArea } from '@casto/shared'
 import type { MediaType } from '@casto/shared/types/media'
 import { MediaUploader } from '@/shared/components/MediaUploader'
 import { resolveApiUrl } from '@/shared/lib/api'
+import { AuditionStepsSection } from './_components/AuditionStepsSection'
 
 export default function EditAuditionPage({ params }: { params: Promise<{ id: string }> }) {
   const [auditionId, setAuditionId] = useState<string>('')
@@ -479,6 +480,14 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
             </div>
           </div>
         </div>
+
+        {/* 選考ステップ設定 */}
+        {auditionId && (
+          <AuditionStepsSection
+            auditionId={auditionId}
+            isPublished={audition?.status === 'published'}
+          />
+        )}
 
         {/* アクションボタン */}
         <div className="flex items-center justify-end gap-4">
