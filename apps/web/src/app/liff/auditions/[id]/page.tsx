@@ -5,7 +5,7 @@
  * [SF][CA] Workers APIレスポンス形式に完全対応、メインビジュアル1:1表示
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Calendar, ArrowLeft } from 'lucide-react'
@@ -22,6 +22,33 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
   const [isLoadingAudition, setIsLoadingAudition] = useState(true)
   const [auditionError, setAuditionError] = useState<string | null>(null)
   const [auditionId, setAuditionId] = useState<string | null>(null)
+  const [videoPoster, setVideoPoster] = useState<string | null>(null)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+
+  const handleVideoLoadedData = () => {
+    if (videoPoster) return
+    const video = videoRef.current
+    if (!video) return
+    if (!video.videoWidth || !video.videoHeight) return
+    const canvas = document.createElement('canvas')
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    const context = canvas.getContext('2d')
+    if (!context) return
+    context.drawImage(video, 0, 0, canvas.width, canvas.height)
+    try {
+      const dataUrl = canvas.toDataURL('image/png')
+      setVideoPoster(dataUrl)
+    } catch (err) {
+      console.error('Failed to create video poster', err)
+    }
+  }
+
+  useEffect(() => {
+    if (audition?.mainVisualType === 'video') {
+      setVideoPoster(null)
+    }
+  }, [audition?.mainVisualUrl, audition?.mainVisualType])
 
   // paramsの解決
   useEffect(() => {
@@ -112,7 +139,18 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
       <main className="px-4 py-6 space-y-4">
         {/* メインビジュアル（1:1） */}
         {audition.mainVisualUrl && (
-          <div className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden">
+          <div
+            className="w-full aspect-square bg-gray-100 rounded-lg overflow-hidden"
+            style={
+              audition.mainVisualType === 'video' && videoPoster
+                ? {
+                    backgroundImage: `url(${videoPoster})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }
+                : undefined
+            }
+          >
             {audition.mainVisualType === 'video' ? (
               // eslint-disable-next-line jsx-a11y/media-has-caption
               <video
@@ -120,6 +158,10 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
                 controls
                 className="w-full h-full object-cover"
                 playsInline
+                preload="metadata"
+                poster={videoPoster ?? undefined}
+                ref={videoRef}
+                onLoadedData={handleVideoLoadedData}
               />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
