@@ -8,18 +8,19 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, ArrowLeft } from 'lucide-react'
+import { Calendar, ArrowLeft, CheckCircle } from 'lucide-react'
 import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
 import { LoadingScreen } from '@/shared/components/LoadingScreen'
 import { ErrorScreen } from '@/shared/components/ErrorScreen'
 import { apiFetch, ApiError } from '@/shared/lib/api'
-import type { Audition } from '@casto/shared'
+import type { Audition, AuditionStep } from '@casto/shared'
 import { VideoThumbnail } from '@/shared/components/VideoThumbnail'
 
 export default function AuditionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { user, isLoading, error } = useLiffAuth()
   const [audition, setAudition] = useState<Audition | null>(null)
+  const [steps, setSteps] = useState<AuditionStep[]>([])
   const [isLoadingAudition, setIsLoadingAudition] = useState(true)
   const [auditionError, setAuditionError] = useState<string | null>(null)
   const [auditionId, setAuditionId] = useState<string | null>(null)
@@ -33,20 +34,36 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
     void resolveParams()
   }, [params])
 
-  // オーディション情報の取得
+  // オーディション情報とステップの取得
   useEffect(() => {
-    const fetchAudition = async () => {
+    const fetchData = async () => {
       if (!user || !auditionId) return
 
       try {
         setIsLoadingAudition(true)
         setAuditionError(null)
 
+        // オーディション情報取得
         const response = await apiFetch<{ audition: Audition }>(
           `/api/v1/talent/auditions/${auditionId}`
         )
-        
         setAudition(response.audition)
+
+        // ステップ情報取得（公開されているオーディションのみ）
+        if (response.audition.status === 'published') {
+          try {
+            const stepsResponse = await fetch(`/api/v1/organizer/auditions/${auditionId}/steps`, {
+              credentials: 'include',
+            })
+            if (stepsResponse.ok) {
+              const stepsData = await stepsResponse.json()
+              setSteps(stepsData.steps || [])
+            }
+          } catch (err) {
+            // ステップ取得失敗は無視（表示しないだけ）
+            console.log('Steps fetch failed (non-critical):', err)
+          }
+        }
       } catch (err: unknown) {
         console.error('Failed to fetch audition:', err)
 
@@ -68,7 +85,7 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
     }
 
     if (user && auditionId) {
-      void fetchAudition()
+      void fetchData()
     }
   }, [user, auditionId, router])
 
@@ -197,6 +214,36 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
             <p className="text-foreground/80 whitespace-pre-wrap">
               {audition.description}
             </p>
+          </div>
+        )}
+
+        {/* 選考フロー */}
+        {steps.length > 0 && (
+          <div className="bg-card border border-border rounded-lg p-4">
+            <h3 className="font-bold text-lg mb-3 text-foreground">選考フロー</h3>
+            <div className="space-y-3">
+              {steps.map((step) => (
+                <div key={step.id} className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold">
+                    {step.stepOrder}
+                  </div>
+                  <div className="flex-1 pt-1">
+                    <p className="font-semibold text-foreground">{step.title}</p>
+                    {step.description && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {step.description}
+                      </p>
+                    )}
+                  </div>
+                  <CheckCircle className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-1.5" />
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-900">
+                📋 応募後は各ステップごとに選考が進みます。進捗状況はマイページから確認できます。
+              </p>
+            </div>
           </div>
         )}
 
