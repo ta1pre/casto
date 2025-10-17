@@ -24,7 +24,7 @@ function toAuditionEvaluation(row: SupabaseAuditionEvaluationRow): AuditionEvalu
     evaluatorId: row.evaluator_id || undefined,
     score: row.score !== null ? row.score : undefined,
     comments: row.comments || undefined,
-    result: row.result,
+    result: row.result || undefined,
     evaluatedAt: row.evaluated_at || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -114,7 +114,7 @@ export async function createEvaluation(
       evaluator_id: evaluatorId,
       score: data.score !== undefined ? data.score : null,
       comments: data.comments || null,
-      result: data.result,
+      result: data.result || null,
       evaluated_at: new Date().toISOString(),
     })
     .select()

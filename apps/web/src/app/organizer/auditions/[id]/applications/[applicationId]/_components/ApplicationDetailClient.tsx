@@ -20,6 +20,7 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
   const [evaluations, setEvaluations] = useState<AuditionEvaluation[]>([])
   const [loading, setLoading] = useState(true)
   const [evaluatingStepId, setEvaluatingStepId] = useState<string | null>(null)
+  const [editingEvaluationId, setEditingEvaluationId] = useState<string | null>(null)
   const [evaluationForm, setEvaluationForm] = useState({
     score: '',
     comments: '',
@@ -90,11 +91,6 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
   }
 
   const handleCreateEvaluation = async (stepId: string) => {
-    if (!evaluationForm.result || evaluationForm.result === 'pending') {
-      alert('合否判定を選択してください')
-      return
-    }
-
     try {
       setSubmitting(true)
       const response = await fetch(
@@ -106,7 +102,7 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
           body: JSON.stringify({
             score: evaluationForm.score ? parseFloat(evaluationForm.score) : undefined,
             comments: evaluationForm.comments || undefined,
-            result: evaluationForm.result,
+            result: evaluationForm.result !== 'pending' ? evaluationForm.result : undefined,
           }),
         }
       )
@@ -122,6 +118,40 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
       }
     } catch (error) {
       console.error('Failed to create evaluation:', error)
+      alert('ネットワークエラーが発生しました')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleUpdateEvaluation = async (evaluationId: string) => {
+    try {
+      setSubmitting(true)
+      const response = await fetch(
+        `/api/v1/organizer/auditions/${auditionId}/applications/${applicationId}/evaluations/${evaluationId}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            score: evaluationForm.score ? parseFloat(evaluationForm.score) : undefined,
+            comments: evaluationForm.comments || undefined,
+            result: evaluationForm.result !== 'pending' ? evaluationForm.result : undefined,
+          }),
+        }
+      )
+
+      if (response.ok) {
+        setEvaluationForm({ score: '', comments: '', result: 'pending' })
+        setEditingEvaluationId(null)
+        await fetchEvaluations()
+        alert('評価を更新しました')
+      } else {
+        const error = await response.json()
+        alert(error.error || '評価の更新に失敗しました')
+      }
+    } catch (error) {
+      console.error('Failed to update evaluation:', error)
       alert('ネットワークエラーが発生しました')
     } finally {
       setSubmitting(false)
@@ -311,30 +341,126 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
                         <p className="text-sm text-gray-600 mt-1">{step.description}</p>
                       )}
                     </div>
-                    {evaluation && getResultBadge(evaluation.result)}
+                    {evaluation && evaluation.result && getResultBadge(evaluation.result)}
                   </div>
 
                   {evaluation ? (
-                    // 評価済み
-                    <div className="bg-gray-50 rounded p-3 space-y-2">
-                      {evaluation.score !== undefined && (
-                        <div className="text-sm">
-                          <span className="text-gray-600">スコア:</span>
-                          <span className="ml-2 font-medium">{evaluation.score}点</span>
+                    editingEvaluationId === evaluation.id ? (
+                      // 評価編集フォーム
+                      <div className="space-y-3 mt-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            スコア（任意・0～100点）
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={evaluationForm.score}
+                            onChange={(e) => setEvaluationForm({ ...evaluationForm, score: e.target.value })}
+                            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
+                            placeholder="0～100"
+                          />
                         </div>
-                      )}
-                      {evaluation.comments && (
-                        <div className="text-sm">
-                          <span className="text-gray-600">コメント:</span>
-                          <p className="mt-1 text-gray-900">{evaluation.comments}</p>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            コメント（任意）
+                          </label>
+                          <textarea
+                            value={evaluationForm.comments}
+                            onChange={(e) => setEvaluationForm({ ...evaluationForm, comments: e.target.value })}
+                            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
+                            rows={3}
+                            placeholder="評価コメントを入力"
+                            maxLength={2000}
+                          />
                         </div>
-                      )}
-                      <div className="text-xs text-gray-500">
-                        評価日時: {evaluation.evaluatedAt 
-                          ? new Date(evaluation.evaluatedAt).toLocaleString('ja-JP')
-                          : '未設定'}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            合否判定（任意）
+                          </label>
+                          <div className="flex gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setEvaluationForm({ ...evaluationForm, result: 'passed' })}
+                              className={`flex-1 py-2 px-4 rounded font-medium transition-colors ${
+                                evaluationForm.result === 'passed'
+                                  ? 'bg-green-600 text-white'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              }`}
+                            >
+                              合格
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEvaluationForm({ ...evaluationForm, result: 'rejected' })}
+                              className={`flex-1 py-2 px-4 rounded font-medium transition-colors ${
+                                evaluationForm.result === 'rejected'
+                                  ? 'bg-red-600 text-white'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              }`}
+                            >
+                              不合格
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateEvaluation(evaluation.id)}
+                            disabled={submitting}
+                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                          >
+                            {submitting ? '更新中...' : '評価を更新'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingEvaluationId(null)
+                              setEvaluationForm({ score: '', comments: '', result: 'pending' })
+                            }}
+                            className="px-4 py-2 border rounded hover:bg-gray-50"
+                          >
+                            キャンセル
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      // 評価済み
+                      <div className="bg-gray-50 rounded p-3 space-y-2">
+                        {evaluation.score !== undefined && (
+                          <div className="text-sm">
+                            <span className="text-gray-600">スコア:</span>
+                            <span className="ml-2 font-medium">{evaluation.score}点</span>
+                          </div>
+                        )}
+                        {evaluation.comments && (
+                          <div className="text-sm">
+                            <span className="text-gray-600">コメント:</span>
+                            <p className="mt-1 text-gray-900">{evaluation.comments}</p>
+                          </div>
+                        )}
+                        <div className="text-xs text-gray-500">
+                          評価日時: {evaluation.evaluatedAt 
+                            ? new Date(evaluation.evaluatedAt).toLocaleString('ja-JP')
+                            : '未設定'}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingEvaluationId(evaluation.id)
+                            setEvaluationForm({
+                              score: evaluation.score !== undefined ? String(evaluation.score) : '',
+                              comments: evaluation.comments || '',
+                              result: evaluation.result || 'pending',
+                            })
+                          }}
+                          className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+                        >
+                          評価を編集する →
+                        </button>
+                      </div>
+                    )
                   ) : isEvaluating ? (
                     // 評価フォーム
                     <div className="space-y-3 mt-3">
@@ -367,7 +493,7 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          合否判定 <span className="text-red-500">*</span>
+                          合否判定（任意）
                         </label>
                         <div className="flex gap-3">
                           <button

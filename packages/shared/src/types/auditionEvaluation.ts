@@ -18,7 +18,7 @@ export interface SupabaseAuditionEvaluationRow {
   evaluator_id: string | null
   score: number | null
   comments: string | null
-  result: EvaluationResult
+  result: EvaluationResult | null
   evaluated_at: string | null
   created_at: string
   updated_at: string
@@ -34,7 +34,7 @@ export interface AuditionEvaluation {
   evaluatorId?: string
   score?: number
   comments?: string
-  result: EvaluationResult
+  result?: EvaluationResult
   evaluatedAt?: string
   createdAt: string
   updatedAt: string
@@ -50,7 +50,7 @@ export interface AuditionEvaluation {
 export interface CreateEvaluationRequest {
   score?: number  // 0～100
   comments?: string
-  result: EvaluationResult
+  result?: EvaluationResult
 }
 
 /**

@@ -13,6 +13,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
   const [audition, setAudition] = useState<Audition | null>(null)
   const [steps, setSteps] = useState<AuditionStep[]>([])
   const [applications, setApplications] = useState<AuditionApplication[]>([])
+  const [totalCount, setTotalCount] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>('all')
 
@@ -88,6 +89,10 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
         const data = await response.json()
         console.log('[Applications] Data received:', data)
         setApplications(data.applications || [])
+        // フィルタなしの場合のみ全体数を更新
+        if (filter === 'all') {
+          setTotalCount(data.applications?.length || 0)
+        }
       } else {
         const errorText = await response.text()
         console.error('[Applications] Error response:', response.status, errorText)
@@ -99,6 +104,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
 
   const getStatusBadge = (status: string) => {
     const badges = {
+      unread: 'bg-purple-100 text-purple-800',
       pending: 'bg-gray-100 text-gray-800',
       in_progress: 'bg-blue-100 text-blue-800',
       passed: 'bg-green-100 text-green-800',
@@ -106,6 +112,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
       withdrawn: 'bg-gray-300 text-gray-600',
     }
     const labels = {
+      unread: '未開封',
       pending: '未審査',
       in_progress: '審査中',
       passed: '合格',
@@ -155,14 +162,14 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <div className="flex flex-wrap gap-2">
           <button
-            onClick={() => setFilter('all')}
+            onClick={() => setFilter('unread')}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filter === 'all'
+              filter === 'unread'
                 ? 'bg-gray-900 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            すべて ({applications.length})
+            未開封
           </button>
           <button
             onClick={() => setFilter('pending')}
@@ -203,6 +210,16 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
             }`}
           >
             不合格
+          </button>
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              filter === 'all'
+                ? 'bg-gray-900 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            すべて ({filter === 'all' ? applications.length : totalCount})
           </button>
         </div>
       </div>

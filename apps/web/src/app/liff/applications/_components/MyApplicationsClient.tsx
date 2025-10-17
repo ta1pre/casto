@@ -90,25 +90,28 @@ export function MyApplicationsClient() {
   }
 
   const getStatusBadge = (status: string) => {
-    const styles = {
-      pending: 'bg-gray-100 text-gray-700',
-      in_progress: 'bg-blue-100 text-blue-700',
-      passed: 'bg-green-100 text-green-700',
-      rejected: 'bg-red-100 text-red-700',
-      withdrawn: 'bg-gray-200 text-gray-600',
+    const badges = {
+      unread: 'bg-blue-100 text-blue-800',
+      pending: 'bg-blue-100 text-blue-800',
+      in_progress: 'bg-blue-100 text-blue-800',
+      passed: 'bg-green-100 text-green-800',
+      rejected: 'bg-red-100 text-red-800',
+      withdrawn: 'bg-gray-300 text-gray-600',
     }
     const labels = {
-      pending: '未審査',
+      unread: '審査中',
+      pending: '審査中',
       in_progress: '審査中',
       passed: '合格',
-      rejected: '不合格',
+      rejected: '落選',
       withdrawn: '辞退',
     }
     return (
-      <div className={`flex items-center gap-1 px-2 py-1 rounded-md ${styles[status as keyof typeof styles] || styles.pending}`}>
-        {getStatusIcon(status)}
-        <span className="text-xs font-medium">{labels[status as keyof typeof labels] || status}</span>
-      </div>
+      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+        badges[status as keyof typeof badges] || 'bg-gray-100 text-gray-800'
+      }`}>
+        {labels[status as keyof typeof labels] || status}
+      </span>
     )
   }
 
@@ -216,10 +219,9 @@ export function MyApplicationsClient() {
 
               {/* ステータスメッセージ */}
               <p className="text-sm text-muted-foreground mb-3">
-                {app.overallStatus === 'pending' && '書類選考の結果をお待ちください'}
-                {app.overallStatus === 'in_progress' && '選考が進行中です'}
+                {(app.overallStatus === 'unread' || app.overallStatus === 'pending' || app.overallStatus === 'in_progress') && '選考が進行中です。結果をお待ちください'}
                 {app.overallStatus === 'passed' && 'おめでとうございます！合格です'}
-                {app.overallStatus === 'rejected' && '今回は不合格となりました'}
+                {app.overallStatus === 'rejected' && '今回は残念ながら落選となりました'}
                 {app.overallStatus === 'withdrawn' && '応募を取り下げました'}
               </p>
 

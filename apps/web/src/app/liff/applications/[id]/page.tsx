@@ -80,25 +80,28 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
   }
 
   const getStatusBadge = (status: string) => {
-    const styles = {
-      pending: 'bg-gray-100 text-gray-700',
-      in_progress: 'bg-blue-100 text-blue-700',
-      passed: 'bg-green-100 text-green-700',
-      rejected: 'bg-red-100 text-red-700',
-      withdrawn: 'bg-gray-200 text-gray-600',
+    const badges = {
+      unread: 'bg-blue-100 text-blue-800',
+      pending: 'bg-blue-100 text-blue-800',
+      in_progress: 'bg-blue-100 text-blue-800',
+      passed: 'bg-green-100 text-green-800',
+      rejected: 'bg-red-100 text-red-800',
+      withdrawn: 'bg-gray-300 text-gray-600',
     }
     const labels = {
-      pending: '未審査',
+      unread: '審査中',
+      pending: '審査中',
       in_progress: '審査中',
       passed: '合格',
-      rejected: '不合格',
+      rejected: '落選',
       withdrawn: '辞退',
     }
     return (
-      <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${styles[status as keyof typeof styles] || styles.pending}`}>
-        {getStatusIcon(status)}
-        <span className="font-medium">{labels[status as keyof typeof labels] || status}</span>
-      </div>
+      <span className={`px-3 py-1 text-sm font-medium rounded-full ${
+        badges[status as keyof typeof badges] || 'bg-gray-100 text-gray-800'
+      }`}>
+        {labels[status as keyof typeof labels] || status}
+      </span>
     )
   }
 
@@ -175,10 +178,9 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
             application.overallStatus === 'in_progress' ? 'text-blue-900' :
             'text-gray-700'
           }`}>
-            {application.overallStatus === 'pending' && '📋 書類選考の結果をお待ちください'}
-            {application.overallStatus === 'in_progress' && '⏳ 選考が進行中です。結果をお待ちください'}
+            {(application.overallStatus === 'unread' || application.overallStatus === 'pending' || application.overallStatus === 'in_progress') && '⏳ 選考が進行中です。結果をお待ちください'}
             {application.overallStatus === 'passed' && '🎉 おめでとうございます！合格です！'}
-            {application.overallStatus === 'rejected' && '今回は残念ながら不合格となりました'}
+            {application.overallStatus === 'rejected' && '今回は残念ながら落選となりました'}
             {application.overallStatus === 'withdrawn' && '応募を取り下げました'}
           </p>
         </div>

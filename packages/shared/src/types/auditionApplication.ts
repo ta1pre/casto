@@ -7,8 +7,14 @@ import type { AuditionStep } from './auditionStep'
 
 /**
  * 応募全体ステータス（ステップ機能用）
+ * unread: 未開封（ポイント消費前）
+ * pending: 未審査（開封済み、評価未実施）
+ * in_progress: 審査中（評価進行中）
+ * passed: 合格
+ * rejected: 不合格
+ * withdrawn: 辞退
  */
-export type AuditionApplicationStatus = 'pending' | 'in_progress' | 'passed' | 'rejected' | 'withdrawn'
+export type AuditionApplicationStatus = 'unread' | 'pending' | 'in_progress' | 'passed' | 'rejected' | 'withdrawn'
 
 /**
  * audition_applicationsテーブルの行データ（Supabaseから取得）

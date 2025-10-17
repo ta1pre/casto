@@ -20,7 +20,7 @@ export const createAuditionEvaluationSchema = z.object({
   
   result: z.enum(['pending', 'passed', 'rejected'], {
     errorMap: () => ({ message: '評価結果が不正です' })
-  }),
+  }).optional(),
 })
 
 /**

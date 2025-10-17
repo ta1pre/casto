@@ -146,10 +146,9 @@ export default function AuditionsPage() {
       ) : (
         <div className="grid gap-4">
           {auditions.map((audition) => (
-            <Link
+            <div
               key={audition.id}
-              href={`/organizer/auditions/${audition.id}`}
-              className="block bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -174,22 +173,42 @@ export default function AuditionsPage() {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <svg
-                    className="w-5 h-5 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                  <Link
+                    href={`/organizer/auditions/${audition.id}`}
+                    className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
+                    詳細を見る
+                    <svg
+                      className="w-4 h-4 ml-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
                 </div>
               </div>
-            </Link>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-gray-500">
+                  最終更新: {new Date(audition.updatedAt).toLocaleDateString()}
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
+                  <Link
+                    href={`/organizer/auditions/${audition.id}`}
+                    className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  >
+                    詳細ページへ
+                  </Link>
+                  <Link
+                    href={`/organizer/auditions/${audition.id}/applications`}
+                    className="inline-flex items-center justify-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800"
+                  >
+                    応募者一覧
+                  </Link>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}
