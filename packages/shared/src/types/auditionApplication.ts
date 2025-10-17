@@ -40,6 +40,7 @@ export interface AuditionApplication {
   // リレーションデータ（オプション）
   currentStep?: AuditionStep
   talentName?: string  // タレント名（join時）
+  auditionTitle?: string  // オーディション名（join時）
 }
 
 /**
