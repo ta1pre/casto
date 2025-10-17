@@ -48,9 +48,7 @@ export function AuditionStepsSection({ auditionId, isPublished }: AuditionStepsS
     }
   }
 
-  const handleAddStep = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+  const handleAddStep = async () => {
     if (!formData.title.trim()) {
       alert('タイトルを入力してください')
       return
@@ -84,9 +82,7 @@ export function AuditionStepsSection({ auditionId, isPublished }: AuditionStepsS
     }
   }
 
-  const handleUpdateStep = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+  const handleUpdateStep = async () => {
     if (!editingStep || !formData.title.trim()) {
       return
     }
@@ -199,7 +195,7 @@ export function AuditionStepsSection({ auditionId, isPublished }: AuditionStepsS
           >
             {editingStep?.id === step.id ? (
               // 編集フォーム
-              <form onSubmit={handleUpdateStep} className="space-y-3">
+              <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium mb-1">
                     ステップ名 <span className="text-red-500">*</span>
@@ -211,7 +207,6 @@ export function AuditionStepsSection({ auditionId, isPublished }: AuditionStepsS
                     className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
                     placeholder="例: 二次面接"
                     maxLength={100}
-                    required
                   />
                 </div>
                 <div>
@@ -227,7 +222,8 @@ export function AuditionStepsSection({ auditionId, isPublished }: AuditionStepsS
                 </div>
                 <div className="flex gap-2">
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={handleUpdateStep}
                     disabled={submitting}
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                   >
@@ -241,7 +237,7 @@ export function AuditionStepsSection({ auditionId, isPublished }: AuditionStepsS
                     キャンセル
                   </button>
                 </div>
-              </form>
+              </div>
             ) : (
               // 表示モード
               <div className="flex items-start justify-between">
@@ -286,7 +282,7 @@ export function AuditionStepsSection({ auditionId, isPublished }: AuditionStepsS
       {!isPublished && (
         <>
           {showAddForm ? (
-            <form onSubmit={handleAddStep} className="border rounded-lg p-4 bg-gray-50 space-y-3">
+            <div className="border rounded-lg p-4 bg-gray-50 space-y-3">
               <div>
                 <label className="block text-sm font-medium mb-1">
                   ステップ名 <span className="text-red-500">*</span>
@@ -298,7 +294,6 @@ export function AuditionStepsSection({ auditionId, isPublished }: AuditionStepsS
                   className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
                   placeholder="例: 二次面接、最終選考"
                   maxLength={100}
-                  required
                 />
               </div>
               <div>
@@ -314,7 +309,8 @@ export function AuditionStepsSection({ auditionId, isPublished }: AuditionStepsS
               </div>
               <div className="flex gap-2">
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={handleAddStep}
                   disabled={submitting}
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
                 >
@@ -331,7 +327,7 @@ export function AuditionStepsSection({ auditionId, isPublished }: AuditionStepsS
                   キャンセル
                 </button>
               </div>
-            </form>
+            </div>
           ) : (
             <button
               onClick={() => setShowAddForm(true)}
