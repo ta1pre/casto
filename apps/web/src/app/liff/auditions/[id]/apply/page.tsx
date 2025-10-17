@@ -13,7 +13,7 @@ import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
 import { LoadingScreen } from '@/shared/components/LoadingScreen'
 import { ErrorScreen } from '@/shared/components/ErrorScreen'
 import { apiFetch, ApiError } from '@/shared/lib/api'
-import type { Audition, AuditionStep } from '@casto/shared'
+import type { Audition, AuditionStep, AuditionApplication } from '@casto/shared'
 
 export default function ApplyPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -71,7 +71,7 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
           if (applicationsResponse.ok) {
             const applicationsData = await applicationsResponse.json()
             const alreadyApplied = applicationsData.applications?.some(
-              (app: any) => app.auditionId === auditionId
+              (app: AuditionApplication) => app.auditionId === auditionId
             )
             setHasApplied(alreadyApplied)
           }
@@ -212,7 +212,7 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
           <div className="bg-card border border-border rounded-lg p-4">
             <h3 className="font-bold text-lg mb-3 text-foreground">選考フロー</h3>
             <div className="space-y-2">
-              {steps.map((step, index) => (
+              {steps.map((step) => (
                 <div key={step.id} className="flex items-start gap-3">
                   <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
                     {step.stepOrder}

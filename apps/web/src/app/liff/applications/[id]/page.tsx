@@ -12,13 +12,12 @@ import { ArrowLeft, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-reac
 import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
 import { LoadingScreen } from '@/shared/components/LoadingScreen'
 import { ErrorScreen } from '@/shared/components/ErrorScreen'
-import type { AuditionApplication, AuditionEvaluation } from '@casto/shared'
+import type { AuditionApplication } from '@casto/shared'
 
 export default function ApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { user, isLoading: isAuthLoading } = useLiffAuth()
   const [application, setApplication] = useState<AuditionApplication | null>(null)
-  const [evaluations, setEvaluations] = useState<AuditionEvaluation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [applicationId, setApplicationId] = useState<string | null>(null)
