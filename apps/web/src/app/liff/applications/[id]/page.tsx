@@ -204,11 +204,9 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
             </p>
           </div>
         )}
-      </main>
 
-      {/* アクション */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-50">
-        <div className="max-w-7xl mx-auto">
+        {/* アクション */}
+        <div className="mt-6 mb-8">
           <Link
             href="/liff/applications"
             className="block w-full text-center border border-border py-3 rounded-lg font-medium hover:bg-muted"
@@ -216,7 +214,7 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
             応募一覧に戻る
           </Link>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

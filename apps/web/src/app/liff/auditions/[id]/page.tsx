@@ -43,26 +43,15 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
         setIsLoadingAudition(true)
         setAuditionError(null)
 
-        // オーディション情報取得
+        // オーディション情報取得（ステップ情報も含まれる）
         const response = await apiFetch<{ audition: Audition }>(
           `/api/v1/talent/auditions/${auditionId}`
         )
         setAudition(response.audition)
-
-        // ステップ情報取得（公開されているオーディションのみ）
-        if (response.audition.status === 'published') {
-          try {
-            const stepsResponse = await fetch(`/api/v1/organizer/auditions/${auditionId}/steps`, {
-              credentials: 'include',
-            })
-            if (stepsResponse.ok) {
-              const stepsData = await stepsResponse.json()
-              setSteps(stepsData.steps || [])
-            }
-          } catch (err) {
-            // ステップ取得失敗は無視（表示しないだけ）
-            console.log('Steps fetch failed (non-critical):', err)
-          }
+        
+        // ステップ情報をセット
+        if (response.audition.steps) {
+          setSteps(response.audition.steps)
         }
       } catch (err: unknown) {
         console.error('Failed to fetch audition:', err)
@@ -207,16 +196,6 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
           </div>
         )}
 
-        {/* 詳細説明 */}
-        {audition.description && (
-          <div className="bg-card border border-border rounded-lg p-4">
-            <h3 className="font-bold text-lg mb-3 text-foreground">詳細</h3>
-            <p className="text-foreground/80 whitespace-pre-wrap">
-              {audition.description}
-            </p>
-          </div>
-        )}
-
         {/* 選考フロー */}
         {steps.length > 0 && (
           <div className="bg-card border border-border rounded-lg p-4">
@@ -247,6 +226,16 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
           </div>
         )}
 
+        {/* 詳細説明 */}
+        {audition.description && (
+          <div className="bg-card border border-border rounded-lg p-4">
+            <h3 className="font-bold text-lg mb-3 text-foreground">詳細</h3>
+            <p className="text-foreground/80 whitespace-pre-wrap">
+              {audition.description}
+            </p>
+          </div>
+        )}
+
         {/* 応募条件 */}
         {audition.requirements && (
           <div className="bg-card border border-border rounded-lg p-4">
@@ -256,27 +245,25 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
             </p>
           </div>
         )}
-      </main>
 
-      {/* 応募ボタン（固定） */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-50">
-        <div className="max-w-7xl mx-auto">
+        {/* 応募ボタン */}
+        <div className="mt-6 mb-8">
           {audition.status === 'published' ? (
             <Link href={`/liff/auditions/${audition.id}/apply`}>
-              <button className="w-full bg-primary text-primary-foreground py-4 rounded-lg font-bold hover:bg-primary/90 transition">
+              <button className="w-full bg-primary text-primary-foreground py-4 rounded-lg font-bold text-lg hover:bg-primary/90 transition shadow-lg">
                 今すぐ応募する
               </button>
             </Link>
           ) : (
             <button 
               disabled 
-              className="w-full bg-muted text-muted-foreground py-4 rounded-lg font-bold cursor-not-allowed"
+              className="w-full bg-muted text-muted-foreground py-4 rounded-lg font-bold text-lg cursor-not-allowed"
             >
               {audition.status === 'closed' ? '応募受付終了' : '下書き'}
             </button>
           )}
         </div>
-      </div>
+      </main>
     </div>
   )
 }

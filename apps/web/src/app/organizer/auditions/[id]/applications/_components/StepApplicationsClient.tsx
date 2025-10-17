@@ -41,10 +41,13 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
       })
       if (response.ok) {
         const data = await response.json()
+        console.log('[Audition] Data received:', data)
         setAudition(data.audition)
+      } else {
+        console.error('[Audition] Error response:', response.status)
       }
     } catch (error) {
-      console.error('Failed to fetch audition:', error)
+      console.error('[Audition] Failed to fetch:', error)
     }
   }
 
@@ -55,10 +58,13 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
       })
       if (response.ok) {
         const data = await response.json()
+        console.log('[Steps] Data received:', data)
         setSteps(data.steps || [])
+      } else {
+        console.error('[Steps] Error response:', response.status)
       }
     } catch (error) {
-      console.error('Failed to fetch steps:', error)
+      console.error('[Steps] Failed to fetch:', error)
     }
   }
 
@@ -69,19 +75,25 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
         queryParams.append('status', filter)
       }
 
-      const response = await fetch(
-        `/api/v1/organizer/auditions/${auditionId}/applications?${queryParams}`,
-        {
-          credentials: 'include',
-        }
-      )
+      const url = `/api/v1/organizer/auditions/${auditionId}/applications?${queryParams}`
+      console.log('[Applications] Fetching:', url)
+
+      const response = await fetch(url, {
+        credentials: 'include',
+      })
+
+      console.log('[Applications] Response status:', response.status)
 
       if (response.ok) {
         const data = await response.json()
+        console.log('[Applications] Data received:', data)
         setApplications(data.applications || [])
+      } else {
+        const errorText = await response.text()
+        console.error('[Applications] Error response:', response.status, errorText)
       }
     } catch (error) {
-      console.error('Failed to fetch applications:', error)
+      console.error('[Applications] Failed to fetch applications:', error)
     }
   }
 

@@ -5,6 +5,7 @@
 
 import type { AuditionGenre } from './auditionGenre'
 import type { AuditionArea } from './auditionArea'
+import type { AuditionStep } from './auditionStep'
 import type { MediaType } from './media'
 
 /**
@@ -68,6 +69,7 @@ export interface Audition {
   evaluationMode: EvaluationMode
   genres?: AuditionGenre[]
   area?: AuditionArea
+  steps?: AuditionStep[]
   createdAt: string
   updatedAt: string
 }

@@ -44,23 +44,15 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
         setIsLoading(true)
         setError(null)
 
-        // オーディション情報取得
+        // オーディション情報取得（ステップ情報も含まれる）
         const auditionResponse = await apiFetch<{ audition: Audition }>(
           `/api/v1/talent/auditions/${auditionId}`
         )
         setAudition(auditionResponse.audition)
-
-        // ステップ情報取得（表示用）
-        try {
-          const stepsResponse = await fetch(`/api/v1/organizer/auditions/${auditionId}/steps`, {
-            credentials: 'include',
-          })
-          if (stepsResponse.ok) {
-            const stepsData = await stepsResponse.json()
-            setSteps(stepsData.steps || [])
-          }
-        } catch (err) {
-          console.log('Steps fetch failed (non-critical):', err)
+        
+        // ステップ情報をセット
+        if (auditionResponse.audition.steps) {
+          setSteps(auditionResponse.audition.steps)
         }
 
         // 既に応募済みかチェック
@@ -247,15 +239,13 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
             <p className="text-red-800 font-medium">{error}</p>
           </div>
         )}
-      </main>
 
-      {/* 応募ボタン（固定） */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-50">
-        <div className="max-w-7xl mx-auto space-y-2">
+        {/* 応募ボタン */}
+        <div className="mt-6 mb-8 space-y-3">
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="w-full bg-primary text-primary-foreground py-4 rounded-lg font-bold hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-primary text-primary-foreground py-4 rounded-lg font-bold text-lg hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
             {isSubmitting ? '送信中...' : '応募する'}
           </button>
@@ -266,7 +256,7 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
             キャンセル
           </button>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

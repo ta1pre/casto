@@ -11,6 +11,8 @@ import type {
   SupabaseAuditionGenreRow,
   AuditionArea,
   SupabaseAuditionAreaRow,
+  AuditionStep,
+  SupabaseAuditionStepRow,
 } from '@casto/shared'
 
 export type GenericSupabaseClient = SupabaseClient<any, any, any>
@@ -65,6 +67,22 @@ function toAuditionArea(row: SupabaseAuditionAreaRow): AuditionArea {
     code: row.code,
     name: row.name,
     sortOrder: row.sort_order,
+  }
+}
+
+/**
+ * ステップ変換
+ */
+function toAuditionStep(row: SupabaseAuditionStepRow): AuditionStep {
+  return {
+    id: row.id,
+    auditionId: row.audition_id,
+    stepOrder: row.step_order,
+    stepType: row.step_type,
+    title: row.title,
+    description: row.description || undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   }
 }
 
@@ -182,6 +200,17 @@ export async function getPublishedAuditionById(
 
   if (!areaError && areaData && areaData.audition_areas) {
     audition.area = toAuditionArea(areaData.audition_areas as any)
+  }
+
+  // ステップ情報を取得
+  const { data: stepsData, error: stepsError } = await client
+    .from('audition_steps')
+    .select('*')
+    .eq('audition_id', auditionId)
+    .order('step_order', { ascending: true })
+
+  if (!stepsError && stepsData) {
+    audition.steps = stepsData.map((row: SupabaseAuditionStepRow) => toAuditionStep(row))
   }
 
   return audition
