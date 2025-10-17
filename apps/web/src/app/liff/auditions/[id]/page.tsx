@@ -25,25 +25,33 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
   const [videoPoster, setVideoPoster] = useState<string | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
 
-  const handleVideoLoadedData = () => {
-    if (videoPoster) return
+  // 動画の最初のフレームをキャプチャしてサムネイルを生成
+  const generateVideoPoster = () => {
     const video = videoRef.current
     if (!video) return
-    if (!video.videoWidth || !video.videoHeight) return
+    
+    // 動画の準備ができるまで待つ
+    if (video.readyState < 2) return // HAVE_CURRENT_DATA以上が必要
+    
     const canvas = document.createElement('canvas')
     canvas.width = video.videoWidth
     canvas.height = video.videoHeight
+    
     const context = canvas.getContext('2d')
     if (!context) return
+    
+    // 最初のフレームを描画
     context.drawImage(video, 0, 0, canvas.width, canvas.height)
+    
     try {
-      const dataUrl = canvas.toDataURL('image/png')
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
       setVideoPoster(dataUrl)
     } catch (err) {
-      console.error('Failed to create video poster', err)
+      console.error('Failed to create video poster:', err)
     }
   }
 
+  // 動画URLが変わったらサムネイルをリセット
   useEffect(() => {
     if (audition?.mainVisualType === 'video') {
       setVideoPoster(null)
@@ -158,10 +166,11 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
                 controls
                 className="w-full h-full object-cover"
                 playsInline
-                preload="metadata"
+                preload="auto"
                 poster={videoPoster ?? undefined}
                 ref={videoRef}
-                onLoadedData={handleVideoLoadedData}
+                onLoadedData={generateVideoPoster}
+                onSeeked={generateVideoPoster}
               />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
