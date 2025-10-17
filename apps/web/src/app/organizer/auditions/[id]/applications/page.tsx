@@ -1,11 +1,11 @@
 /**
  * 応募者一覧ページ
- * [SF][CA] オーディションへの応募管理
+ * [SF][CA] ステップ対応の応募管理
  */
 
-import { ApplicationsPageClient } from './_components/ApplicationsPageClient'
+import { StepApplicationsClient } from './_components/StepApplicationsClient'
 
 export default async function ApplicationsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  return <ApplicationsPageClient auditionId={id} />
+  return <StepApplicationsClient auditionId={id} />
 }
