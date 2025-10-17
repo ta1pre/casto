@@ -42,7 +42,7 @@ export async function getAuditionApplications(
 ): Promise<{ applications: AuditionApplication[]; total: number }> {
   let query = client
     .from('audition_applications')
-    .select('*, talent_profiles!talent_id(stage_name)', { count: 'exact' })
+    .select('*, users!talent_id(id, talent_profiles(stage_name))', { count: 'exact' })
     .eq('audition_id', auditionId)
     .order('applied_at', { ascending: false })
 
@@ -65,8 +65,8 @@ export async function getAuditionApplications(
 
   const applications = (data || []).map((row: any) => {
     const app = toAuditionApplication(row)
-    if (row.talent_profiles?.stage_name) {
-      app.talentName = row.talent_profiles.stage_name
+    if (row.users?.talent_profiles?.stage_name) {
+      app.talentName = row.users.talent_profiles.stage_name
     }
     return app
   })
@@ -87,7 +87,7 @@ export async function getApplicationById(
 ): Promise<AuditionApplication | null> {
   const { data, error } = await client
     .from('audition_applications')
-    .select('*, talent_profiles!talent_id(stage_name), audition_steps!current_step_id(*)')
+    .select('*, users!talent_id(id, talent_profiles(stage_name)), audition_steps!current_step_id(*)')
     .eq('id', applicationId)
     .eq('audition_id', auditionId)
     .single()
@@ -101,8 +101,8 @@ export async function getApplicationById(
 
   const application = toAuditionApplication(data)
   
-  if (data.talent_profiles?.stage_name) {
-    application.talentName = data.talent_profiles.stage_name
+  if (data.users?.talent_profiles?.stage_name) {
+    application.talentName = data.users.talent_profiles.stage_name
   }
 
   if (data.audition_steps) {
