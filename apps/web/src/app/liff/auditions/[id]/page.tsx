@@ -174,7 +174,7 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
             <div className="mt-3">
               <p className="text-xs text-muted-foreground mb-1">実施エリア</p>
               <div className="flex flex-wrap gap-1">
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
                   {audition.area.name}
                 </span>
               </div>

@@ -247,7 +247,7 @@ export function AuditionDetailPageClient({ auditionId }: { auditionId: string })
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">実施エリア</h2>
               <div className="flex flex-wrap gap-2">
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
                   {audition.area.name}
                 </span>
               </div>
