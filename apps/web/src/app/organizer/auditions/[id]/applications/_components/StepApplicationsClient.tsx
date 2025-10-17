@@ -219,7 +219,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            すべて ({filter === 'all' ? applications.length : totalCount})
+            開封済みすべて ({filter === 'all' ? applications.length : totalCount})
           </button>
         </div>
       </div>
@@ -239,18 +239,34 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   応募者
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  現在のステップ
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ステータス
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  応募日時
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  操作
-                </th>
+                {filter === 'unread' ? (
+                  <>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      プロフィール入力率
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      応募日時
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      操作
+                    </th>
+                  </>
+                ) : (
+                  <>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      現在のステップ
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      ステータス
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      応募日時
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      操作
+                    </th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -260,29 +276,57 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
                     <div className="text-sm font-medium text-gray-900">
                       {app.talentName || 'タレント'}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      ID: {app.talentId.slice(0, 8)}...
-                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {getStepName(app.currentStepId)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(app.overallStatus)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(app.appliedAt).toLocaleDateString('ja-JP')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link
-                      href={`/organizer/auditions/${auditionId}/applications/${app.id}`}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      詳細・評価
-                    </Link>
-                  </td>
+                  {app.overallStatus === 'unread' ? (
+                    /* 未開封行 */
+                    <>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-32 bg-gray-200 rounded-full h-2.5">
+                            <div 
+                              className="bg-blue-600 h-2.5 rounded-full" 
+                              style={{ width: `${app.profileCompletionRate || 0}%` }}
+                            />
+                          </div>
+                          <span className="ml-2 text-sm text-gray-700">{app.profileCompletionRate || 0}%</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(app.appliedAt).toLocaleDateString('ja-JP')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <Link
+                          href={`/organizer/auditions/${auditionId}/applications/${app.id}`}
+                          className="text-purple-600 hover:text-purple-900"
+                        >
+                          開封する
+                        </Link>
+                      </td>
+                    </>
+                  ) : (
+                    /* 開封済み行 */
+                    <>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {getStepName(app.currentStepId)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {getStatusBadge(app.overallStatus)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(app.appliedAt).toLocaleDateString('ja-JP')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <Link
+                          href={`/organizer/auditions/${auditionId}/applications/${app.id}`}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          詳細・評価
+                        </Link>
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>

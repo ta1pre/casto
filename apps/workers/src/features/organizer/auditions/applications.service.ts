@@ -42,11 +42,14 @@ export async function getAuditionApplications(
 ): Promise<{ applications: AuditionApplication[]; total: number }> {
   let query = client
     .from('audition_applications')
-    .select('*, users!talent_id(id, talent_profiles(stage_name))', { count: 'exact' })
+    .select('*, users!talent_id(id, talent_profiles(stage_name, completion_rate))', { count: 'exact' })
     .eq('audition_id', auditionId)
     .order('applied_at', { ascending: false })
 
-  if (options?.status) {
+  // フィルタロジック: "all"の場合はunreadを除外、それ以外は指定ステータスのみ
+  if (options?.status === 'all') {
+    query = query.neq('overall_status', 'unread')
+  } else if (options?.status) {
     query = query.eq('overall_status', options.status)
   }
 
@@ -67,6 +70,9 @@ export async function getAuditionApplications(
     const app = toAuditionApplication(row)
     if (row.users?.talent_profiles?.stage_name) {
       app.talentName = row.users.talent_profiles.stage_name
+    }
+    if (row.users?.talent_profiles?.completion_rate !== undefined) {
+      app.profileCompletionRate = row.users.talent_profiles.completion_rate
     }
     return app
   })

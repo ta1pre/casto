@@ -15,7 +15,7 @@ import {
   deleteEvaluation,
 } from './evaluations.service'
 import { getAuditionById } from './service'
-import { getApplicationById } from './applications.service'
+import { getApplicationById, updateApplicationStatus } from './applications.service'
 import {
   createAuditionEvaluationSchema,
   updateAuditionEvaluationSchema,
@@ -124,6 +124,16 @@ evaluationsRoutes.post('/:id/applications/:applicationId/steps/:stepId/evaluatio
       userContext.id,
       validation.data
     )
+
+    // 評価登録後、pendingの場合はin_progressに自動変更
+    if (application.overallStatus === 'pending') {
+      await updateApplicationStatus(
+        supabase,
+        applicationId,
+        auditionId,
+        { overallStatus: 'in_progress' }
+      )
+    }
 
     return c.json({
       status: 'ok',

@@ -93,6 +93,20 @@ applicationsRoutes.get('/:id/applications/:applicationId', verifyOrganizerAuth, 
       return c.json({ error: 'Application not found' }, 404)
     }
 
+    // 未開封の場合は自動的にpendingに変更（開封処理）
+    if (application.overallStatus === 'unread') {
+      const updatedApplication = await updateApplicationStatus(
+        supabase,
+        applicationId,
+        auditionId,
+        { overallStatus: 'pending' }
+      )
+      return c.json({
+        status: 'ok',
+        application: updatedApplication,
+      })
+    }
+
     return c.json({
       status: 'ok',
       application,

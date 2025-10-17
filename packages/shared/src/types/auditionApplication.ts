@@ -46,6 +46,7 @@ export interface AuditionApplication {
   // リレーションデータ（オプション）
   currentStep?: AuditionStep
   talentName?: string  // タレント名（join時）
+  profileCompletionRate?: number  // プロフィール入力率 0-100（join時）
   auditionTitle?: string  // オーディション名（join時）
 }
 
