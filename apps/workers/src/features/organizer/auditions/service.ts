@@ -14,6 +14,7 @@ import type {
   AuditionArea,
   SupabaseAuditionAreaRow,
 } from '@casto/shared'
+import { createDocumentScreeningStep } from './steps.service'
 
 export type GenericSupabaseClient = SupabaseClient<any, any, any>
 
@@ -340,6 +341,16 @@ export async function updateAudition(
     }
   } else {
     console.log('⚠️ [Workers DEBUG] areaId is undefined, skipping area update')
+  }
+
+  // ステータスが'published'に変更された場合、書類選考ステップを自動作成
+  if (auditionData.status === 'published') {
+    try {
+      await createDocumentScreeningStep(client, auditionId)
+    } catch (error) {
+      console.error('Failed to create document screening step:', error)
+      // ステップ作成失敗はワーニングとして扱い、処理は継続
+    }
   }
 
   return toAudition(updatedAudition)
