@@ -10,6 +10,7 @@ import Link from 'next/link'
 import { Search, Calendar } from 'lucide-react'
 import { apiFetch } from '@/shared/lib/api'
 import type { Audition } from '@casto/shared'
+import { VideoThumbnail } from '@/shared/components/VideoThumbnail'
 
 export default function AuditionsPage() {
   const [auditions, setAuditions] = useState<Audition[]>([])
@@ -96,12 +97,11 @@ export default function AuditionsPage() {
                   {audition.mainVisualUrl && (
                     <div className="w-full aspect-square bg-gray-100">
                       {audition.mainVisualType === 'video' ? (
-                        // eslint-disable-next-line jsx-a11y/media-has-caption
-                        <video
+                        <VideoThumbnail
                           src={audition.mainVisualUrl}
+                          alt={audition.title}
                           className="w-full h-full object-cover"
-                          muted
-                          playsInline
+                          posterOnly
                         />
                       ) : (
                         // eslint-disable-next-line @next/next/no-img-element
