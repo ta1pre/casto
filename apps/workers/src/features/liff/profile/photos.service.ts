@@ -25,11 +25,13 @@ export async function uploadPhotoToR2(
     throw new Error(validation.errors[0]?.message || 'Invalid photo')
   }
 
-  // 古い写真を削除（全拡張子を試す）
+  // 古い写真を完全に削除（全拡張子を試す）
+  console.log(`[uploadPhotoToR2] Deleting old photo for user=${userId}, index=${index}`)
   await deletePhotoFromR2(r2Bucket, userId, index)
 
   // ファイル名生成
   const filename = generatePhotoFilename(userId, index, file)
+  console.log(`[uploadPhotoToR2] Generated filename: ${filename}`)
 
   // R2にアップロード
   const arrayBuffer = await file.arrayBuffer()
@@ -38,10 +40,11 @@ export async function uploadPhotoToR2(
       contentType: file.type,
     },
   })
+  console.log(`[uploadPhotoToR2] Uploaded to R2: ${filename}`)
 
-  // Workers経由の公開URL（R2は直接公開しないため）
-  // フロントエンドからは /api/v1/liff/profile/photos/view/{userId}/{index} でアクセス
-  const publicUrl = `/api/v1/liff/profile/photos/view/${userId}/${index}`
+  // Workers経由の公開URL（タイムスタンプ追加でキャッシュ回避）
+  const timestamp = Date.now()
+  const publicUrl = `/api/v1/liff/profile/photos/view/${userId}/${index}?t=${timestamp}`
 
   return publicUrl
 }
@@ -88,11 +91,16 @@ export async function updatePhotoUrlsInDB(
     throw new Error(`Failed to fetch profile: ${fetchError.message}`)
   }
 
-  // 配列を準備
-  const photoUrls: string[] = profile?.photo_urls || []
+  // 配列を確実に6要素で初期化（空文字列で埋める）
+  const currentUrls = profile?.photo_urls || []
+  const photoUrls: string[] = Array(6).fill('').map((_, i) => currentUrls[i] || '')
+  
+  console.log(`[updatePhotoUrlsInDB] Before update:`, photoUrls)
   
   // 指定されたインデックスにURLを設定
   photoUrls[index] = url
+  
+  console.log(`[updatePhotoUrlsInDB] After update:`, photoUrls)
 
   // 完成度を再計算 [DRY]
   const { calculateTalentProfileCompletion } = await import('@casto/shared')
@@ -137,10 +145,16 @@ export async function deletePhotoUrlFromDB(
     throw new Error(`Failed to fetch profile: ${fetchError.message}`)
   }
 
-  const photoUrls: string[] = profile?.photo_urls || []
+  // 配列を確実に6要素で初期化（空文字列で埋める）
+  const currentUrls = profile?.photo_urls || []
+  const photoUrls: string[] = Array(6).fill('').map((_, i) => currentUrls[i] || '')
+  
+  console.log(`[deletePhotoUrlFromDB] Before delete:`, photoUrls)
   
   // 指定されたインデックスを削除（空文字に設定）
   photoUrls[index] = ''
+  
+  console.log(`[deletePhotoUrlFromDB] After delete:`, photoUrls)
 
   // 完成度を再計算 [DRY]
   const { calculateTalentProfileCompletion } = await import('@casto/shared')

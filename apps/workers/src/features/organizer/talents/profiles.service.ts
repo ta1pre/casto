@@ -32,7 +32,8 @@ export async function getTalentProfile(
   const photoUrls = data.photo_urls || []
   const convertToOrganizerUrl = (url: string | null | undefined) => {
     if (!url || url === '') return null
-    // /api/v1/liff/profile/photos/view/{userId}/{index} -> /api/v1/organizer/talents/photos/{userId}/{index}
+    // /api/v1/liff/profile/photos/view/{userId}/{index}?t={timestamp} -> /api/v1/organizer/talents/photos/{userId}/{index}?t={timestamp}
+    // タイムスタンプパラメータも保持する
     return url.replace('/api/v1/liff/profile/photos/view/', '/api/v1/organizer/talents/photos/')
   }
   

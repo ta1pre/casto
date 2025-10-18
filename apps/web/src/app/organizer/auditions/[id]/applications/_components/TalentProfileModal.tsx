@@ -147,23 +147,30 @@ export function TalentProfileModal({ talentId, talentName, isOpen, onClose }: Ta
           {profile && !loading && (
             <div className="space-y-6">
               {/* 写真 */}
-              {profile.photoUrls && profile.photoUrls.length > 0 && (
+              {profile.photoUrls && profile.photoUrls.filter(url => url && url.trim() !== '').length > 0 && (
                 <section>
                   <h3 className="text-lg font-bold mb-3 pb-2 border-b">写真</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    {profile.photoUrls.map((photoUrl, index) => {
-                      const photoLabels = ['顔写真', '全身写真', '写真3', '写真4', '写真5', '写真6']
-                      return (
-                        <div key={index}>
-                          <p className="text-sm text-gray-600 mb-2">{photoLabels[index] || `写真${index + 1}`}</p>
-                          <img 
-                            src={photoUrl} 
-                            alt={photoLabels[index] || `写真${index + 1}`}
-                            className="w-full h-64 object-cover rounded-lg border"
-                          />
-                        </div>
-                      )
-                    })}
+                    {profile.photoUrls
+                      .map((photoUrl, index) => ({ photoUrl, index }))
+                      .filter(({ photoUrl }) => photoUrl && photoUrl.trim() !== '')
+                      .map(({ photoUrl, index }) => {
+                        const photoLabels = ['顔写真', '全身写真', '写真3', '写真4', '写真5', '写真6']
+                        return (
+                          <div key={index}>
+                            <p className="text-sm text-gray-600 mb-2">{photoLabels[index] || `写真${index + 1}`}</p>
+                            <img 
+                              src={photoUrl} 
+                              alt={photoLabels[index] || `写真${index + 1}`}
+                              className="w-full h-64 object-cover rounded-lg border"
+                              onError={(e) => {
+                                console.error(`Failed to load image: ${photoUrl}`)
+                                e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3E画像エラー%3C/text%3E%3C/svg%3E'
+                              }}
+                            />
+                          </div>
+                        )
+                      })}
                   </div>
                 </section>
               )}

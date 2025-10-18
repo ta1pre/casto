@@ -37,11 +37,14 @@ photosRoutes.get('/:userId/:index', verifyOrganizerAuth, async (c) => {
       const object = await r2Bucket.get(filename)
       
       if (object) {
-        // 画像を返す
+        console.log(`[OrganizerPhotosAPI] Found photo: ${filename}`)
+        // 画像を返す（キャッシュ無効化）
         return new Response(object.body, {
           headers: {
             'Content-Type': object.httpMetadata?.contentType || 'image/jpeg',
-            'Cache-Control': 'public, max-age=31536000', // 1年キャッシュ
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
           },
         })
       }
