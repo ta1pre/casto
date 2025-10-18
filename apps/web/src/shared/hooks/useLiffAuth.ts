@@ -72,6 +72,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const [liffProfile, setLiffProfile] = useState<LiffProfile | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [inClient, setInClient] = useState(false) // メモ化 [PA]
   const loginTriggeredRef = useRef(false)
 
   const handleTokenIssue = useCallback(() => {
@@ -212,6 +213,11 @@ export function useLiffAuth(): UseLiffAuthReturn {
     void initializeLiff()
   }, [initializeLiff])
 
+  // 環境判定の初期化（クライアントサイドのみ）[PA]
+  useEffect(() => {
+    setInClient(isInLineClient())
+  }, [])
+
   const handleLogout = useCallback(async () => {
     try {
       if (window.liff?.isLoggedIn()) {
@@ -236,6 +242,6 @@ export function useLiffAuth(): UseLiffAuthReturn {
     error,
     logout: handleLogout,
     refreshSession,
-    isInClient: isInLineClient()
+    isInClient: inClient
   }
 }

@@ -63,7 +63,7 @@ export function LiffLayout({ children }: LiffLayoutProps) {
     
     // Next.js Router でページ遷移（LIFFコンテキスト内を維持）
     router.push(`/liff${redirectPath}`)
-  }, [user, isLiffReady, searchParams, router])
+  }, [user, isLiffReady, router, searchParams])
 
   const mainBottomPadding = `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom) + 24px)`
 

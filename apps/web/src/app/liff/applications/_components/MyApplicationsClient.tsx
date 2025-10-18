@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { FileText, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
@@ -15,17 +15,10 @@ import type { AuditionApplication } from '@casto/shared'
 export function MyApplicationsClient() {
   const { user, isLoading: isAuthLoading } = useLiffAuth()
   const [applications, setApplications] = useState<AuditionApplication[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false) // 初期値をfalseに [SF]
   const [filter, setFilter] = useState<string>('all')
 
-  useEffect(() => {
-    if (user) {
-      fetchApplications()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, filter])
-
-  const fetchApplications = async () => {
+  const fetchApplications = useCallback(async () => {
     try {
       setIsLoading(true)
       const queryParams = new URLSearchParams()
@@ -46,7 +39,13 @@ export function MyApplicationsClient() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [filter])
+
+  useEffect(() => {
+    if (user) {
+      fetchApplications()
+    }
+  }, [user, fetchApplications])
 
   const handleWithdraw = async (applicationId: string) => {
     if (!confirm('応募を取り下げますか？\nこの操作は取り消せません。')) {
