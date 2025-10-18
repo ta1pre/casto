@@ -1,12 +1,15 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, Suspense } from 'react'
 import Script from 'next/script'
 import { LiffLayout as LiffLayoutWrapper } from './_components/LiffLayout'
 
 /**
- * LIFF Root Layout [SF]
+ * LIFF Root Layout [SF][REH]
  * LIFF SDK の読み込みと基本構造を提供
+ * 
+ * Suspenseでラップ: LiffLayoutWrapper内でuseSearchParams()を使用するため、
+ * Next.js 15の要件に従いSuspenseバウンダリーが必要
  */
 export default function LiffRootLayout({ children }: { children: React.ReactNode }) {
   // Development環境でerudaを起動（LINEアプリ内でコンソールログ確認用）
@@ -33,9 +36,20 @@ export default function LiffRootLayout({ children }: { children: React.ReactNode
           console.error('[LIFF Layout] Failed to load LIFF SDK', event)
         }}
       />
-      <LiffLayoutWrapper>
-        {children}
-      </LiffLayoutWrapper>
+      <Suspense fallback={
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <div className="text-center">
+            <div className="mb-4 text-lg font-medium">読み込み中...</div>
+            <div className="text-sm text-muted-foreground">
+              LINEミニアプリを初期化しています
+            </div>
+          </div>
+        </div>
+      }>
+        <LiffLayoutWrapper>
+          {children}
+        </LiffLayoutWrapper>
+      </Suspense>
     </>
   )
 }
