@@ -51,21 +51,24 @@ export const notificationTemplates: Record<NotificationType, NotificationTemplat
    * 
    * トリガー: ユーザーがオーディションに応募した直後
    * 目的: 応募完了の確認
+   * 
+   * テンプレート構成:
+   * - Title: 受付番号${number}
+   * - Subtitle: エントリー完了
+   * - Detail: お申込みが完了しました。
+   * - Button: 詳細はこちら → オーディション詳細ページ
    */
   application_received: {
     templateName: 'entry_s_t_ja',
     title: '✅ 応募を受け付けました',
     description: '応募完了直後に送信',
     message: (ctx) => 
-      `【${ctx.auditionTitle}】への応募が完了しました。選考結果は通知でお知らせします。`,
+      `お申込みが完了しました。`,
     actionUrl: (ctx, liffId) => 
-      `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`,
+      `line://app/${liffId}?redirect=/auditions/${ctx.auditionId}`,
     params: (ctx, liffId) => ({
       number: ctx.applicationId.substring(0, 8).toUpperCase(),
-      btn1_url: `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`,
-      btn2_url: `line://app/${liffId}?redirect=/help`,
-      btn3_url: `line://app/${liffId}?redirect=/applications/${ctx.applicationId}/edit`,
-      btn4_url: `line://app/${liffId}?redirect=/applications/${ctx.applicationId}/withdraw`
+      btn1_url: `line://app/${liffId}?redirect=/auditions/${ctx.auditionId}`
     })
   },
   
