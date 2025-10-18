@@ -182,7 +182,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
       }
 
       try {
-        await window.liff.init({ 
+        await window.liff.init({
           liffId,
           withLoginOnExternalBrowser: true // 外部ブラウザでも自動ログイン [SF]
         })
@@ -200,7 +200,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
         handleTokenIssue()
         return
       }
-      
+
       console.log('[useLiffAuth] Already logged in, synchronizing session')
 
       await synchronizeLineSession()
@@ -222,7 +222,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
       setError('LIFF SDKの読み込みに失敗しました')
     }
     document.head.appendChild(script)
-  }, [handleTokenIssue, synchronizeLineSession])
+  }, []) // 依存配列を空に: 1回だけ実行 [SF][PA]
 
   useEffect(() => {
     void initializeLiff()
@@ -250,20 +250,6 @@ export function useLiffAuth(): UseLiffAuthReturn {
 
   // isLoadingの安定化: isLiffReadyがtrueになったら、authLoadingの変化を無視 [PA]
   const isLoading = !isLiffReady || isAuthenticating
-
-  // 詳細なデバッグログ（ちらつき調査用）
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[useLiffAuth] Detailed State:', {
-      authLoading,
-      isAuthenticating,
-      isLiffReady,
-      user: !!user,
-      error: !!error,
-      isLoading,
-      computedLoading: !isLiffReady || isAuthenticating,
-      timestamp: new Date().toISOString()
-    })
-  }
 
   return {
     user,

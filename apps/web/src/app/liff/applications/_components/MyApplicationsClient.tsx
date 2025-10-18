@@ -23,8 +23,6 @@ export function MyApplicationsClient() {
   useEffect(() => {
     if (!user) return
 
-    console.log('[MyApplicationsClient] Starting fetch, user:', !!user, 'filter:', filter)
-
     const fetchApplications = async () => {
       try {
         setIsLoading(true)
@@ -33,8 +31,6 @@ export function MyApplicationsClient() {
           queryParams.append('status', filter)
         }
 
-        console.log('[MyApplicationsClient] Fetching applications with params:', queryParams.toString())
-
         const response = await fetch(`/api/v1/talent/audition-applications?${queryParams}`, {
           credentials: 'include',
         })
@@ -42,7 +38,6 @@ export function MyApplicationsClient() {
         if (response.ok) {
           const data = await response.json()
           setApplications(data.applications || [])
-          console.log('[MyApplicationsClient] Fetched applications:', data.applications?.length || 0)
         }
       } catch (error) {
         console.error('Failed to fetch applications:', error)

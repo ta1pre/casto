@@ -15,18 +15,6 @@ export function LiffLayout({ children }: LiffLayoutProps) {
   const { isLoading, error, isLiffReady, user, isInClient } = useLiffAuth()
   const hasRedirectedRef = useRef(false)
   const [showBanner, setShowBanner] = useState(false) // Hydration Mismatch回避 [REH]
-  
-  // デバッグログ（開発環境のみ）
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[LiffLayout] Render:', {
-      isLoading,
-      error: !!error,
-      isLiffReady,
-      user: !!user,
-      isInClient,
-      timestamp: new Date().toISOString()
-    })
-  }
 
   useEffect(() => {
     if (typeof document !== "undefined") {

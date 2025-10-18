@@ -6,8 +6,5 @@
 import { MyApplicationsClient } from './_components/MyApplicationsClient'
 
 export default function ApplicationsPage() {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[ApplicationsPage] Rendering page')
-  }
   return <MyApplicationsClient />
 }
