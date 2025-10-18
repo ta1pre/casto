@@ -159,6 +159,15 @@ applicationsRoutes.patch('/:id/applications/:applicationId', verifyOrganizerAuth
       return c.json({ error: 'Audition not found' }, 404)
     }
 
+    const currentApplication = await getApplicationById(supabase, applicationId, auditionId)
+    if (!currentApplication) {
+      return c.json({ error: 'Application not found' }, 404)
+    }
+
+    if (currentApplication.overallStatus === 'withdrawn') {
+      return c.json({ error: 'Cannot update withdrawn application' }, 400)
+    }
+
     const application = await updateApplicationStatus(
       supabase,
       applicationId,
