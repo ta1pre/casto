@@ -12,7 +12,7 @@ interface LiffLayoutProps {
 export function LiffLayout({ children }: LiffLayoutProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { isLoading, error, isLiffReady, user } = useLiffAuth()
+  const { isLoading, error, isLiffReady, user, isInClient } = useLiffAuth()
   const hasRedirectedRef = useRef(false)
 
   useEffect(() => {
@@ -105,6 +105,20 @@ export function LiffLayout({ children }: LiffLayoutProps) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      {/* 外部ブラウザ用バナー [SF] */}
+      {!isInClient && isLiffReady && (
+        <div className="bg-blue-600/90 text-white px-4 py-2 text-xs text-center backdrop-blur-sm sticky top-0 z-50">
+          <span className="inline-block mr-2">ℹ️</span>
+          LINEアプリで開くと、より快適にご利用いただけます
+          <a
+            href={`https://miniapp.line.me/${process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID}`}
+            className="ml-2 underline font-medium"
+          >
+            LINEアプリで開く
+          </a>
+        </div>
+      )}
+      
       <main
         className="flex-1 overflow-y-auto"
         style={{ paddingBottom: mainBottomPadding }}

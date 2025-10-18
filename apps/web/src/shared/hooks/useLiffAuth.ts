@@ -7,7 +7,7 @@ import { ApiError } from '@/shared/lib/api'
 declare global {
   interface Window {
     liff?: {
-      init: (config: { liffId: string }) => Promise<void>
+      init: (config: { liffId: string; withLoginOnExternalBrowser?: boolean }) => Promise<void>
       isLoggedIn: () => boolean
       login: (config?: { redirectUri?: string }) => void
       logout: () => void
@@ -35,6 +35,7 @@ interface UseLiffAuthReturn {
   error: string | null
   logout: () => Promise<void>
   refreshSession: ReturnType<typeof useAuth>['refreshSession']
+  isInClient: boolean // LINEアプリ内かどうか [SF]
 }
 
 const LIFF_SCRIPT_SRC = 'https://static.line-scdn.net/liff/edge/2/sdk.js'
@@ -169,7 +170,10 @@ export function useLiffAuth(): UseLiffAuthReturn {
       }
 
       try {
-        await window.liff.init({ liffId })
+        await window.liff.init({ 
+          liffId,
+          withLoginOnExternalBrowser: true // 外部ブラウザでも自動ログイン [SF]
+        })
       } catch (err) {
         console.error('[useLiffAuth] liff.init failed:', err)
         setError('LIFFの初期化に失敗しました')
@@ -231,6 +235,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
     liffProfile,
     error,
     logout: handleLogout,
-    refreshSession
+    refreshSession,
+    isInClient: isInLineClient()
   }
 }

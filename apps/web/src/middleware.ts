@@ -9,6 +9,11 @@ import type { NextRequest } from 'next/server'
  *   2) 認証済み（casto_auth）または短命ゲート（liff_gate）所持なら許可
  *   3) miniapp 由来（Sec-Fetch-Site: cross-site or ?from=miniapp）は初回のみ許可し、liff_gate を付与
  *   4) それ以外（直打ち/同一サイト）は miniapp へ 302 リダイレクト
+ * 
+ * 外部ブラウザ対応（2025-10-19）:
+ *   - liff.init({ withLoginOnExternalBrowser: true }) により、外部ブラウザでもLINE認証が可能
+ *   - 外部ブラウザの場合、LINEのOAuth認証を経由するため、最終的にはLINE経由のアクセスとなる
+ *   - UA判定は維持し、悪意のある直接アクセスは引き続きブロック
  */
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl

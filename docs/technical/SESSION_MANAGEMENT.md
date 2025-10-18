@@ -155,6 +155,32 @@ if (isTokenExpiredError) {
 2. デバッグパネルで認証フローを確認
 3. ブラウザのコンソールログを確認
 
+## 外部ブラウザ対応
+
+### 実装内容（2025-10-19）
+
+**背景**: LINE公式ドキュメント「外部ブラウザでLINEミニアプリを開く」に準拠し、URLシェア・SEO対応を実現。
+
+**変更点**:
+1. **`liff.init({ withLoginOnExternalBrowser: true })`** - 外部ブラウザでも自動ログイン
+2. **環境判定UI** - 外部ブラウザの場合、トップバナーで「LINEアプリで開く」リンクを表示
+3. **機能制限なし** - 現在のクライアントサイド実装ではLINE専用機能（`sendMessages`等）を使用していないため、外部ブラウザでも全機能が動作
+
+**メリット**:
+- ✅ URLシェア対応（SNS投稿、メッセージ共有）
+- ✅ SEO・アクセシビリティ向上
+- ✅ 通知リンクから外部ブラウザで直接アクセス可能
+- ✅ ユーザー体験向上（LINEアプリ起動不要でコンテンツ閲覧可能）
+
+**実装ファイル**:
+- `apps/web/src/shared/hooks/useLiffAuth.ts` - `withLoginOnExternalBrowser`設定、`isInClient`情報export
+- `apps/web/src/app/liff/_components/LiffLayout.tsx` - 外部ブラウザ用バナー
+
+**セキュリティ考慮事項**:
+- JWT + RLS でセキュリティを担保
+- middlewareでLINE UAのみ許可
+- 外部ブラウザでもLINE認証が必須（OAuth2.0）
+
 ## 今後の改善案
 
 - [ ] セッション有効期限の動的調整（ユーザーの活動パターンに応じて）
@@ -163,4 +189,4 @@ if (isTokenExpiredError) {
 
 ---
 
-**最終更新**: 2025-10-05
+**最終更新**: 2025-10-19
