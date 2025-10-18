@@ -23,16 +23,45 @@ import type {
 const LINE_NOTIFIER_API_BASE = 'https://api.line.me/message/v3'
 
 /**
- * 短期のチャネルアクセストークンを発行
+ * チャネルアクセストークンのキャッシュ
+ * 
+ * チャネルアクセストークンは全ユーザーで共有されるアプリ認証用トークンなので、
+ * メモリにキャッシュして再利用することでパフォーマンスを向上させます。
+ * 
+ * - トークンは30日間有効だが、29日でキャッシュを期限切れにして安全マージンを確保
+ * - Workerが再起動されるとキャッシュは失われるが、その場合は自動的に再発行される
+ * - LINE APIの30件発行制限を回避
+ */
+let cachedChannelAccessToken: {
+  token: string
+  expiresAt: number
+} | null = null
+
+/**
+ * 短期のチャネルアクセストークンを発行（キャッシュ付き）
  * 
  * LINEミニアプリでは長期トークンが使用できないため、
- * チャネルIDとシークレットを使用して短期トークンを動的に生成します。
+ * チャネルIDとシークレットを使用して短期トークン（30日間有効）を動的に生成します。
+ * 
+ * パフォーマンス最適化のため、発行したトークンを29日間メモリにキャッシュします。
+ * チャネルアクセストークンは全ユーザーで共有されるアプリ認証用トークンなので、
+ * キャッシュによる再利用が可能です。
  * 
  * @param env - 環境変数（LINE_CHANNEL_ID, LINE_CHANNEL_SECRETが必要）
  * @returns 短期のチャネルアクセストークン（30日間有効、最大30件まで発行可能）
  * @throws {Error} 環境変数が未設定、またはAPI呼び出しが失敗した場合
  */
 async function getChannelAccessToken(env: Bindings): Promise<string> {
+  const now = Date.now()
+  
+  // キャッシュが有効期限内なら再利用
+  if (cachedChannelAccessToken && cachedChannelAccessToken.expiresAt > now) {
+    console.log('[LINE] Using cached channel access token (expires in', 
+      Math.floor((cachedChannelAccessToken.expiresAt - now) / 1000 / 60 / 60 / 24), 'days)')
+    return cachedChannelAccessToken.token
+  }
+  
+  // キャッシュがない、または期限切れなら新規発行
   const channelId = env.LINE_CHANNEL_ID
   const channelSecret = env.LINE_CHANNEL_SECRET
 
@@ -63,6 +92,14 @@ async function getChannelAccessToken(env: Bindings): Promise<string> {
 
   const data = await response.json() as { access_token: string; expires_in: number; token_type: string }
   console.log('[LINE] Channel access token issued successfully (expires in', data.expires_in, 'seconds)')
+  
+  // キャッシュに保存（29日間）
+  const cacheExpiryMs = 29 * 24 * 60 * 60 * 1000 // 29日
+  cachedChannelAccessToken = {
+    token: data.access_token,
+    expiresAt: now + cacheExpiryMs
+  }
+  console.log('[LINE] Channel access token cached for 29 days')
   
   return data.access_token
 }
