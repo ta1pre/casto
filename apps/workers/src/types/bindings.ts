@@ -5,11 +5,9 @@ export type Bindings = {
   DATABASE_URL?: string
   SUPABASE_URL?: string
   SUPABASE_SERVICE_ROLE_KEY?: string
-  LINE_CHANNEL_SECRET?: string
+  // LINE認証・通知用
   LINE_CHANNEL_ID?: string
-  LINE_CHANNEL_ACCESS_TOKEN?: string
-  LINE_MINI_APP_CHANNEL_ID?: string
-  LINE_MINI_APP_CHANNEL_SECRET?: string
+  LINE_CHANNEL_SECRET?: string
   LINE_LIFF_ID?: string
   STRIPE_SECRET_KEY?: string
   ENVIRONMENT?: string

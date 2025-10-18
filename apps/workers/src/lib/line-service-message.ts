@@ -1,6 +1,14 @@
 /**
  * LINEサービスメッセージ送信サービス
- * [CA][REH] LINE Messaging API準拠のサービスメッセージ送信
+ * 
+ * LINE Messaging API v3のサービスメッセージ機能を使用して、
+ * ユーザーの操作に対する確認・通知を送信します。
+ * 
+ * - 短期のチャネルアクセストークン（30日間有効）を動的生成
+ * - サービス通知トークンを発行してメッセージ送信
+ * - 1つの操作につき最大5回まで送信可能
+ * 
+ * @see https://developers.line.biz/ja/docs/line-mini-app/develop/service-messages/
  */
 
 import type { Bindings } from '../types/bindings'
@@ -16,9 +24,13 @@ const LINE_NOTIFIER_API_BASE = 'https://api.line.me/message/v3'
 
 /**
  * 短期のチャネルアクセストークンを発行
- * LINEミニアプリでは長期トークンが使えないため、短期トークンを動的に発行
- * @param env - 環境変数
- * @returns 短期のチャネルアクセストークン（30日間有効）
+ * 
+ * LINEミニアプリでは長期トークンが使用できないため、
+ * チャネルIDとシークレットを使用して短期トークンを動的に生成します。
+ * 
+ * @param env - 環境変数（LINE_CHANNEL_ID, LINE_CHANNEL_SECRETが必要）
+ * @returns 短期のチャネルアクセストークン（30日間有効、最大30件まで発行可能）
+ * @throws {Error} 環境変数が未設定、またはAPI呼び出しが失敗した場合
  */
 async function getChannelAccessToken(env: Bindings): Promise<string> {
   const channelId = env.LINE_CHANNEL_ID
@@ -28,7 +40,7 @@ async function getChannelAccessToken(env: Bindings): Promise<string> {
     throw new Error('LINE_CHANNEL_ID and LINE_CHANNEL_SECRET are required')
   }
 
-  console.log('[Channel Token] Issuing short-lived token for channel:', channelId)
+  console.log('[LINE] Issuing short-lived channel access token for channel:', channelId)
 
   // 短期のチャネルアクセストークン発行API
   const response = await fetch('https://api.line.me/v2/oauth/accessToken', {
@@ -45,21 +57,26 @@ async function getChannelAccessToken(env: Bindings): Promise<string> {
 
   if (!response.ok) {
     const errorText = await response.text()
-    console.error('[Channel Token] Error:', response.status, errorText)
+    console.error('[LINE] Failed to issue channel access token:', response.status, errorText)
     throw new Error(`Failed to issue channel access token: HTTP ${response.status} - ${errorText}`)
   }
 
   const data = await response.json() as { access_token: string; expires_in: number; token_type: string }
-  console.log('[Channel Token] Token issued successfully, expires_in:', data.expires_in)
+  console.log('[LINE] Channel access token issued successfully (expires in', data.expires_in, 'seconds)')
   
   return data.access_token
 }
 
 /**
  * サービス通知トークンを発行
- * @param liffAccessToken - LIFFアクセストークン（liff.getAccessToken()で取得）
+ * 
+ * LIFFアクセストークンを使用してサービス通知トークンを取得します。
+ * このトークンは、実際のサービスメッセージ送信時に使用されます。
+ * 
+ * @param liffAccessToken - LIFFアクセストークン（フロントエンドでliff.getAccessToken()により取得）
  * @param env - 環境変数
  * @returns サービス通知トークンと残り送信可能回数
+ * @throws {Error} API呼び出しが失敗した場合
  */
 export async function issueServiceNotificationToken(
   liffAccessToken: string,
@@ -80,15 +97,14 @@ export async function issueServiceNotificationToken(
 
   if (!response.ok) {
     const errorText = await response.text()
-    console.error('[LINE API Error] Status:', response.status)
-    console.error('[LINE API Error] Response:', errorText)
+    console.error('[LINE] Failed to issue service notification token:', response.status, errorText)
     let error: LineApiError
     try {
       error = JSON.parse(errorText)
     } catch {
       throw new Error(`Failed to issue service notification token: HTTP ${response.status} - ${errorText}`)
     }
-    throw new Error(`Failed to issue service notification token: ${error.message} (detail: ${JSON.stringify(error)})`)
+    throw new Error(`Failed to issue service notification token: ${error.message}`)
   }
 
   const data = await response.json() as { notificationToken: string; remainingCount: number }
@@ -100,9 +116,14 @@ export async function issueServiceNotificationToken(
 
 /**
  * サービスメッセージを送信
+ * 
+ * サービス通知トークンを使用して、指定されたテンプレートでメッセージを送信します。
+ * レスポンスには新しい通知トークンが含まれ、後続メッセージ（最大4回）に使用できます。
+ * 
  * @param request - 送信リクエスト（テンプレート名、通知トークン、変数）
  * @param env - 環境変数
  * @returns 送信結果と新しい通知トークン（後続メッセージ用）
+ * @throws {Error} API呼び出しが失敗した場合
  */
 export async function sendServiceMessage(
   request: SendServiceMessageRequest,
@@ -125,6 +146,7 @@ export async function sendServiceMessage(
 
   if (!response.ok) {
     const error: LineApiError = await response.json()
+    console.error('[LINE] Failed to send service message:', error)
     throw new Error(`Failed to send service message: ${error.message}`)
   }
 
@@ -137,12 +159,17 @@ export async function sendServiceMessage(
 }
 
 /**
- * 応募者へのサービスメッセージ送信（フルフロー）
+ * サービスメッセージ送信（フルフロー）
+ * 
+ * サービス通知トークンの発行とメッセージ送信を一括で実行します。
+ * これは、ユーザーの操作（応募、予約等）に対する最初の通知に使用されます。
+ * 
  * @param liffAccessToken - LIFFアクセストークン
- * @param templateName - テンプレート名
- * @param params - テンプレート変数
+ * @param templateName - LINE Developersコンソールで登録したテンプレート名
+ * @param params - テンプレート変数（プレースホルダーに展開される値）
  * @param env - 環境変数
- * @returns 送信結果と新しい通知トークン
+ * @returns 送信結果と新しい通知トークン（後続メッセージ用）
+ * @throws {Error} トークン発行またはメッセージ送信が失敗した場合
  */
 export async function sendServiceMessageWithToken(
   liffAccessToken: string,

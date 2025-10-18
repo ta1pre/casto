@@ -82,13 +82,11 @@ export async function createNotification(
   let errorMessage: string | undefined
 
   // LINEサービスメッセージ送信
-  // 注意: 未認証LINEミニアプリでは403エラーとなります
-  // 認証審査通過後に自動的に有効化されます
-  // 詳細: docs/tasks/LINE_SERVICE_MESSAGE_IMPLEMENTATION_GUIDE.md
   if (channel === 'line' && liffAccessToken) {
     try {
       const liffId = env.LINE_LIFF_ID || ''
       const params = template.params ? template.params(context, liffId) : {}
+      
       const result = await sendServiceMessageWithToken(
         liffAccessToken,
         template.templateName,
@@ -96,7 +94,7 @@ export async function createNotification(
         env
       )
 
-      // 新しいサービス通知トークンを保存
+      // 後続メッセージ用の通知トークンを保存
       if (result.notificationToken) {
         await supabase
           .from('notifications')
@@ -105,14 +103,17 @@ export async function createNotification(
       }
 
       sent = true
+      console.log('[Notification] LINE service message sent successfully')
     } catch (error) {
-      // 未認証ミニアプリでは403エラーが想定されます
       const errorMsg = error instanceof Error ? error.message : 'Unknown error'
+      
+      // 未認証ミニアプリでは403エラーが発生する（認証審査通過後に自動解決）
       if (errorMsg.includes('Unlicensed API Request')) {
-        console.warn('[LINE Service Message] Unlicensed API - 認証審査通過後に有効化されます')
+        console.warn('[Notification] LINE service message is disabled (unauthenticated mini app)')
       } else {
-        console.error('[LINE Service Message] Failed:', error)
+        console.error('[Notification] Failed to send LINE service message:', error)
       }
+      
       errorMessage = errorMsg
       sent = false
     }

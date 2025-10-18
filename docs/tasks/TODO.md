@@ -255,7 +255,7 @@
 - 主催者向け: AWS SES / SendGrid（無料枠）
 - LIFF内通知一覧で履歴管理
 
-#### Phase 1: サービスメッセージ基盤 ⚠️ 認証審査待ち
+#### Phase 1: サービスメッセージ基盤 ✅ 実装完了（2025-10-19）
 
 **データベース** ✅
 - [x] `notifications` テーブル拡張（context, channel, service_notification_token）
@@ -263,37 +263,33 @@
 - [x] Supabase MCP ツールでマイグレーション適用
 
 **Workers API** ✅
-- [x] `lib/notification.service.ts` - 通知ディスパッチャ（エラーハンドリング強化）
-- [x] `lib/line-service-message.ts` - サービスメッセージ送信（詳細ログ追加）
+- [x] `lib/notification.service.ts` - 通知ディスパッチャ
+- [x] `lib/line-service-message.ts` - **短期のチャネルアクセストークン動的生成**
 - [x] `config/notification-templates.ts` - テンプレート定義
-- [x] `types/bindings.ts` - 環境変数追加
-- [x] `types/lineServiceMessage.ts` - 新規型定義
-- [x] `types/notification.ts` - 型拡張
+- [x] `types/bindings.ts` - 環境変数（LINE_CHANNEL_ID, LINE_CHANNEL_SECRET, LINE_LIFF_ID）
+- [x] `types/lineServiceMessage.ts` - LINE API型定義
+- [x] `types/notification.ts` - 通知型定義
 - [x] `types/application.ts` - liffAccessToken追加
-- [x] `features/talent/applications/routes.ts` - 応募完了時の通知送信実装
-- [x] Workers 再デプロイ（2025-10-19）
+- [x] `features/talent/applications/routes.ts` - 応募完了時の通知送信
+- [x] Workers 再デプロイ（Version: e81d8352-2a19-43a5-b763-5ce91faea725）
 
 **LINE Developers コンソール** ✅
 - [x] サービスメッセージテンプレート登録
   - [x] `Entry confirmed (simple)` - 応募受付完了
-- [x] 環境変数設定
-  - [x] LINE_CHANNEL_ID
-  - [x] LINE_CHANNEL_SECRET
-  - [x] LINE_LIFF_ID
+- [x] 環境変数設定（チャネルID、シークレット、LIFF ID）
 
 **Web UI** ✅
 - [x] 応募フォームで `liff.getAccessToken()` を取得してリクエストボディに含める
 
-**現在の状態** ⚠️
-- **未認証LINEミニアプリのため、サービスメッセージAPI が `403 Unlicensed API Request` エラーを返す**
-- 通知は `notifications` テーブルに正常に記録されている
-- LINE通知はエラーをログに記録するが、処理は継続する（アプリは正常動作）
-- **認証審査通過後に自動的に有効化される**
+**動作確認** ✅
+- [x] 開発環境でLINE通知送信成功
+- [x] `notifications` テーブルに記録
+- [x] 後続メッセージ用の通知トークン保存
 
-**次のステップ** 📋
-- [ ] LINE認証審査を申請
-- [ ] 認証審査通過後、ステートレスチャネルアクセストークンを実装
-- 📋 詳細: `docs/tasks/LINE_SERVICE_MESSAGE_IMPLEMENTATION_GUIDE.md`
+**実装方式** 📋
+- 短期のチャネルアクセストークン（30日間有効）を動的生成
+- チャネルIDとシークレットのみで発行（シンプル）
+- 詳細: `docs/tasks/LINE_SERVICE_MESSAGE_IMPLEMENTATION_GUIDE.md`
 
 #### Phase 2: メール通知（⭐️⭐️⭐️ 最優先）
 
