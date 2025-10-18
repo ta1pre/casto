@@ -7,6 +7,7 @@ export type Bindings = {
   SUPABASE_SERVICE_ROLE_KEY?: string
   LINE_CHANNEL_SECRET?: string
   LINE_CHANNEL_ID?: string
+  LINE_CHANNEL_ACCESS_TOKEN?: string
   LINE_MINI_APP_CHANNEL_ID?: string
   LINE_MINI_APP_CHANNEL_SECRET?: string
   LINE_LIFF_ID?: string

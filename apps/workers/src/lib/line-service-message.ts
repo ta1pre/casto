@@ -15,21 +15,16 @@ import type {
 const LINE_NOTIFIER_API_BASE = 'https://api.line.me/message/v3'
 
 /**
- * ステートレスチャネルアクセストークンを取得
+ * チャネルアクセストークンを取得
  */
-async function getStatelessChannelAccessToken(env: Bindings): Promise<string> {
-  // LINEミニアプリ専用の設定があればそれを使用、なければLINEログインのチャネル情報を使用
-  const channelId = env.LINE_MINI_APP_CHANNEL_ID || env.LINE_CHANNEL_ID
-  const channelSecret = env.LINE_MINI_APP_CHANNEL_SECRET || env.LINE_CHANNEL_SECRET
+async function getChannelAccessToken(env: Bindings): Promise<string> {
+  const channelAccessToken = env.LINE_CHANNEL_ACCESS_TOKEN
 
-  if (!channelId || !channelSecret) {
-    throw new Error('LINE_CHANNEL_ID and LINE_CHANNEL_SECRET are required')
+  if (!channelAccessToken) {
+    throw new Error('LINE_CHANNEL_ACCESS_TOKEN is required. Please set it in LINE Developers Console > Messaging API settings.')
   }
 
-  // ステートレストークンのフォーマット: {channelId}:{channelSecret}
-  // Base64エンコード
-  const credentials = btoa(`${channelId}:${channelSecret}`)
-  return credentials
+  return channelAccessToken
 }
 
 /**
@@ -42,7 +37,7 @@ export async function issueServiceNotificationToken(
   liffAccessToken: string,
   env: Bindings
 ): Promise<IssueServiceNotificationTokenResponse> {
-  const channelAccessToken = await getStatelessChannelAccessToken(env)
+  const channelAccessToken = await getChannelAccessToken(env)
 
   const response = await fetch(`${LINE_NOTIFIER_API_BASE}/notifier/token`, {
     method: 'POST',
@@ -77,7 +72,7 @@ export async function sendServiceMessage(
   request: SendServiceMessageRequest,
   env: Bindings
 ): Promise<SendServiceMessageResponse> {
-  const channelAccessToken = await getStatelessChannelAccessToken(env)
+  const channelAccessToken = await getChannelAccessToken(env)
 
   const response = await fetch(`${LINE_NOTIFIER_API_BASE}/notifier/send?target=service`, {
     method: 'POST',
