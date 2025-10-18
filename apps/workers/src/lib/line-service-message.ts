@@ -3,7 +3,6 @@
  * [CA][REH] LINE Messaging API準拠のサービスメッセージ送信
  */
 
-import { SignJWT } from 'jose'
 import type { Bindings } from '../types/bindings'
 import type {
   IssueServiceNotificationTokenRequest,
@@ -14,13 +13,12 @@ import type {
 } from '@casto/shared/types/lineServiceMessage'
 
 const LINE_NOTIFIER_API_BASE = 'https://api.line.me/message/v3'
-const LINE_OAUTH_API_BASE = 'https://api.line.me/oauth2/v3'
 
 /**
- * ステートレスチャネルアクセストークンを生成
- * LINEミニアプリでは長期トークンが使えないため、動的に生成する
+ * 短期のチャネルアクセストークンを発行
+ * LINEミニアプリでは長期トークンが使えないため、短期トークンを動的に発行
  * @param env - 環境変数
- * @returns ステートレスチャネルアクセストークン（15分間有効）
+ * @returns 短期のチャネルアクセストークン（30日間有効）
  */
 async function getChannelAccessToken(env: Bindings): Promise<string> {
   const channelId = env.LINE_CHANNEL_ID
@@ -30,52 +28,29 @@ async function getChannelAccessToken(env: Bindings): Promise<string> {
     throw new Error('LINE_CHANNEL_ID and LINE_CHANNEL_SECRET are required')
   }
 
-  console.log('[Stateless Token] Generating token for channel:', channelId)
+  console.log('[Channel Token] Issuing short-lived token for channel:', channelId)
 
-  // JWTペイロード作成
-  const now = Math.floor(Date.now() / 1000)
-  const payload = {
-    iss: channelId,
-    sub: channelId,
-    aud: 'https://api.line.me/',
-    exp: now + 60 * 30, // 30分後
-    token_exp: 60 * 15 // トークン有効期限: 15分
-  }
-
-  // JWT署名（HS256アルゴリズム）
-  const secret = new TextEncoder().encode(channelSecret)
-  const jwt = await new SignJWT(payload)
-    .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
-    .setIssuedAt(now)
-    .setIssuer(channelId)
-    .setSubject(channelId)
-    .setAudience('https://api.line.me/')
-    .setExpirationTime(now + 60 * 30)
-    .sign(secret)
-
-  console.log('[Stateless Token] JWT generated, length:', jwt.length)
-
-  // ステートレスチャネルアクセストークン発行API
-  const response = await fetch(`${LINE_OAUTH_API_BASE}/token`, {
+  // 短期のチャネルアクセストークン発行API
+  const response = await fetch('https://api.line.me/v2/oauth/accessToken', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'
     },
     body: new URLSearchParams({
       grant_type: 'client_credentials',
-      client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-      client_assertion: jwt
+      client_id: channelId,
+      client_secret: channelSecret
     })
   })
 
   if (!response.ok) {
     const errorText = await response.text()
-    console.error('[Stateless Token] Error:', response.status, errorText)
-    throw new Error(`Failed to issue stateless channel access token: HTTP ${response.status} - ${errorText}`)
+    console.error('[Channel Token] Error:', response.status, errorText)
+    throw new Error(`Failed to issue channel access token: HTTP ${response.status} - ${errorText}`)
   }
 
   const data = await response.json() as { access_token: string; expires_in: number; token_type: string }
-  console.log('[Stateless Token] Token issued successfully, expires_in:', data.expires_in)
+  console.log('[Channel Token] Token issued successfully, expires_in:', data.expires_in)
   
   return data.access_token
 }
