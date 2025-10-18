@@ -218,7 +218,7 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
     const labels = {
       pending: '未審査',
       in_progress: '審査中',
-      passed: '合格',
+      passed: '選考通過',
       rejected: '不合格',
       withdrawn: '辞退',
     }
@@ -237,7 +237,7 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
     }
     const labels = {
       pending: '未評価',
-      passed: '合格',
+      passed: '選考通過',
       rejected: '不合格',
     }
     return (
@@ -505,12 +505,12 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                           >
-                            合格
+                            選考通過
                           </button>
                           <button
                             type="button"
                             onClick={() => setEvaluationForm({ ...evaluationForm, result: 'rejected' })}
-                            className={`flex-1 py-2 px-4 rounded font-medium transition-colors ${
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                               evaluationForm.result === 'rejected'
                                 ? 'bg-red-600 text-white'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -576,7 +576,7 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
             onClick={() => handleUpdateApplicationStatus('passed')}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
           >
-            最終合格にする
+            最終選考通過にする
           </button>
           <button
             type="button"

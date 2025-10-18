@@ -89,7 +89,7 @@ export function ApplicationsPageClient({ auditionId }: { auditionId: string }) {
     const labels = {
       submitted: '審査中',
       under_review: '審査中',
-      accepted: '合格',
+      accepted: '選考通過',
       rejected: '不合格',
       withdrawn: '辞退',
     }
@@ -140,7 +140,7 @@ export function ApplicationsPageClient({ auditionId }: { auditionId: string }) {
             onClick={() => setFilter('accepted')}
             className={`px-3 py-1 text-sm rounded-md ${filter === 'accepted' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
           >
-            合格
+            選考通過
           </button>
           <button
             onClick={() => setFilter('rejected')}
@@ -219,7 +219,7 @@ export function ApplicationsPageClient({ auditionId }: { auditionId: string }) {
                           onClick={() => updateApplicationStatus(application.id, 'accepted')}
                           className="text-green-600 hover:text-green-900"
                         >
-                          合格
+                          選考通過
                         </button>
                         <button
                           onClick={() => updateApplicationStatus(application.id, 'rejected')}

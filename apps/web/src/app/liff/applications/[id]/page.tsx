@@ -92,7 +92,7 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
       unread: '審査中',
       pending: '審査中',
       in_progress: '審査中',
-      passed: '合格',
+      passed: '選考通過',
       rejected: '落選',
       withdrawn: '辞退',
     }
@@ -179,7 +179,7 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
             'text-gray-700'
           }`}>
             {(application.overallStatus === 'unread' || application.overallStatus === 'pending' || application.overallStatus === 'in_progress') && '⏳ 選考が進行中です。結果をお待ちください'}
-            {application.overallStatus === 'passed' && '🎉 おめでとうございます！合格です！'}
+            {application.overallStatus === 'passed' && '🎉 おめでとうございます！選考通過です！'}
             {application.overallStatus === 'rejected' && '今回は残念ながら落選となりました'}
             {application.overallStatus === 'withdrawn' && '応募を取り下げました'}
           </p>

@@ -42,7 +42,16 @@ export async function getAuditionApplications(
 ): Promise<{ applications: AuditionApplication[]; total: number }> {
   let query = client
     .from('audition_applications')
-    .select('*, users!talent_id(id, talent_profiles(stage_name, completion_rate))', { count: 'exact' })
+    .select(`
+      *, 
+      users!talent_id(id, talent_profiles(stage_name, completion_rate)),
+      audition_step_evaluations(
+        step_id, 
+        score, 
+        result,
+        audition_steps(title, step_order)
+      )
+    `, { count: 'exact' })
     .eq('audition_id', auditionId)
     .order('applied_at', { ascending: false })
 
@@ -73,6 +82,19 @@ export async function getAuditionApplications(
     }
     if (row.users?.talent_profiles?.completion_rate !== undefined) {
       app.profileCompletionRate = row.users.talent_profiles.completion_rate
+    }
+    // 評価情報をマッピング
+    if (row.audition_step_evaluations && Array.isArray(row.audition_step_evaluations)) {
+      app.evaluations = row.audition_step_evaluations
+        .filter((evaluation: any) => evaluation.audition_steps) // ステップ情報があるもののみ
+        .map((evaluation: any) => ({
+          stepId: evaluation.step_id,
+          stepTitle: evaluation.audition_steps.title,
+          stepOrder: evaluation.audition_steps.step_order,
+          score: evaluation.score !== null ? evaluation.score : undefined,
+          result: evaluation.result || undefined,
+        }))
+        .sort((a: any, b: any) => a.stepOrder - b.stepOrder)
     }
     return app
   })

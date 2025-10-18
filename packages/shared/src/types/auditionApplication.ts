@@ -48,6 +48,18 @@ export interface AuditionApplication {
   talentName?: string  // タレント名（join時）
   profileCompletionRate?: number  // プロフィール入力率 0-100（join時）
   auditionTitle?: string  // オーディション名（join時）
+  evaluations?: ApplicationEvaluation[]  // 評価情報（join時）
+}
+
+/**
+ * 応募の評価情報（一覧表示用）
+ */
+export interface ApplicationEvaluation {
+  stepId: string
+  stepTitle: string
+  stepOrder: number
+  score?: number
+  result?: 'pending' | 'passed' | 'rejected'
 }
 
 /**

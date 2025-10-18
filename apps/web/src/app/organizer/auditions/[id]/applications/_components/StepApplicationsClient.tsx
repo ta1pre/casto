@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import type { AuditionApplication, Audition, AuditionStep } from '@casto/shared'
+import { TalentProfileModal } from './TalentProfileModal'
 
 export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
   const [audition, setAudition] = useState<Audition | null>(null)
@@ -16,6 +17,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
   const [totalCount, setTotalCount] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>('all')
+  const [selectedTalent, setSelectedTalent] = useState<{ id: string; name: string } | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -115,7 +117,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
       unread: '未開封',
       pending: '未審査',
       in_progress: '審査中',
-      passed: '合格',
+      passed: '選考通過',
       rejected: '不合格',
       withdrawn: '辞退',
     }
@@ -130,6 +132,35 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
     if (!stepId) return '未設定'
     const step = steps.find(s => s.id === stepId)
     return step ? `${step.stepOrder}. ${step.title}` : '不明'
+  }
+
+  // 評価情報から進捗ステータスを取得
+  const getProgressStatus = (app: AuditionApplication) => {
+    if (!app.evaluations || app.evaluations.length === 0) {
+      return { text: '未評価', color: 'text-gray-600' }
+    }
+    
+    const sortedEvals = [...app.evaluations].sort((a, b) => a.stepOrder - b.stepOrder)
+    const latestEval = sortedEvals[sortedEvals.length - 1]
+    
+    if (latestEval.result === 'passed') {
+      const scoreText = latestEval.score !== undefined ? ` (${latestEval.score}点)` : ''
+      return { 
+        text: `${latestEval.stepTitle}通過${scoreText}`, 
+        color: 'text-green-700' 
+      }
+    } else if (latestEval.result === 'rejected') {
+      return { 
+        text: `${latestEval.stepTitle}不合格`, 
+        color: 'text-red-700' 
+      }
+    } else {
+      const scoreText = latestEval.score !== undefined ? ` (${latestEval.score}点)` : ''
+      return { 
+        text: `${latestEval.stepTitle}審査中${scoreText}`, 
+        color: 'text-blue-700' 
+      }
+    }
   }
 
   if (loading) {
@@ -199,7 +230,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            合格
+            選考通過
           </button>
           <button
             onClick={() => setFilter('rejected')}
@@ -254,6 +285,9 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
                 ) : (
                   <>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      選考進捗
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       現在のステップ
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -273,9 +307,12 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
               {applications.map((app) => (
                 <tr key={app.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
+                    <button
+                      onClick={() => setSelectedTalent({ id: app.talentId, name: app.talentName || 'タレント' })}
+                      className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                    >
                       {app.talentName || 'タレント'}
-                    </div>
+                    </button>
                   </td>
                   {app.overallStatus === 'unread' ? (
                     /* 未開封行 */
@@ -307,6 +344,29 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
                     /* 開封済み行 */
                     <>
                       <td className="px-6 py-4 whitespace-nowrap">
+                        <div className={`text-sm font-medium ${getProgressStatus(app).color}`}>
+                          {getProgressStatus(app).text}
+                        </div>
+                        {/* 進捗バー */}
+                        <div className="flex gap-1 mt-1">
+                          {steps.map(step => {
+                            const evaluation = app.evaluations?.find(e => e.stepId === step.id)
+                            return (
+                              <div 
+                                key={step.id}
+                                className={`h-1.5 w-8 rounded ${
+                                  evaluation?.result === 'passed' ? 'bg-green-500' :
+                                  evaluation?.result === 'rejected' ? 'bg-red-500' :
+                                  evaluation?.result === 'pending' ? 'bg-yellow-500' :
+                                  'bg-gray-200'
+                                }`}
+                                title={`${step.title}: ${evaluation?.result === 'passed' ? '通過' : evaluation?.result === 'rejected' ? '不合格' : evaluation?.result === 'pending' ? '審査中' : '未評価'}`}
+                              />
+                            )
+                          })}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
                           {getStepName(app.currentStepId)}
                         </div>
@@ -333,6 +393,14 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
           </table>
         </div>
       )}
+
+      {/* プロフィールモーダル */}
+      <TalentProfileModal
+        talentId={selectedTalent?.id || null}
+        talentName={selectedTalent?.name || ''}
+        isOpen={!!selectedTalent}
+        onClose={() => setSelectedTalent(null)}
+      />
     </div>
   )
 }

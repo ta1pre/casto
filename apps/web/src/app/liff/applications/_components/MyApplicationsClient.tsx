@@ -102,7 +102,7 @@ export function MyApplicationsClient() {
       unread: '審査中',
       pending: '審査中',
       in_progress: '審査中',
-      passed: '合格',
+      passed: '選考通過',
       rejected: '落選',
       withdrawn: '辞退',
     }
@@ -220,7 +220,7 @@ export function MyApplicationsClient() {
               {/* ステータスメッセージ */}
               <p className="text-sm text-muted-foreground mb-3">
                 {(app.overallStatus === 'unread' || app.overallStatus === 'pending' || app.overallStatus === 'in_progress') && '選考が進行中です。結果をお待ちください'}
-                {app.overallStatus === 'passed' && 'おめでとうございます！合格です'}
+                {app.overallStatus === 'passed' && 'おめでとうございます！選考通過です'}
                 {app.overallStatus === 'rejected' && '今回は残念ながら落選となりました'}
                 {app.overallStatus === 'withdrawn' && '応募を取り下げました'}
               </p>
