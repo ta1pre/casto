@@ -26,6 +26,9 @@ export default function LiffRootLayout({ children }: { children: React.ReactNode
 
   return (
     <>
+      {/* LIFF SDK preload [PA] */}
+      <link rel="preload" href="https://static.line-scdn.net/liff/edge/2/sdk.js" as="script" />
+      
       <Script
         src="https://static.line-scdn.net/liff/edge/2/sdk.js"
         strategy="afterInteractive"

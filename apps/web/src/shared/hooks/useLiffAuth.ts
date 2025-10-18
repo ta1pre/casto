@@ -74,6 +74,7 @@ export function useLiffAuth(): UseLiffAuthReturn {
   const [error, setError] = useState<string | null>(null)
   const [inClient, setInClient] = useState(false) // メモ化 [PA]
   const loginTriggeredRef = useRef(false)
+  const initializingRef = useRef(false) // 初期化済みフラグ [SF][PA]
   
   // デバッグログ（開発環境のみ）
   if (process.env.NODE_ENV === 'development') {
@@ -225,8 +226,15 @@ export function useLiffAuth(): UseLiffAuthReturn {
   }, []) // 依存配列を空に: 1回だけ実行 [SF][PA]
 
   useEffect(() => {
+    // 既に初期化中または初期化済みの場合はスキップ [SF][PA]
+    if (initializingRef.current) {
+      console.log('[useLiffAuth] Already initializing or initialized, skipping')
+      return
+    }
+    
+    initializingRef.current = true
     void initializeLiff()
-  }, [initializeLiff])
+  }, [])
 
   // 環境判定の初期化（クライアントサイドのみ）[PA]
   useEffect(() => {
