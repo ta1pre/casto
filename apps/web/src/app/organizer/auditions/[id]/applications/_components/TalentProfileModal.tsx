@@ -335,30 +335,50 @@ export function TalentProfileModal({ talentId, talentName, isOpen, onClose }: Ta
       {expandedPhoto && (
         <div 
           className="absolute inset-0 bg-black bg-opacity-95 z-20 flex flex-col items-center justify-center p-8 rounded-lg"
-          onClick={() => setExpandedPhoto(null)}
+          onClick={(e) => {
+            e.stopPropagation()
+            setExpandedPhoto(null)
+          }}
         >
           {/* ヘッダー */}
-          <div className="w-full max-w-5xl flex items-center justify-between mb-4">
+          <div className="w-full max-w-4xl flex items-center justify-between mb-4">
             <div className="text-white text-lg font-medium">
               {expandedPhoto.label}
             </div>
             <button
-              onClick={() => setExpandedPhoto(null)}
-              className="text-white hover:text-gray-300 flex items-center gap-2"
+              onClick={(e) => {
+                e.stopPropagation()
+                setExpandedPhoto(null)
+              }}
+              className="text-white hover:text-gray-300 p-2 hover:bg-white/10 rounded-full transition-colors"
+              aria-label="閉じる"
             >
-              <span className="text-sm">ESCキーまたはクリックで閉じる</span>
               <X className="w-6 h-6" />
             </button>
           </div>
 
           {/* 拡大写真 */}
-          <div className="flex-1 flex items-center justify-center w-full max-w-5xl">
+          <div 
+            className="flex-1 flex items-center justify-center w-full max-w-4xl cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation()
+              setExpandedPhoto(null)
+            }}
+          >
             <img
               src={expandedPhoto.url}
               alt={expandedPhoto.label}
-              className="max-w-full max-h-full object-contain"
-              onClick={(e) => e.stopPropagation()}
+              className="max-w-full max-h-full object-contain shadow-2xl"
+              onClick={(e) => {
+                e.stopPropagation()
+                setExpandedPhoto(null)
+              }}
             />
+          </div>
+
+          {/* 閉じるヒント */}
+          <div className="text-white text-sm mt-4 opacity-75">
+            画像タップ、ESCキー、または×ボタンで閉じる
           </div>
         </div>
       )}
