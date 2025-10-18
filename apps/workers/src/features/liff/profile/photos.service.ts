@@ -25,6 +25,9 @@ export async function uploadPhotoToR2(
     throw new Error(validation.errors[0]?.message || 'Invalid photo')
   }
 
+  // 古い写真を削除（全拡張子を試す）
+  await deletePhotoFromR2(r2Bucket, userId, index)
+
   // ファイル名生成
   const filename = generatePhotoFilename(userId, index, file)
 

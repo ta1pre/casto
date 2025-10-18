@@ -28,8 +28,7 @@ interface TalentProfile {
   tiktok?: string
   youtube?: string
   followers?: string
-  photoFaceUrl?: string
-  photoFullBodyUrl?: string
+  photoUrls?: string[]  // 全ての写真URL（最大6枚）
   completionRate: number
 }
 
@@ -148,30 +147,23 @@ export function TalentProfileModal({ talentId, talentName, isOpen, onClose }: Ta
           {profile && !loading && (
             <div className="space-y-6">
               {/* 写真 */}
-              {(profile.photoFaceUrl || profile.photoFullBodyUrl) && (
+              {profile.photoUrls && profile.photoUrls.length > 0 && (
                 <section>
                   <h3 className="text-lg font-bold mb-3 pb-2 border-b">写真</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    {profile.photoFaceUrl && (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-2">顔写真</p>
-                        <img 
-                          src={profile.photoFaceUrl} 
-                          alt="顔写真" 
-                          className="w-full h-64 object-cover rounded-lg border"
-                        />
-                      </div>
-                    )}
-                    {profile.photoFullBodyUrl && (
-                      <div>
-                        <p className="text-sm text-gray-600 mb-2">全身写真</p>
-                        <img 
-                          src={profile.photoFullBodyUrl} 
-                          alt="全身写真" 
-                          className="w-full h-64 object-cover rounded-lg border"
-                        />
-                      </div>
-                    )}
+                    {profile.photoUrls.map((photoUrl, index) => {
+                      const photoLabels = ['顔写真', '全身写真', '写真3', '写真4', '写真5', '写真6']
+                      return (
+                        <div key={index}>
+                          <p className="text-sm text-gray-600 mb-2">{photoLabels[index] || `写真${index + 1}`}</p>
+                          <img 
+                            src={photoUrl} 
+                            alt={photoLabels[index] || `写真${index + 1}`}
+                            className="w-full h-64 object-cover rounded-lg border"
+                          />
+                        </div>
+                      )
+                    })}
                   </div>
                 </section>
               )}
