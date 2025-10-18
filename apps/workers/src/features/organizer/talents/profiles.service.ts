@@ -27,6 +27,9 @@ export async function getTalentProfile(
     throw new Error(`Failed to fetch talent profile: ${error.message}`)
   }
 
+  // photo_urls配列から写真URLを取得（index 0=顔写真, 1=全身写真）
+  const photoUrls = data.photo_urls || []
+  
   // snake_case から camelCase へ変換
   return {
     userId: data.user_id,
@@ -48,8 +51,8 @@ export async function getTalentProfile(
     tiktok: data.tiktok,
     youtube: data.youtube,
     followers: data.followers,
-    photoFaceUrl: data.photo_face_url,
-    photoFullBodyUrl: data.photo_full_body_url,
+    photoFaceUrl: photoUrls[0] || null,  // 顔写真
+    photoFullBodyUrl: photoUrls[1] || null,  // 全身写真
     completionRate: data.completion_rate,
     completionSections: data.completion_sections,
     createdAt: data.created_at,
