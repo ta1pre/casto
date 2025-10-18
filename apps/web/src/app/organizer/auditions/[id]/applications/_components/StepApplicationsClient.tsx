@@ -14,6 +14,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
   const [audition, setAudition] = useState<Audition | null>(null)
   const [steps, setSteps] = useState<AuditionStep[]>([])
   const [applications, setApplications] = useState<AuditionApplication[]>([])
+  const [allApplications, setAllApplications] = useState<AuditionApplication[]>([])
   const [totalCount, setTotalCount] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>('all')
@@ -22,7 +23,27 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
   useEffect(() => {
     fetchData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auditionId, filter])
+  }, [auditionId])
+
+  // フィルター変更時は既存データから再フィルタリング
+  useEffect(() => {
+    if (allApplications.length > 0) {
+      const filteredApps = allApplications.filter((app: AuditionApplication) => {
+        if (filter === 'passed') {
+          return app.overallStatus === 'passed' && isFinalStep(app.currentStepId)
+        } else if (filter === 'in_progress') {
+          return app.overallStatus === 'in_progress' || 
+                 (app.overallStatus === 'passed' && !isFinalStep(app.currentStepId))
+        } else if (filter === 'all') {
+          return app.overallStatus !== 'unread'
+        }
+        return app.overallStatus === filter
+      })
+      setApplications(filteredApps)
+      setTotalCount(filteredApps.length)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, allApplications, steps])
 
   const fetchData = async () => {
     try {
@@ -73,12 +94,8 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
 
   const fetchApplications = async () => {
     try {
-      const queryParams = new URLSearchParams()
-      if (filter !== 'all') {
-        queryParams.append('status', filter)
-      }
-
-      const url = `/api/v1/organizer/auditions/${auditionId}/applications?${queryParams}`
+      // 全データを取得（フロントエンドでフィルタリング）
+      const url = `/api/v1/organizer/auditions/${auditionId}/applications`
       console.log('[Applications] Fetching:', url)
 
       const response = await fetch(url, {
@@ -90,11 +107,10 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
       if (response.ok) {
         const data = await response.json()
         console.log('[Applications] Data received:', data)
-        setApplications(data.applications || [])
-        // フィルタなしの場合のみ全体数を更新
-        if (filter === 'all') {
-          setTotalCount(data.applications?.length || 0)
-        }
+        const apps = data.applications || []
+        
+        // 全データを保存（フィルタリングはuseEffectで実行）
+        setAllApplications(apps)
       } else {
         const errorText = await response.text()
         console.error('[Applications] Error response:', response.status, errorText)
@@ -110,6 +126,21 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
     const maxOrder = Math.max(...steps.map(s => s.stepOrder))
     const currentStep = steps.find(s => s.id === stepId)
     return currentStep?.stepOrder === maxOrder
+  }
+
+  // 各ステータスの件数をカウント
+  const getCountByStatus = (status: string) => {
+    return allApplications.filter((app) => {
+      if (status === 'passed') {
+        return app.overallStatus === 'passed' && isFinalStep(app.currentStepId)
+      } else if (status === 'in_progress') {
+        return app.overallStatus === 'in_progress' || 
+               (app.overallStatus === 'passed' && !isFinalStep(app.currentStepId))
+      } else if (status === 'all') {
+        return app.overallStatus !== 'unread'
+      }
+      return app.overallStatus === status
+    }).length
   }
 
   const getStatusBadge = (application: AuditionApplication) => {
@@ -227,7 +258,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            未開封
+            未開封 ({getCountByStatus('unread')})
           </button>
           <button
             onClick={() => setFilter('pending')}
@@ -237,7 +268,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            未審査
+            未審査 ({getCountByStatus('pending')})
           </button>
           <button
             onClick={() => setFilter('in_progress')}
@@ -247,7 +278,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            審査中
+            審査中 ({getCountByStatus('in_progress')})
           </button>
           <button
             onClick={() => setFilter('passed')}
@@ -257,7 +288,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            選考通過
+            選考通過 ({getCountByStatus('passed')})
           </button>
           <button
             onClick={() => setFilter('rejected')}
@@ -267,7 +298,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            不合格
+            不合格 ({getCountByStatus('rejected')})
           </button>
           <button
             onClick={() => setFilter('all')}
@@ -277,7 +308,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            開封済みすべて ({filter === 'all' ? applications.length : totalCount})
+            開封済みすべて ({getCountByStatus('all')})
           </button>
         </div>
       </div>
