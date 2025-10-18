@@ -3,6 +3,7 @@
  * [CA][REH] LINE Messaging API準拠のサービスメッセージ送信
  */
 
+import { SignJWT } from 'jose'
 import type { Bindings } from '../types/bindings'
 import type {
   IssueServiceNotificationTokenRequest,
@@ -13,18 +14,70 @@ import type {
 } from '@casto/shared/types/lineServiceMessage'
 
 const LINE_NOTIFIER_API_BASE = 'https://api.line.me/message/v3'
+const LINE_OAUTH_API_BASE = 'https://api.line.me/oauth2/v3'
 
 /**
- * チャネルアクセストークンを取得
+ * ステートレスチャネルアクセストークンを生成
+ * LINEミニアプリでは長期トークンが使えないため、動的に生成する
+ * @param env - 環境変数
+ * @returns ステートレスチャネルアクセストークン（15分間有効）
  */
 async function getChannelAccessToken(env: Bindings): Promise<string> {
-  const channelAccessToken = env.LINE_CHANNEL_ACCESS_TOKEN
+  const channelId = env.LINE_CHANNEL_ID
+  const channelSecret = env.LINE_CHANNEL_SECRET
 
-  if (!channelAccessToken) {
-    throw new Error('LINE_CHANNEL_ACCESS_TOKEN is required. Please set it in LINE Developers Console > Messaging API settings.')
+  if (!channelId || !channelSecret) {
+    throw new Error('LINE_CHANNEL_ID and LINE_CHANNEL_SECRET are required')
   }
 
-  return channelAccessToken
+  console.log('[Stateless Token] Generating token for channel:', channelId)
+
+  // JWTペイロード作成
+  const now = Math.floor(Date.now() / 1000)
+  const payload = {
+    iss: channelId,
+    sub: channelId,
+    aud: 'https://api.line.me/',
+    exp: now + 60 * 30, // 30分後
+    token_exp: 60 * 15 // トークン有効期限: 15分
+  }
+
+  // JWT署名（HS256アルゴリズム）
+  const secret = new TextEncoder().encode(channelSecret)
+  const jwt = await new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
+    .setIssuedAt(now)
+    .setIssuer(channelId)
+    .setSubject(channelId)
+    .setAudience('https://api.line.me/')
+    .setExpirationTime(now + 60 * 30)
+    .sign(secret)
+
+  console.log('[Stateless Token] JWT generated, length:', jwt.length)
+
+  // ステートレスチャネルアクセストークン発行API
+  const response = await fetch(`${LINE_OAUTH_API_BASE}/token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: new URLSearchParams({
+      grant_type: 'client_credentials',
+      client_assertion_type: 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+      client_assertion: jwt
+    })
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('[Stateless Token] Error:', response.status, errorText)
+    throw new Error(`Failed to issue stateless channel access token: HTTP ${response.status} - ${errorText}`)
+  }
+
+  const data = await response.json() as { access_token: string; expires_in: number; token_type: string }
+  console.log('[Stateless Token] Token issued successfully, expires_in:', data.expires_in)
+  
+  return data.access_token
 }
 
 /**
@@ -51,8 +104,16 @@ export async function issueServiceNotificationToken(
   })
 
   if (!response.ok) {
-    const error: LineApiError = await response.json()
-    throw new Error(`Failed to issue service notification token: ${error.message}`)
+    const errorText = await response.text()
+    console.error('[LINE API Error] Status:', response.status)
+    console.error('[LINE API Error] Response:', errorText)
+    let error: LineApiError
+    try {
+      error = JSON.parse(errorText)
+    } catch {
+      throw new Error(`Failed to issue service notification token: HTTP ${response.status} - ${errorText}`)
+    }
+    throw new Error(`Failed to issue service notification token: ${error.message} (detail: ${JSON.stringify(error)})`)
   }
 
   const data = await response.json() as { notificationToken: string; remainingCount: number }

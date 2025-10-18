@@ -255,7 +255,7 @@
 - 主催者向け: AWS SES / SendGrid（無料枠）
 - LIFF内通知一覧で履歴管理
 
-#### Phase 1: サービスメッセージ基盤 ✅ 実装完了（テスト準備中）
+#### Phase 1: サービスメッセージ基盤 ⚠️ 認証審査待ち
 
 **データベース** ✅
 - [x] `notifications` テーブル拡張（context, channel, service_notification_token）
@@ -263,35 +263,37 @@
 - [x] Supabase MCP ツールでマイグレーション適用
 
 **Workers API** ✅
-- [x] `lib/notification.service.ts` - 通知ディスパッチャ
-- [x] `lib/line-service-message.ts` - サービスメッセージ送信
+- [x] `lib/notification.service.ts` - 通知ディスパッチャ（エラーハンドリング強化）
+- [x] `lib/line-service-message.ts` - サービスメッセージ送信（詳細ログ追加）
 - [x] `config/notification-templates.ts` - テンプレート定義
 - [x] `types/bindings.ts` - 環境変数追加
 - [x] `types/lineServiceMessage.ts` - 新規型定義
 - [x] `types/notification.ts` - 型拡張
 - [x] `types/application.ts` - liffAccessToken追加
 - [x] `features/talent/applications/routes.ts` - 応募完了時の通知送信実装
-- [x] Workers 再デプロイ
+- [x] Workers 再デプロイ（2025-10-19）
 
-**LINE Developers コンソール** 🔄 要設定
-- [ ] サービスメッセージテンプレート登録（開発用内部チャネル）
-  - [ ] `application_received_ja` - 応募受付完了
-  - [ ] `application_passed_ja` - 一次通過
-  - [ ] `application_failed_ja` - 一次不通過
-  - [ ] テンプレート審査申請（開発環境では未審査でもテスト可能）
-- [ ] 環境変数設定（.dev.vars または wrangler secret）
-  - [ ] LINE_MINI_APP_CHANNEL_ID
-  - [ ] LINE_MINI_APP_CHANNEL_SECRET
-  - [ ] LIFF_ID
+**LINE Developers コンソール** ✅
+- [x] サービスメッセージテンプレート登録
+  - [x] `Entry confirmed (simple)` - 応募受付完了
+- [x] 環境変数設定
+  - [x] LINE_CHANNEL_ID
+  - [x] LINE_CHANNEL_SECRET
+  - [x] LINE_LIFF_ID
 
-**Web UI** 🔄 要対応
-- [ ] 応募フォームで `liff.getAccessToken()` を取得してリクエストボディに含める
+**Web UI** ✅
+- [x] 応募フォームで `liff.getAccessToken()` を取得してリクエストボディに含める
 
-**テスト** 🔄 準備完了
-- [ ] 開発用内部チャネルでサービスメッセージ送信確認
-- [ ] `notifications` テーブルへのレコード登録確認
-- [ ] べき等性確認（二重送信防止）
-- 📋 詳細: `docs/tasks/NOTIFICATION_TESTING_GUIDE.md`
+**現在の状態** ⚠️
+- **未認証LINEミニアプリのため、サービスメッセージAPI が `403 Unlicensed API Request` エラーを返す**
+- 通知は `notifications` テーブルに正常に記録されている
+- LINE通知はエラーをログに記録するが、処理は継続する（アプリは正常動作）
+- **認証審査通過後に自動的に有効化される**
+
+**次のステップ** 📋
+- [ ] LINE認証審査を申請
+- [ ] 認証審査通過後、ステートレスチャネルアクセストークンを実装
+- 📋 詳細: `docs/tasks/LINE_SERVICE_MESSAGE_IMPLEMENTATION_GUIDE.md`
 
 #### Phase 2: メール通知（⭐️⭐️⭐️ 最優先）
 
