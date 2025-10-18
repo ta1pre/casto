@@ -207,7 +207,15 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
     return evaluations.find(e => e.stepId === stepId)
   }
 
-  const getStatusBadge = (status: string) => {
+  // 最終ステップかどうかを判定
+  const isFinalStep = (stepId?: string) => {
+    if (!stepId || steps.length === 0) return false
+    const maxOrder = Math.max(...steps.map(s => s.stepOrder))
+    const currentStep = steps.find(s => s.id === stepId)
+    return currentStep?.stepOrder === maxOrder
+  }
+
+  const getStatusBadge = (status: string, currentStepId?: string) => {
     const badges = {
       pending: 'bg-gray-100 text-gray-800',
       in_progress: 'bg-blue-100 text-blue-800',
@@ -215,16 +223,34 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
       rejected: 'bg-red-100 text-red-800',
       withdrawn: 'bg-gray-300 text-gray-600',
     }
-    const labels = {
-      pending: '未審査',
-      in_progress: '審査中',
-      passed: '選考通過',
-      rejected: '不合格',
-      withdrawn: '辞退',
+    
+    // passedの場合、最終ステップかどうかで表示を変える
+    let displayStatus = status
+    let displayLabel = ''
+    
+    if (status === 'passed') {
+      if (isFinalStep(currentStepId)) {
+        // 最終ステップ → 選考通過
+        displayLabel = '選考通過'
+      } else {
+        // 最終ステップ以外 → 審査中
+        displayStatus = 'in_progress'
+        displayLabel = '審査中'
+      }
+    } else {
+      const labels = {
+        pending: '未審査',
+        in_progress: '審査中',
+        passed: '選考通過',
+        rejected: '不合格',
+        withdrawn: '辞退',
+      }
+      displayLabel = labels[status as keyof typeof labels] || status
     }
+    
     return (
-      <span className={`px-3 py-1 text-sm font-medium rounded-full ${badges[status as keyof typeof badges]}`}>
-        {labels[status as keyof typeof labels]}
+      <span className={`px-3 py-1 text-sm font-medium rounded-full ${badges[displayStatus as keyof typeof badges]}`}>
+        {displayLabel}
       </span>
     )
   }
@@ -282,7 +308,7 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
               {application.talentName || 'タレント'} の応募
             </p>
           </div>
-          {getStatusBadge(application.overallStatus)}
+          {getStatusBadge(application.overallStatus, application.currentStepId)}
         </div>
       </div>
 

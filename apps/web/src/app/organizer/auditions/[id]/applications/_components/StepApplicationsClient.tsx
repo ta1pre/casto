@@ -104,7 +104,16 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
     }
   }
 
-  const getStatusBadge = (status: string) => {
+  // 最終ステップかどうかを判定
+  const isFinalStep = (stepId?: string) => {
+    if (!stepId || steps.length === 0) return false
+    const maxOrder = Math.max(...steps.map(s => s.stepOrder))
+    const currentStep = steps.find(s => s.id === stepId)
+    return currentStep?.stepOrder === maxOrder
+  }
+
+  const getStatusBadge = (application: AuditionApplication) => {
+    const status = application.overallStatus
     const badges = {
       unread: 'bg-purple-100 text-purple-800',
       pending: 'bg-gray-100 text-gray-800',
@@ -113,17 +122,35 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
       rejected: 'bg-red-100 text-red-800',
       withdrawn: 'bg-gray-300 text-gray-600',
     }
-    const labels = {
-      unread: '未開封',
-      pending: '未審査',
-      in_progress: '審査中',
-      passed: '選考通過',
-      rejected: '不合格',
-      withdrawn: '辞退',
+    
+    // passedの場合、最終ステップかどうかで表示を変える
+    let displayStatus = status
+    let displayLabel = ''
+    
+    if (status === 'passed') {
+      if (isFinalStep(application.currentStepId)) {
+        // 最終ステップ → 選考通過
+        displayLabel = '選考通過'
+      } else {
+        // 最終ステップ以外 → 審査中
+        displayStatus = 'in_progress'
+        displayLabel = '審査中'
+      }
+    } else {
+      const labels = {
+        unread: '未開封',
+        pending: '未審査',
+        in_progress: '審査中',
+        passed: '選考通過',
+        rejected: '不合格',
+        withdrawn: '辞退',
+      }
+      displayLabel = labels[status as keyof typeof labels] || status
     }
+    
     return (
-      <span className={`px-2 py-1 text-xs font-medium rounded-full ${badges[status as keyof typeof badges] || 'bg-gray-100 text-gray-800'}`}>
-        {labels[status as keyof typeof labels] || status}
+      <span className={`px-2 py-1 text-xs font-medium rounded-full ${badges[displayStatus as keyof typeof badges] || 'bg-gray-100 text-gray-800'}`}>
+        {displayLabel}
       </span>
     )
   }
@@ -372,7 +399,7 @@ export function StepApplicationsClient({ auditionId }: { auditionId: string }) {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(app.overallStatus)}
+                        {getStatusBadge(app)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(app.appliedAt).toLocaleDateString('ja-JP')}
