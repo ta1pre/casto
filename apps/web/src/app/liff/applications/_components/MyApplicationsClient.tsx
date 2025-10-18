@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { FileText, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
@@ -17,35 +17,37 @@ export function MyApplicationsClient() {
   const [applications, setApplications] = useState<AuditionApplication[]>([])
   const [isLoading, setIsLoading] = useState(false) // 初期値をfalseに [SF]
   const [filter, setFilter] = useState<string>('all')
+  const [refetchTrigger, setRefetchTrigger] = useState(0) // リフェッチトリガー [SF]
 
-  const fetchApplications = useCallback(async () => {
-    try {
-      setIsLoading(true)
-      const queryParams = new URLSearchParams()
-      if (filter !== 'all') {
-        queryParams.append('status', filter)
-      }
-
-      const response = await fetch(`/api/v1/talent/audition-applications?${queryParams}`, {
-        credentials: 'include',
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setApplications(data.applications || [])
-      }
-    } catch (error) {
-      console.error('Failed to fetch applications:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [filter])
-
+  // データ取得（userとfilterの変更を監視）[SF][PA]
   useEffect(() => {
-    if (user) {
-      fetchApplications()
+    if (!user) return
+
+    const fetchApplications = async () => {
+      try {
+        setIsLoading(true)
+        const queryParams = new URLSearchParams()
+        if (filter !== 'all') {
+          queryParams.append('status', filter)
+        }
+
+        const response = await fetch(`/api/v1/talent/audition-applications?${queryParams}`, {
+          credentials: 'include',
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setApplications(data.applications || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch applications:', error)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }, [user, fetchApplications])
+
+    fetchApplications()
+  }, [user, filter, refetchTrigger])
 
   const handleWithdraw = async (applicationId: string) => {
     if (!confirm('応募を取り下げますか？\nこの操作は取り消せません。')) {
@@ -60,7 +62,7 @@ export function MyApplicationsClient() {
 
       if (response.ok) {
         alert('応募を取り下げました')
-        await fetchApplications()
+        setRefetchTrigger(prev => prev + 1) // リフェッチをトリガー [SF]
       } else {
         const error = await response.json()
         alert(error.error || '応募の取り下げに失敗しました')
