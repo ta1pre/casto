@@ -43,6 +43,7 @@ export function TalentProfileModal({ talentId, talentName, isOpen, onClose }: Ta
   const [profile, setProfile] = useState<TalentProfile | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [expandedPhoto, setExpandedPhoto] = useState<{ url: string; label: string } | null>(null)
 
   useEffect(() => {
     if (isOpen && talentId && !profile) {
@@ -53,13 +54,17 @@ export function TalentProfileModal({ talentId, talentName, isOpen, onClose }: Ta
   // ESCキーで閉じる
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose()
+      if (e.key === 'Escape') {
+        if (expandedPhoto) {
+          setExpandedPhoto(null)
+        } else if (isOpen) {
+          onClose()
+        }
       }
     }
     window.addEventListener('keydown', handleEsc)
     return () => window.removeEventListener('keydown', handleEsc)
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, expandedPhoto])
 
   const fetchProfile = async () => {
     if (!talentId) return
@@ -159,7 +164,10 @@ export function TalentProfileModal({ talentId, talentName, isOpen, onClose }: Ta
                         return (
                           <div key={index}>
                             <p className="text-sm text-gray-600 mb-2">{photoLabels[index] || `写真${index + 1}`}</p>
-                            <div className="w-full h-64 bg-gray-50 rounded-lg border flex items-center justify-center overflow-hidden">
+                            <div 
+                              className="w-full h-64 bg-gray-50 rounded-lg border flex items-center justify-center overflow-hidden cursor-pointer hover:bg-gray-100 transition-colors"
+                              onClick={() => setExpandedPhoto({ url: photoUrl, label: photoLabels[index] || `写真${index + 1}` })}
+                            >
                               <img 
                                 src={photoUrl} 
                                 alt={photoLabels[index] || `写真${index + 1}`}
@@ -322,6 +330,38 @@ export function TalentProfileModal({ talentId, talentName, isOpen, onClose }: Ta
           )}
         </div>
       </div>
+
+      {/* 写真拡大表示オーバーレイ */}
+      {expandedPhoto && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center p-4"
+          onClick={() => setExpandedPhoto(null)}
+        >
+          <div className="relative max-w-7xl max-h-full">
+            {/* 閉じるボタン */}
+            <button
+              onClick={() => setExpandedPhoto(null)}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 flex items-center gap-2"
+            >
+              <span className="text-sm">ESCキーまたはクリックで閉じる</span>
+              <X className="w-8 h-8" />
+            </button>
+            
+            {/* 写真ラベル */}
+            <div className="absolute -top-12 left-0 text-white text-lg font-medium">
+              {expandedPhoto.label}
+            </div>
+
+            {/* 拡大写真 */}
+            <img
+              src={expandedPhoto.url}
+              alt={expandedPhoto.label}
+              className="max-w-full max-h-[90vh] object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
