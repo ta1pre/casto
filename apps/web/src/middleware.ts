@@ -22,35 +22,40 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // 1) LINE 以外は 404
-  const ua = (request.headers.get('user-agent') || '').toLowerCase()
-  const isLineApp = ua.includes('line/')
-  if (!isLineApp) {
-    return new NextResponse('Not Found', { status: 404 })
-  }
-
   // 取得するヘッダー/クッキー/フラグ
+  const ua = (request.headers.get('user-agent') || '').toLowerCase()
   const secFetchSite = (request.headers.get('sec-fetch-site') || '').toLowerCase()
   const secFetchMode = (request.headers.get('sec-fetch-mode') || '').toLowerCase()
   const secFetchDest = (request.headers.get('sec-fetch-dest') || '').toLowerCase()
-  const referer = request.headers.get('referer') || ''
 
   const hasSession = Boolean(request.cookies.get('casto_auth'))
   const hasGate = Boolean(request.cookies.get('liff_gate'))
-  const fromFlag = searchParams.get('from') === 'miniapp'
+  const isLineApp = ua.includes('line/')
 
-  const isMiniappCrossSite =
-    secFetchSite === 'cross-site' && secFetchMode === 'navigate' && secFetchDest === 'document'
-  const isDirectOrSame = secFetchSite === 'none' || secFetchSite === 'same-origin'
-  const isFromMiniappHeuristic = fromFlag || referer.includes('line.me') || referer.includes('liff')
-
-  // 2) 既に許可済みのユーザーは通す
+  // 1) 既に認証済みのユーザーは無条件で通す [REH]
   if (hasSession || hasGate) {
     return NextResponse.next()
   }
 
-  // 3) miniapp 由来の初回アクセスは通し、短命ゲートを付与
-  if (isMiniappCrossSite || isFromMiniappHeuristic) {
+  // 2) 外部ブラウザからのアクセス: LINE OAuth認証を経由させる [SF]
+  // withLoginOnExternalBrowser=trueにより、liff.init()で自動的にLINEログインへリダイレクトされる
+  if (!isLineApp) {
+    // 悪意のあるボット対策: 通常のブラウザからのナビゲーションのみ許可
+    const isNormalBrowserNavigation = 
+      secFetchMode === 'navigate' && 
+      secFetchDest === 'document' &&
+      (secFetchSite === 'none' || secFetchSite === 'cross-site' || secFetchSite === 'same-origin')
+    
+    if (isNormalBrowserNavigation) {
+      return NextResponse.next() // 外部ブラウザを許可、LIFF初期化でLINE認証を強制
+    } else {
+      // 異常なリクエスト（API呼び出し等）はブロック
+      return new NextResponse('Not Found', { status: 404 })
+    }
+  }
+
+  // 3) LINEアプリ内からのアクセスは通す（miniapp由来、またはLINE UAからの初回） [REH]
+  if (isLineApp) {
     const res = NextResponse.next()
     // 5分だけ有効なゲートクッキー
     res.cookies.set('liff_gate', '1', {
@@ -60,59 +65,24 @@ export function middleware(request: NextRequest) {
       maxAge: 300,
       path: '/liff',
     })
-    // 最小診断ログ
-    console.log('[Middleware][LIFF Gate] allow-initial', {
-      secFetchSite,
-      secFetchMode,
-      secFetchDest,
-      referer,
-      fromFlag,
-    })
     return res
   }
 
-  // 4) LINE UAからの初回アクセスは通す（無限ループ防止）[REH]
-  // refererが空 & Sec-Fetch-Site: noneの場合、LINEミニアプリから開かれた可能性
-  console.log('[Middleware][LIFF Gate] DEBUG before line-ua check', {
-    secFetchSite,
-    refererEmpty: !referer,
-    isLineApp,
-    ua: ua.substring(0, 100),
-  })
-  
-  if (secFetchSite === 'none' && !referer && isLineApp) {
-    const res = NextResponse.next()
-    res.cookies.set('liff_gate', '1', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      maxAge: 300,
-      path: '/liff',
-    })
-    console.log('[Middleware][LIFF Gate] allow-line-ua-no-referer', {
-      secFetchSite,
-      secFetchMode,
-      secFetchDest,
-      ua: ua.substring(0, 100),
-    })
-    return res
-  }
-
-  // 5) 直打ち/同一サイトからの到達は miniapp へ 302
+  // 4) ここまで到達したら予期しないケース（外部ブラウザでSec-Fetch-*が異常）
+  // 念のためLIFFミニアプリへリダイレクト [SF]
   const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
-  if (!liffId) {
-    // LIFF ID 未設定なら静かに 404 とする（UI非表示を優先）
-    console.warn('[Middleware][LIFF Gate] LIFF ID missing; returning 404')
-    return new NextResponse('Not Found', { status: 404 })
+  if (liffId) {
+    const liffUrl = `https://miniapp.line.me/${liffId}`
+    console.log('[Middleware][LIFF Gate] redirect-to-miniapp (fallback)', {
+      secFetchSite,
+      secFetchMode,
+      secFetchDest,
+    })
+    return NextResponse.redirect(liffUrl)
   }
-  const liffUrl = `https://miniapp.line.me/${liffId}`
-  console.log('[Middleware][LIFF Gate] redirect-to-miniapp', {
-    secFetchSite,
-    secFetchMode,
-    secFetchDest,
-    referer,
-  })
-  return NextResponse.redirect(liffUrl)
+
+  // LIFF ID 未設定なら404
+  return new NextResponse('Not Found', { status: 404 })
 }
 
 export const config = {

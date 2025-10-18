@@ -176,10 +176,16 @@ if (isTokenExpiredError) {
 - `apps/web/src/shared/hooks/useLiffAuth.ts` - `withLoginOnExternalBrowser`設定、`isInClient`情報export
 - `apps/web/src/app/liff/_components/LiffLayout.tsx` - 外部ブラウザ用バナー
 
+**middlewareの重要な修正**:
+- 外部ブラウザからの通常ナビゲーションを許可
+- 悪意のあるボット対策（Sec-Fetch-*ヘッダーチェック）
+- 認証済みユーザーは無条件で通過
+- LINEアプリ内からのアクセスも適切に処理
+
 **セキュリティ考慮事項**:
 - JWT + RLS でセキュリティを担保
-- middlewareでLINE UAのみ許可
-- 外部ブラウザでもLINE認証が必須（OAuth2.0）
+- 外部ブラウザでもLINE OAuth認証が必須（liff.init()で自動リダイレクト）
+- 異常なリクエスト（API呼び出し等）はブロック
 
 ## 今後の改善案
 
