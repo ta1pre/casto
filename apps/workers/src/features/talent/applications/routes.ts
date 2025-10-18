@@ -15,6 +15,7 @@ import {
 } from './service'
 import { submitApplicationSchema } from '@casto/shared/validators'
 import type { CreateApplicationRequest } from '@casto/shared'
+import { createNotification } from '../../../lib/notification.service'
 
 const talentApplicationRoutes = new Hono<AppBindings>()
 
@@ -50,6 +51,38 @@ talentApplicationRoutes.post('/', verifyAuth, async (c) => {
       userContext.id,
       validation.data
     )
+
+    // オーディション情報を取得（通知用）
+    const { data: audition } = await supabase
+      .from('auditions')
+      .select('title')
+      .eq('id', validation.data.auditionId)
+      .single()
+
+    // 応募完了通知を送信（LIFFアクセストークンがある場合）
+    const liffAccessToken = body.liffAccessToken
+    if (liffAccessToken && audition) {
+      try {
+        await createNotification(
+          {
+            userId: userContext.id,
+            type: 'application_received',
+            context: {
+              auditionTitle: audition.title,
+              applicationId: application.id,
+            },
+            referenceType: 'application',
+            referenceId: application.id,
+            liffAccessToken,
+          },
+          supabase,
+          c.env
+        )
+      } catch (notifError) {
+        // 通知送信失敗はエラーとしない（応募自体は成功）
+        console.error('Failed to send notification:', notifError)
+      }
+    }
 
     return c.json(
       {

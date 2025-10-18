@@ -90,6 +90,7 @@ export interface CreateApplicationRequest {
   auditionId: string
   additionalMessage?: string
   additionalUrls?: string[]
+  liffAccessToken?: string  // LINEサービスメッセージ送信用
 }
 
 /**

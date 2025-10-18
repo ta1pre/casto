@@ -33,6 +33,9 @@ export interface SupabaseNotificationRow {
   read_at: string | null
   created_at: string
   updated_at: string
+  context: Record<string, any> | null
+  channel: string | null
+  service_notification_token: string | null
 }
 
 /**

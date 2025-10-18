@@ -109,16 +109,20 @@
 
 #### タスクリスト
 
-**データベース**
-- [x] `supabase/schema/auditions.sql` 作成
-- [x] `supabase/schema/applications.sql` 作成（applicant_profile/additional_message/additional_urls）
-- [x] `supabase/schema/notifications.sql` 作成（通知管理）
-- [x] `supabase/schema/application_reviews.sql` 作成
-- [x] `supabase/schema/audition_genres.sql` 作成（ジャンルマスタ）
-- [x] `supabase/schema/audition_genre_map.sql` 作成（中間テーブル）
-- [x] RLS ポリシー設定
-- [x] マイグレーション生成・適用完了
-- [x] `supabase/migrations/20251016000000_seed_audition_genres.sql` 作成・適用（初期ジャンル10件投入）
+**データベース** ✅ Phase 3A 完了
+- [x] auditions テーブル作成（20251015000004）
+- [x] applications テーブル作成（20251015000006）
+- [x] notifications テーブル作成（20251015000007）
+- [x] application_reviews テーブル作成（20251015000008）
+- [x] audition_genres テーブル作成（20251015000003）
+- [x] audition_genre_map テーブル作成（20251015000005）
+- [x] audition_areas テーブル作成（20251017000001）
+- [x] RLS ポリシー設定完了
+- [x] 初期ジャンルデータ投入（20251015211706, 20251015232732）
+- [x] 初期エリアデータ投入（20251017000002）
+- [x] メインビジュアル機能追加（20251016100000）
+- [x] 通知既読ステータス追加（20251018000000）
+- [x] **多段階選考機能（Phase 3B）完了**（20251017000003）
 
 **共通型定義・バリデーション**（packages/shared）
 - [x] `types/audition.ts` 作成
@@ -137,110 +141,202 @@
 - [x] `validators/review.ts` 作成
   - Zod スキーマ: `createReviewSchema`
 
-**Workers API**（apps/workers）
-- [x] `features/organizer/auditions/` ディレクトリ作成
-- [x] `GET /api/v1/organizer/auditions` - 自分のオーディション一覧（project_type フィルタ対応）
-- [x] `POST /api/v1/organizer/auditions` - オーディション作成（project_type 必須、genreIds対応）
-- [x] `GET /api/v1/organizer/auditions/:id` - オーディション詳細（ジャンル情報含む）
-- [x] `PATCH /api/v1/organizer/auditions/:id` - オーディション更新（ジャンル更新対応）
-- [x] `DELETE /api/v1/organizer/auditions/:id` - オーディション削除
-- [x] `GET /api/v1/organizer/genres` - ジャンルマスタ一覧取得（「所属」「出演」「SNS完結」の3件対応）
-- [ ] `GET /api/v1/organizer/auditions/:id/applications` - 応募一覧
-- [ ] `GET /api/v1/organizer/applications/:id` - 応募詳細
-- [ ] `POST /api/v1/organizer/applications/:id/review` - 審査・合否決定（通知送信含む）
-- [ ] `features/talent/auditions/` ディレクトリ作成
-- [ ] `GET /api/v1/talent/auditions` - 公開オーディション一覧（project_type フィルタ対応）
-- [ ] `GET /api/v1/talent/auditions/:id` - オーディション詳細
-- [ ] `POST /api/v1/talent/auditions/:id/apply` - 応募（talent_profiles から自動取得、通知送信）
-- [ ] `GET /api/v1/talent/applications` - 自分の応募一覧
-- [ ] `GET /api/v1/talent/applications/:id` - 応募詳細
-- [ ] `PATCH /api/v1/talent/applications/:id/withdraw` - 応募辞退
-- [ ] `GET /api/v1/talent/genres` - ジャンルマスタ一覧取得
-- [ ] `features/notifications/` ディレクトリ作成
-- [ ] `GET /api/v1/notifications` - 自分の通知一覧
-- [ ] `PATCH /api/v1/notifications/:id/read` - 通知を既読に
-- [ ] `services/lineNotification.ts` - LINE Messaging API 統合
-- [ ] `services/emailNotification.ts` - Supabase Auth メール通知
-- [ ] `app.ts` にルーティング追加
+**Workers API** ✅ Phase 3A & 3B 完了
+- [x] オーディション管理API（主催者側）完全実装
+  - [x] GET/POST/PATCH/DELETE `/api/v1/organizer/auditions`
+  - [x] GET `/api/v1/organizer/genres` - ジャンル一覧
+  - [x] GET `/api/v1/organizer/areas` - エリア一覧
+  - [x] メインビジュアルAPI（upload/delete/view）
+- [x] ステップ管理API（主催者側）完全実装
+  - [x] GET/POST/PATCH/DELETE `/api/v1/organizer/auditions/:id/steps`
+- [x] 応募管理API（主催者側）完全実装
+  - [x] GET `/api/v1/organizer/auditions/:id/applications` - 応募一覧
+  - [x] GET/PATCH `/api/v1/organizer/applications/:id` - 応募詳細・更新
+- [x] 評価管理API（主催者側）完全実装
+  - [x] POST/PATCH/DELETE `/api/v1/organizer/auditions/:id/applications/:appId/steps/:stepId/evaluation`
+- [x] オーディション閲覧API（タレント側）完全実装
+  - [x] GET `/api/v1/talent/auditions` - 公開オーディション一覧
+  - [x] GET `/api/v1/talent/auditions/:id` - オーディション詳細
+  - [x] GET `/api/v1/talent/genres` - ジャンル一覧
+- [x] 応募管理API（タレント側）完全実装
+  - [x] POST `/api/v1/talent/audition-applications` - 応募作成
+  - [x] GET `/api/v1/talent/audition-applications` - 自分の応募一覧
+  - [x] GET `/api/v1/talent/audition-applications/:id` - 応募詳細
+  - [x] PATCH `/api/v1/talent/audition-applications/:id/withdraw` - 応募辞退
+- [x] すべてのルーティングを app.ts に追加完了
+- [ ] 通知API（後続フェーズ）
+- [ ] LINE Messaging API統合（後続フェーズ）
 
-**メインビジュアル機能**（画像・動画対応）
-- [ ] `supabase/migrations/{timestamp}_add_main_visual_to_auditions.sql` - マイグレーション作成
-- [ ] `packages/shared/src/types/media.ts` - メディア型定義
-- [ ] `packages/shared/src/validators/media.ts` - メディアバリデーション（画像5MB/動画50MB）
-- [ ] `packages/shared/src/types/audition.ts` - Audition型に main_visual_url/type 追加
-- [ ] `apps/workers/src/features/organizer/auditions/mainVisual.service.ts` - R2操作サービス
-- [ ] `apps/workers/src/features/organizer/auditions/mainVisual.routes.ts` - メインビジュアルAPI
-  - [ ] POST /api/v1/organizer/auditions/:id/main-visual/upload
-  - [ ] DELETE /api/v1/organizer/auditions/:id/main-visual
-  - [ ] GET /api/v1/organizer/auditions/:id/main-visual/view
-- [ ] `apps/workers/src/app.ts` - ルーティング追加
-- [ ] `packages/shared/src/components/MediaUploader.tsx` - 汎用メディアアップローダー（スクエア表示）
-- [ ] `organizer/auditions/new/page.tsx` - メインビジュアルUI統合
-- [ ] `organizer/auditions/[id]/edit/page.tsx` - メインビジュアルUI統合
-- [ ] `organizer/auditions/[id]/page.tsx` - メインビジュアル表示追加
-- [ ] 動作確認・テスト（画像/動画アップロード、削除、プレビュー）
-- 📋 詳細: [AUDITION_MAIN_VISUAL_IMPLEMENTATION.md](./AUDITION_MAIN_VISUAL_IMPLEMENTATION.md)
+**メインビジュアル機能** ✅ 実装完了
+- [x] マイグレーション作成（20251016100000_add_main_visual_to_auditions.sql）
+- [x] メディア型定義・バリデーション実装
+- [x] 1:1アスペクト比チェック実装（±5%許容）
+- [x] R2操作サービス実装
+- [x] メインビジュアルAPI実装完了
+  - [x] POST /api/v1/organizer/auditions/:id/main-visual/upload
+  - [x] DELETE /api/v1/organizer/auditions/:id/main-visual
+  - [x] GET /api/v1/organizer/auditions/:id/main-visual/view
+- [x] ルーティング追加完了
+- [x] MediaUploaderコンポーネント実装
+- [x] オーディション作成・編集ページに統合
+- [x] オーディション詳細ページに表示追加
+- 📋 詳細: tasksarchive/AUDITION_MAIN_VISUAL_IMPLEMENTATION.md
 
-**Web UI - 主催者側**（apps/web）
-- [ ] `hooks/useAuditions.ts` - オーディション CRUD フック
-- [ ] `hooks/useApplications.ts` - 応募管理フック
-- [x] `organizer/auditions/page.tsx` - オーディション一覧ページ
-- [x] `organizer/auditions/new/page.tsx` - オーディション作成ページ（ジャンル選択UI実装済み）
-- [x] `organizer/auditions/[id]/page.tsx` - オーディション詳細ページ
-- [x] `organizer/auditions/[id]/edit/page.tsx` - オーディション編集ページ（ジャンル編集対応）
-- [ ] `organizer/auditions/[id]/applications/page.tsx` - 応募者一覧ページ
-- [ ] `organizer/auditions/[id]/applications/[applicationId]/page.tsx` - 応募詳細ページ
-- [ ] `organizer/auditions/_components/AuditionForm.tsx` - オーディションフォーム
-  - [ ] プロジェクトタイプ選択（ラジオボタン: オーディション/求人）
-  - [ ] SNS向け短文入力欄・画像アップロード欄・ジャンル選択UI（マスタ取得＆複数選択）を追加
-- [ ] `organizer/auditions/_components/AuditionCard.tsx` - オーディションカード
-  - [ ] 応募者一覧（略）
-- [ ] `organizer/auditions/_components/ApplicationList.tsx` - 応募者一覧
-- [ ] `organizer/auditions/_components/ApplicationDetail.tsx` - 応募詳細
-- [ ] `organizer/auditions/_components/ReviewForm.tsx` - 審査フォーム
-- [ ] ヘッダーナビゲーションに「オーディション」リンク追加
+**Web UI - 主催者側** ✅ Phase 3A & 3B 基本完了
+- [x] オーディション一覧ページ
+- [x] オーディション作成ページ（ジャンル選択・メインビジュアル対応）
+- [x] オーディション詳細ページ
+- [x] オーディション編集ページ（ジャンル編集・メインビジュアル対応）
+- [x] 応募者一覧ページ（ステップ機能対応済み）
+- [x] 応募詳細・評価ページ（ステップ評価対応済み）
+- [x] AuditionFormコンポーネント実装
+- [x] ジャンル選択UI実装（最大3件）
+- [x] エリア選択UI実装
+- [x] メインビジュアルアップロード機能
+- [x] ステップ設定UI実装
+- [x] ステップ評価UI実装
+- [x] ヘッダーナビゲーション統合
 
-**Web UI - 応募者側（Talent）**
-- [ ] `hooks/useNotifications.ts` - 通知管理フック
-- [ ] `talent/auditions/page.tsx` - オーディション一覧ページ（公開）
-  - [ ] プロジェクトタイプフィルタ（全て/オーディション/求人）
-  - [ ] カードにタイプバッジ表示
-- [ ] `talent/auditions/[id]/page.tsx` - オーディション詳細ページ
-- [ ] `talent/auditions/[id]/apply/page.tsx` - 応募フォームページ
-  - [ ] talent_profiles から情報自動取得
-  - [ ] 追加メッセージ・追加URL入力（任意）
-  - [ ] 「応募する」ボタン一つで完結
-- [ ] `talent/applications/page.tsx` - マイ応募一覧ページ
-- [ ] `talent/applications/[id]/page.tsx` - 応募詳細ページ
-- [ ] `talent/notifications/page.tsx` - 通知一覧ページ
-- [ ] `talent/_components/AuditionBrowser.tsx` - オーディション検索・フィルタ
-- [ ] `talent/_components/ApplicationForm.tsx` - 応募フォーム（プロフィール自動取得）
-- [ ] `talent/_components/ApplicationStatus.tsx` - 応募状況表示
-- [ ] `talent/_components/NotificationBell.tsx` - 通知ベルアイコン（ヘッダー）
+**Web UI - 応募者側（LIFF/Talent）** ✅ Phase 3A & 3B 基本完了
+- [x] オーディション一覧ページ（/liff/auditions）
+- [x] オーディション詳細ページ
+- [x] 応募フォームページ（プロフィール自動取得）
+- [x] マイ応募一覧ページ
+- [x] 応募詳細ページ（選考進捗表示対応）
+- [x] 応募取り下げ機能
+- [x] ステップ進捗表示機能
+- [ ] 通知機能（後続フェーズ）
 
-**テスト・動作確認**
-- [ ] 主催者: オーディション作成・編集・削除（job/audition 両方）
-- [ ] 主催者: ステータス変更（draft → published → closed）
-- [ ] 主催者: プロジェクトタイプ別フィルタ動作確認
-- [ ] 応募者: プロフィール作成（talent_profiles）
-- [ ] 応募者: オーディション一覧・詳細閲覧（タイプ別フィルタ）
-- [ ] 応募者: ワンクリック応募（プロフィール自動取得）
-- [ ] 応募者: 応募受付完了通知受信（LINE）
-- [ ] 主催者: 新規応募通知受信（メール）
-- [ ] 主催者: 応募者一覧・フィルタリング
-- [ ] 主催者: 応募詳細閲覧（プロフィールスナップショット）
-- [ ] 主催者: 審査コメント・合否決定
-- [ ] 応募者: 合否決定通知受信（LINE）
-- [ ] 応募者: 通知一覧・既読管理
-- [ ] RLS 権限テスト（他人のデータにアクセスできないこと）
+**テスト・動作確認** 🔄 継続中
+- [x] 主催者: オーディション作成・編集・削除
+- [x] 主催者: ステータス変更（draft → published → closed）
+- [x] 主催者: ジャンル・エリア選択
+- [x] 主催者: メインビジュアルアップロード
+- [x] 主催者: ステップ設定（書類選考自動作成確認）
+- [x] 応募者: プロフィール作成（LIFF経由）
+- [x] 応募者: オーディション一覧・詳細閲覧
+- [x] 応募者: 応募作成（プロフィール自動取得）
+- [x] 主催者: 応募者一覧・フィルタリング（ステップ対応）
+- [x] 主催者: 応募詳細閲覧・評価（ステップ評価）
+- [x] 主催者: ステップ進行管理
+- [x] 応募者: 選考進捗確認
+- [ ] 通知機能テスト（後続フェーズ）
+- [ ] RLS 権限の包括的テスト
 
 ---
 
-### Phase 3B: 多段階選考＋自動審査（高度な機能）
+### Phase 3B: 多段階選考機能 ✅ 実装完了
 
-**目標**: 一次→二次→三次の段階的選考とスコアリングによる自動候補化
+**目標**: 一次→二次→三次の段階的選考とスコアリングによる評価管理
 
-#### 追加データ設計
+**実装完了内容:**
+- ✅ audition_steps テーブル（ステップ定義）
+- ✅ audition_applications テーブル（応募とステップの紐付け）
+- ✅ audition_step_evaluations テーブル（評価管理）
+- ✅ ステップ管理API（主催者側）
+- ✅ 応募管理API（タレント側）
+- ✅ 評価管理API
+- ✅ ステップ設定UI（主催者）
+- ✅ 応募者一覧・評価UI（主催者）
+- ✅ 選考進捗表示UI（タレント）
+- 📋 詳細: tasksarchive/AUDITION_STEPS_IMPLEMENTATION.md
+
+**マイグレーション:** 20251017000003_create_audition_steps.sql
+
+---
+
+### Phase 3B.5: 通知機能 🔄 実装中
+
+**目標**: 応募者（LINEサービスメッセージ無料）・主催者（メール無料枠）で確実に届く通知システム
+
+**設計方針:**
+- 📋 詳細: `docs/tasks/NOTIFICATION_FUNCTION_DRAFT.md`
+- 応募者向け: LINEミニアプリ「サービスメッセージ」（無料・友だち追加不要）
+- 主催者向け: AWS SES / SendGrid（無料枠）
+- LIFF内通知一覧で履歴管理
+
+#### Phase 1: サービスメッセージ基盤 ✅ 実装完了（テスト準備中）
+
+**データベース** ✅
+- [x] `notifications` テーブル拡張（context, channel, service_notification_token）
+- [x] マイグレーション: `20251018000001_extend_notifications.sql`
+- [x] Supabase MCP ツールでマイグレーション適用
+
+**Workers API** ✅
+- [x] `lib/notification.service.ts` - 通知ディスパッチャ
+- [x] `lib/line-service-message.ts` - サービスメッセージ送信
+- [x] `config/notification-templates.ts` - テンプレート定義
+- [x] `types/bindings.ts` - 環境変数追加
+- [x] `types/lineServiceMessage.ts` - 新規型定義
+- [x] `types/notification.ts` - 型拡張
+- [x] `types/application.ts` - liffAccessToken追加
+- [x] `features/talent/applications/routes.ts` - 応募完了時の通知送信実装
+- [x] Workers 再デプロイ
+
+**LINE Developers コンソール** 🔄 要設定
+- [ ] サービスメッセージテンプレート登録（開発用内部チャネル）
+  - [ ] `application_received_ja` - 応募受付完了
+  - [ ] `application_passed_ja` - 一次通過
+  - [ ] `application_failed_ja` - 一次不通過
+  - [ ] テンプレート審査申請（開発環境では未審査でもテスト可能）
+- [ ] 環境変数設定（.dev.vars または wrangler secret）
+  - [ ] LINE_MINI_APP_CHANNEL_ID
+  - [ ] LINE_MINI_APP_CHANNEL_SECRET
+  - [ ] LIFF_ID
+
+**Web UI** 🔄 要対応
+- [ ] 応募フォームで `liff.getAccessToken()` を取得してリクエストボディに含める
+
+**テスト** 🔄 準備完了
+- [ ] 開発用内部チャネルでサービスメッセージ送信確認
+- [ ] `notifications` テーブルへのレコード登録確認
+- [ ] べき等性確認（二重送信防止）
+- 📋 詳細: `docs/tasks/NOTIFICATION_TESTING_GUIDE.md`
+
+#### Phase 2: メール通知（⭐️⭐️⭐️ 最優先）
+
+**AWS SES 設定**
+- [ ] AWS SES アカウント作成（Sandbox 環境）
+- [ ] 送信元メールアドレス認証
+- [ ] 環境変数追加（AWS_SES_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, FROM_EMAIL）
+
+**Workers API**
+- [ ] `services/email.service.ts` - メール送信サービス
+- [ ] メールテンプレート定義（new_application, application_status_changed）
+- [ ] 新規応募時のメール送信実装
+
+**テスト**
+- [ ] Sandbox 環境でメール送信確認
+- [ ] テンプレート変数の展開確認
+
+#### Phase 3: LIFF通知一覧UI（⭐️⭐️）
+
+**Workers API**
+- [ ] `features/talent/notifications/` ディレクトリ作成
+- [ ] `GET /api/v1/talent/notifications` - 一覧取得API
+- [ ] `PATCH /api/v1/talent/notifications/:id/read` - 既読化API
+- [ ] ルーティング追加
+
+**Web UI**
+- [ ] `apps/web/src/app/liff/notifications/page.tsx` 作成
+- [ ] `NotificationListClient.tsx` コンポーネント
+- [ ] 未読バッジ表示
+- [ ] 既読/未読フィルタ
+
+**テスト**
+- [ ] LIFF画面で通知一覧表示確認
+- [ ] 既読/未読ステータス管理確認
+
+#### 本番環境移行前チェック
+- [ ] LINEミニアプリを認証済みに変更
+- [ ] サービスメッセージテンプレートの審査通過
+- [ ] AWS SES を本番モード（Sandbox 解除）
+- [ ] 環境変数の本番設定
+- [ ] RLS ポリシーの最終確認
+
+---
+
+#### 追加データ設計（Phase 3C以降）
 
 **1. オーディション固有の提出要件（auditions テーブルに追加）**
 ```sql
@@ -665,5 +761,14 @@
 
 ---
 
-**最終更新**: 2025-10-15
-**次のアクション**: Phase 3A データベース設計の着手
+**最終更新**: 2025-10-18
+**現在の状況**: 
+- ✅ Phase 3A（基本オーディション機能）完了
+- ✅ Phase 3B（多段階選考機能）完了
+- 🔄 Phase 3C（プレミアム機能）未着手
+- 🔄 通知機能実装中
+
+**次のアクション**: 
+1. 通知機能の実装（LINE Messaging API統合）
+2. RLS権限の包括的テスト
+3. Phase 3C（プレミアム機能）検討

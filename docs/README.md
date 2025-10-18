@@ -19,7 +19,9 @@ docs/
 │   └── WORKERS_STRUCTURE.md       # Workers API構成
 ├── tasks/                         # 現在進行中のタスク管理
 │   ├── README.md                  # タスク管理ガイド
-│   └── TODO.md                    # 現在のタスクリスト
+│   ├── TODO.md                    # 現在のタスクリスト
+│   ├── NOTIFICATION_FUNCTION_DRAFT.md  # 通知機能設計ドラフト
+│   └── NOTIFICATION_TESTING_GUIDE.md   # 通知機能テストガイド
 ├── tasksarchive/                  # 完了タスク・実装レポートのアーカイブ
 │   ├── AUDITION_MAIN_VISUAL_IMPLEMENTATION.md
 │   ├── AUDITION_STEPS_IMPLEMENTATION.md

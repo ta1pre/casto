@@ -8,3 +8,14 @@ LINE_CHANNEL_ID="your_line_channel_id"
 LINE_CHANNEL_SECRET="your_line_channel_secret"
 WEB_URL="https://casto.sb2024.xyz"
 ALLOWED_ORIGINS="https://casto.sb2024.xyz,http://localhost:3000"
+
+# LINEミニアプリ（通知機能用）
+LINE_MINI_APP_CHANNEL_ID="your_line_mini_app_channel_id"
+LINE_MINI_APP_CHANNEL_SECRET="your_line_mini_app_channel_secret"
+LIFF_ID="your_liff_id"
+
+# メール送信（AWS SES）
+AWS_SES_REGION="ap-northeast-1"
+AWS_ACCESS_KEY_ID="your_aws_access_key_id"
+AWS_SECRET_ACCESS_KEY="your_aws_secret_access_key"
+FROM_EMAIL="noreply@casto.sb2024.xyz"
