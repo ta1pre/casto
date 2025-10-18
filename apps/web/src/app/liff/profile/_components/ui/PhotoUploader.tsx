@@ -93,7 +93,7 @@ export function PhotoUploader({
           {index === 0 && <span className="text-red-500 ml-1">*</span>}
           {index === 1 && <span className="text-red-500 ml-1">*</span>}
         </label>
-        {photoUrl && (
+        {photoUrl && photoUrl.trim() !== '' && (
           <button
             type="button"
             onClick={handleDelete}
@@ -117,21 +117,25 @@ export function PhotoUploader({
 
       {/* 写真プレビューまたはアップロードボタン */}
       <div
-        onClick={photoUrl ? undefined : handleClick}
+        onClick={(photoUrl && photoUrl.trim() !== '') ? undefined : handleClick}
         className={`relative border-2 border-dashed rounded-lg overflow-hidden ${
-          photoUrl
+          (photoUrl && photoUrl.trim() !== '')
             ? 'border-gray-300'
             : 'border-gray-300 hover:border-blue-400 cursor-pointer'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         style={{ aspectRatio: '1 / 1' }}
       >
-        {photoUrl ? (
+        {photoUrl && photoUrl.trim() !== '' ? (
           // 既存の写真を表示
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={photoUrl}
             alt={label}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              console.error(`Failed to load image: ${photoUrl}`)
+              e.currentTarget.style.display = 'none'
+            }}
           />
         ) : (
           // アップロードプロンプト
