@@ -71,7 +71,8 @@ function decodeTokenExpiration(token: string): number | null {
 
 export function useLiffAuth(): UseLiffAuthReturn {
   const { user, loginWithLine, logout: authLogout, isLoading: authLoading, refreshSession } = useAuth()
-  const [isLiffReady, setIsLiffReady] = useState(false)
+  // window.liffが存在すれば既に初期化済み（再マウント対応）[SF][PA]
+  const [isLiffReady, setIsLiffReady] = useState(() => typeof window !== 'undefined' && !!window.liff)
   const [isAuthenticating, setIsAuthenticating] = useState(false)
   const [liffProfile, setLiffProfile] = useState<LiffProfile | null>(null)
   const [error, setError] = useState<string | null>(null)
