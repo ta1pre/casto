@@ -10,6 +10,7 @@ import { z } from 'zod'
  */
 export const createAuditionApplicationSchema = z.object({
   auditionId: z.string().uuid({ message: '有効なオーディションIDを指定してください' }),
+  liffAccessToken: z.string().optional().nullable(), // LINE通知用（オプション）
 })
 
 /**

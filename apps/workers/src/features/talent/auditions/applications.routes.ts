@@ -15,6 +15,7 @@ import {
 } from './applications.service'
 import { createAuditionApplicationSchema } from '@casto/shared/validators'
 import type { CreateAuditionApplicationRequest } from '@casto/shared'
+import { createNotification } from '../../../lib/notification.service'
 
 const talentApplicationsRoutes = new Hono<AppBindings>()
 
@@ -128,6 +129,46 @@ talentApplicationsRoutes.post('/', verifyAuth, async (c) => {
       userContext.id,
       validation.data
     )
+
+    // オーディション情報を取得（通知用）
+    const { data: audition } = await supabase
+      .from('auditions')
+      .select('title')
+      .eq('id', validation.data.auditionId)
+      .single()
+
+    // 応募完了通知を送信（LIFFアクセストークンがある場合）
+    const liffAccessToken = body.liffAccessToken
+    console.log('[Application] liffAccessToken present:', !!liffAccessToken)
+    console.log('[Application] liffAccessToken length:', liffAccessToken?.length)
+    console.log('[Application] audition data:', !!audition)
+    
+    if (liffAccessToken && audition) {
+      console.log('[Application] Attempting to send notification...')
+      try {
+        await createNotification(
+          {
+            userId: userContext.id,
+            type: 'application_received',
+            context: {
+              auditionTitle: audition.title,
+              applicationId: application.id,
+            },
+            referenceType: 'application',
+            referenceId: application.id,
+            liffAccessToken,
+          },
+          supabase,
+          c.env
+        )
+        console.log('[Application] Notification sent successfully')
+      } catch (notifError) {
+        // 通知送信失敗はエラーとしない（応募自体は成功）
+        console.error('[Application] Failed to send notification:', notifError)
+      }
+    } else {
+      console.log('[Application] Skipping notification - liffAccessToken:', !!liffAccessToken, 'audition:', !!audition)
+    }
 
     return c.json({
       status: 'ok',

@@ -67,6 +67,7 @@ export interface ApplicationEvaluation {
  */
 export interface CreateAuditionApplicationRequest {
   auditionId: string
+  liffAccessToken?: string | null // LINE通知用（オプション）
 }
 
 /**
