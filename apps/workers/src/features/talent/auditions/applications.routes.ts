@@ -133,7 +133,7 @@ talentApplicationsRoutes.post('/', verifyAuth, async (c) => {
     // オーディション情報を取得（通知用）
     const { data: audition } = await supabase
       .from('auditions')
-      .select('title')
+      .select('id, title')
       .eq('id', validation.data.auditionId)
       .single()
 
@@ -151,6 +151,7 @@ talentApplicationsRoutes.post('/', verifyAuth, async (c) => {
             userId: userContext.id,
             type: 'application_received',
             context: {
+              auditionId: audition.id,
               auditionTitle: audition.title,
               applicationId: application.id,
             },
