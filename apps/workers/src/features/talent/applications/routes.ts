@@ -16,7 +16,6 @@ import {
 import { submitApplicationSchema } from '@casto/shared/validators'
 import type { CreateApplicationRequest } from '@casto/shared'
 import { createNotification } from '../../../lib/notification.service'
-import { calculateProfileCompletion } from '../../../lib/profile-completion'
 
 const talentApplicationRoutes = new Hono<AppBindings>()
 
@@ -69,10 +68,6 @@ talentApplicationRoutes.post('/', verifyAuth, async (c) => {
     if (liffAccessToken && audition) {
       console.log('[Application] Attempting to send notification...')
       try {
-        // プロフィール充実度を計算
-        const profileCompletionRate = await calculateProfileCompletion(userContext.id, supabase)
-        console.log('[Application] Profile completion rate:', profileCompletionRate)
-
         await createNotification(
           {
             userId: userContext.id,
@@ -80,7 +75,6 @@ talentApplicationRoutes.post('/', verifyAuth, async (c) => {
             context: {
               auditionTitle: audition.title,
               applicationId: application.id,
-              profileCompletionRate,  // プロフィール充実度を追加
             },
             referenceType: 'application',
             referenceId: application.id,

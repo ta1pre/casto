@@ -1,52 +1,28 @@
 /**
  * 通知テンプレート定義
  * 
- * [CA][SD] メンテナンス性と拡張性を重視した通知テンプレート管理
- * 
- * 設計原則：
- * - 共通パーツの再利用（フッター、CTA等）
- * - ユーザーエンゲージメント最大化（プロフィール充実促進等）
- * - ブランディング統一
- * - テンプレート追加時の混乱防止
+ * [CA][SD] LINEサービスメッセージ・メール用のテンプレート定義
  */
 
 import type { NotificationType } from '@casto/shared/types/notification'
 
 /**
  * 共通メッセージパーツ
- * 
- * すべての通知で再利用される共通要素を定義
- * メンテナンス性向上のため、変更は一箇所で完結
  */
 const COMMON_PARTS = {
   /** ブランド名 */
   brandName: 'Casto',
   
-  /** フッター（プロフィール未完成の場合） */
-  footerWithProfilePrompt: (profileCompletionRate: number) => 
-    profileCompletionRate < 80
-      ? `\n\n💡 プロフィールを充実させると、オファーが届きやすくなります！（現在${profileCompletionRate}%完成）`
-      : '',
-  
-  /** フッター（通常） */
+  /** フッター */
   footer: `\n\ncasto オーディション`,
-  
-  /** ヘルプへのリンク文言 */
-  helpLink: 'お困りの場合はヘルプをご覧ください',
-  
-  /** プロフィール充実促進メッセージ */
-  profilePrompt: (profileCompletionRate: number) => 
-    profileCompletionRate < 80
-      ? `プロフィール充実度: ${profileCompletionRate}% - あと少しで完璧！✨`
-      : 'プロフィール完成度100%！素晴らしいです🎉'
 } as const
 
 /**
  * LINEサービスメッセージテンプレート
  */
 export interface NotificationTemplate {
-  /** LINE Developersコンソールに登録したテンプレート名（正確に一致させること） - 動的に決定する場合は関数 */
-  templateName: string | ((context: Record<string, any>) => string)
+  /** LINE Developersコンソールに登録したテンプレート名（正確に一致させること） */
+  templateName: string
   /** 通知タイトル（トーク画面に表示） */
   title: string
   /** メッセージ本文生成関数 */
@@ -74,47 +50,23 @@ export const notificationTemplates: Record<NotificationType, NotificationTemplat
    * 応募受付完了通知
    * 
    * トリガー: ユーザーがオーディションに応募した直後
-   * 目的: 応募完了の確認、次のアクションを促す
-   * 
-   * NOTE: プロフィール充実度に応じて2つのテンプレートを使い分ける
-   * - application_received_prompt (80%未満) - プロフィール充実促進あり
-   * - application_received_complete (80%以上) - プロフィール完成
+   * 目的: 応募完了の確認
    */
   application_received: {
-    templateName: (ctx) => {
-      const profileRate = ctx.profileCompletionRate || 0
-      return profileRate < 80 
-        ? 'application_received_prompt'  // プロフィール充実促進あり
-        : 'application_received_complete' // プロフィール完成
-    },
+    templateName: 'entry_s_t_ja',
     title: '✅ 応募を受け付けました',
-    description: '応募完了直後に送信。プロフィール充実度に応じてテンプレートを切り替え',
-    message: (ctx) => {
-      const profileRate = ctx.profileCompletionRate || 0
-      return (
-        `【${ctx.auditionTitle}】への応募が完了しました！🎉\n\n` +
-        `受付番号: ${ctx.applicationId.substring(0, 8).toUpperCase()}\n\n` +
-        `選考結果は通知でお知らせします。\n` +
-        `応募内容は「マイ応募」からいつでも確認できます。` +
-        COMMON_PARTS.footerWithProfilePrompt(profileRate) +
-        COMMON_PARTS.footer
-      )
-    },
+    description: '応募完了直後に送信',
+    message: (ctx) => 
+      `【${ctx.auditionTitle}】への応募が完了しました。選考結果は通知でお知らせします。`,
     actionUrl: (ctx, liffId) => 
       `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`,
-    params: (ctx, liffId) => {
-      const profileRate = ctx.profileCompletionRate || 0
-      return {
-        audition_title: ctx.auditionTitle,
-        number: ctx.applicationId.substring(0, 8).toUpperCase(),
-        btn1_url: `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`,  // 応募詳細
-        btn2_url: profileRate < 80
-          ? `line://app/${liffId}?redirect=/profile/edit`  // プロフィール編集
-          : `line://app/${liffId}?redirect=/auditions`,  // 他のオーディションを見る
-        btn3_url: `line://app/${liffId}?redirect=/applications`,  // マイ応募一覧
-        btn4_url: `line://app/${liffId}?redirect=/help`  // ヘルプ
-      }
-    }
+    params: (ctx, liffId) => ({
+      number: ctx.applicationId.substring(0, 8).toUpperCase(),
+      btn1_url: `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`,
+      btn2_url: `line://app/${liffId}?redirect=/help`,
+      btn3_url: `line://app/${liffId}?redirect=/applications/${ctx.applicationId}/edit`,
+      btn4_url: `line://app/${liffId}?redirect=/applications/${ctx.applicationId}/withdraw`
+    })
   },
   
   /**
@@ -126,15 +78,9 @@ export const notificationTemplates: Record<NotificationType, NotificationTemplat
   application_accepted: {
     templateName: 'application_passed_ja',
     title: '🎉 選考通過のお知らせ',
-    description: '選考通過時に送信。次のステップと詳細確認を促す',
-    message: (ctx) => (
-      `おめでとうございます！🎊\n\n` +
-      `【${ctx.auditionTitle}】\n` +
-      `${ctx.stepName}を通過しました！\n\n` +
-      `次のステップについては、応募詳細ページをご確認ください。\n` +
-      `引き続き頑張ってください！💪` +
-      COMMON_PARTS.footer
-    ),
+    description: '選考通過時に送信',
+    message: (ctx) => 
+      `おめでとうございます！【${ctx.auditionTitle}】の${ctx.stepName}を通過しました。`,
     actionUrl: (ctx, liffId) => 
       `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`,
     params: (ctx, liffId) => ({
@@ -149,35 +95,20 @@ export const notificationTemplates: Record<NotificationType, NotificationTemplat
    * 選考不通過通知
    * 
    * トリガー: 主催者が応募を「不合格」にした時
-   * 目的: 丁寧に結果を伝え、次のチャレンジを促す
+   * 目的: 丁寧に結果を伝える
    */
   application_rejected: {
     templateName: 'application_failed_ja',
     title: '選考結果のお知らせ',
-    description: '選考不通過時に送信。次のチャレンジを前向きに促す',
-    message: (ctx) => {
-      const profileRate = ctx.profileCompletionRate || 0
-      return (
-        `【${ctx.auditionTitle}】の選考結果をお知らせします。\n\n` +
-        `残念ながら今回は見送りとなりましたが、\n` +
-        `あなたの才能を求めるオーディションは他にもたくさんあります。\n\n` +
-        `次のチャレンジに向けて、頑張ってください！💪` +
-        COMMON_PARTS.footerWithProfilePrompt(profileRate) +
-        COMMON_PARTS.footer
-      )
-    },
+    description: '選考不通過時に送信',
+    message: (ctx) => 
+      `【${ctx.auditionTitle}】の選考結果をお知らせします。残念ながら今回は見送りとなりました。`,
     actionUrl: (ctx, liffId) => 
-      `line://app/${liffId}?redirect=/auditions`,  // 他のオーディションへ
-    params: (ctx, liffId) => {
-      const profileRate = ctx.profileCompletionRate || 0
-      return {
-        audition_title: ctx.auditionTitle,
-        button_uri_1: `line://app/${liffId}?redirect=/auditions`,  // 他のオーディション
-        button_uri_2: profileRate < 80
-          ? `line://app/${liffId}?redirect=/profile/edit`  // プロフィール充実
-          : `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`  // この応募の詳細
-      }
-    }
+      `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`,
+    params: (ctx, liffId) => ({
+      audition_title: ctx.auditionTitle,
+      button_uri_1: `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`
+    })
   },
   
   /**
@@ -208,14 +139,9 @@ export const notificationTemplates: Record<NotificationType, NotificationTemplat
   audition_deadline_reminder: {
     templateName: 'deadline_reminder_ja',
     title: '⏰ 応募締切が迫っています',
-    description: '締切前のリマインダー。緊急性を伝えて応募を促す',
-    message: (ctx) => (
-      `【${ctx.auditionTitle}】\n\n` +
-      `応募締切: ${ctx.deadlineDate}\n\n` +
-      `締切まであと少しです！\n` +
-      `気になる方はお早めにご応募ください。` +
-      COMMON_PARTS.footer
-    ),
+    description: '締切前のリマインダー',
+    message: (ctx) => 
+      `【${ctx.auditionTitle}】の応募締切が ${ctx.deadlineDate} に迫っています。`,
     actionUrl: (ctx, liffId) => 
       `line://app/${liffId}?redirect=/auditions/${ctx.auditionId}`,
     params: (ctx, liffId) => ({
@@ -235,14 +161,9 @@ export const notificationTemplates: Record<NotificationType, NotificationTemplat
   audition_status_changed: {
     templateName: 'audition_status_changed_ja',
     title: '📝 オーディション情報が更新されました',
-    description: 'オーディション情報変更時に送信。変更内容の確認を促す',
-    message: (ctx) => (
-      `【${ctx.auditionTitle}】\n\n` +
-      `オーディション情報が更新されました。\n` +
-      `${ctx.changeDescription || '詳細をご確認ください。'}\n\n` +
-      `応募済みの方は、変更内容をご確認ください。` +
-      COMMON_PARTS.footer
-    ),
+    description: 'オーディション情報変更時に送信',
+    message: (ctx) => 
+      `【${ctx.auditionTitle}】の情報が更新されました。詳細をご確認ください。`,
     actionUrl: (ctx, liffId) => 
       `line://app/${liffId}?redirect=/auditions/${ctx.auditionId}`,
     params: (ctx, liffId) => ({
@@ -257,23 +178,6 @@ export const notificationTemplates: Record<NotificationType, NotificationTemplat
 } as const
 
 /**
- * テンプレート追加時のチェックリスト
- * 
- * 新しい通知タイプを追加する際は、以下を確認してください：
- * 
- * 1. ✅ NotificationTypeに新しい型を追加（packages/shared/src/types/notification.ts）
- * 2. ✅ LINE Developersコンソールでテンプレートを登録
- * 3. ✅ templateNameがコンソールの名前と完全一致
- * 4. ✅ 共通パーツ（COMMON_PARTS）を活用
- * 5. ✅ プロフィール充実促進を含める（該当する場合）
- * 6. ✅ 適切なDeep Linkを設定
- * 7. ✅ descriptionフィールドに用途を記載
- * 8. ✅ メッセージに絵文字を適度に使用（視認性向上）
- * 9. ✅ フッターを統一（COMMON_PARTS.footer）
- * 10. ✅ ボタンURLは2-4個を推奨
- */
-
-/**
  * メールテンプレート
  */
 export interface EmailTemplate {
@@ -284,17 +188,8 @@ export interface EmailTemplate {
 
 /**
  * メールテンプレート定義
- * 
- * 主催者向けのメール通知
- * HTMLとテキストの両方を提供（メールクライアント互換性のため）
  */
 export const emailTemplates: Partial<Record<NotificationType, EmailTemplate>> = {
-  /**
-   * 新規応募通知（主催者向けメール）
-   * 
-   * トリガー: ユーザーがオーディションに応募した時
-   * 目的: 主催者に迅速な応募確認と選考開始を促す
-   */
   new_application: {
     subject: '【Casto】🎭 新しい応募が届きました - ${ctx.auditionTitle}',
     htmlBody: (ctx) => `
