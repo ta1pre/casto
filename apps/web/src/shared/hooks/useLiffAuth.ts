@@ -251,6 +251,20 @@ export function useLiffAuth(): UseLiffAuthReturn {
   // isLoadingの安定化: isLiffReadyがtrueになったら、authLoadingの変化を無視 [PA]
   const isLoading = !isLiffReady || isAuthenticating
 
+  // 詳細なデバッグログ（ちらつき調査用）
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[useLiffAuth] Detailed State:', {
+      authLoading,
+      isAuthenticating,
+      isLiffReady,
+      user: !!user,
+      error: !!error,
+      isLoading,
+      computedLoading: !isLiffReady || isAuthenticating,
+      timestamp: new Date().toISOString()
+    })
+  }
+
   return {
     user,
     isLoading,

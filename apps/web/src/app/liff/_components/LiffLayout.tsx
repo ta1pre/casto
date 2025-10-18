@@ -18,7 +18,14 @@ export function LiffLayout({ children }: LiffLayoutProps) {
   
   // デバッグログ（開発環境のみ）
   if (process.env.NODE_ENV === 'development') {
-    console.log('[LiffLayout] Render:', { isLoading, error: !!error, isLiffReady, user: !!user, isInClient })
+    console.log('[LiffLayout] Render:', {
+      isLoading,
+      error: !!error,
+      isLiffReady,
+      user: !!user,
+      isInClient,
+      timestamp: new Date().toISOString()
+    })
   }
 
   useEffect(() => {
