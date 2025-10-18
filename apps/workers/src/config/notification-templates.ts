@@ -77,7 +77,7 @@ export const notificationTemplates: Record<NotificationType, NotificationTemplat
    * 目的: 応募完了の確認、次のアクションを促す
    */
   application_received: {
-    templateName: 'Entry confirmed (simple)',  // ← LINE Developersコンソールで登録した実際の名前
+    templateName: 'entry_s_t_ja',  // ← LINE Developersコンソールで登録した実際の名前
     title: '✅ 応募を受け付けました',
     description: '応募完了直後に送信。応募詳細ページへの導線とプロフィール充実を促す',
     message: (ctx) => {
