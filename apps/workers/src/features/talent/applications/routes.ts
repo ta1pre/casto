@@ -61,7 +61,12 @@ talentApplicationRoutes.post('/', verifyAuth, async (c) => {
 
     // 応募完了通知を送信（LIFFアクセストークンがある場合）
     const liffAccessToken = body.liffAccessToken
+    console.log('[Application] liffAccessToken present:', !!liffAccessToken)
+    console.log('[Application] liffAccessToken length:', liffAccessToken?.length)
+    console.log('[Application] audition data:', !!audition)
+    
     if (liffAccessToken && audition) {
+      console.log('[Application] Attempting to send notification...')
       try {
         await createNotification(
           {
@@ -78,10 +83,13 @@ talentApplicationRoutes.post('/', verifyAuth, async (c) => {
           supabase,
           c.env
         )
+        console.log('[Application] Notification sent successfully')
       } catch (notifError) {
         // 通知送信失敗はエラーとしない（応募自体は成功）
-        console.error('Failed to send notification:', notifError)
+        console.error('[Application] Failed to send notification:', notifError)
       }
+    } else {
+      console.log('[Application] Skipping notification - liffAccessToken:', !!liffAccessToken, 'audition:', !!audition)
     }
 
     return c.json(

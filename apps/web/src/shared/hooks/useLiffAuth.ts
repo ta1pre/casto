@@ -12,6 +12,7 @@ declare global {
       login: (config?: { redirectUri?: string }) => void
       logout: () => void
       getIDToken?: () => string | null
+      getAccessToken?: () => string | null
       getProfile: () => Promise<LiffProfile>
       isInClient?: () => boolean
     }

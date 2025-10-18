@@ -101,13 +101,14 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
       // LIFFアクセストークンを取得（通知送信用）
       let liffAccessToken: string | null = null
       try {
-        const liff = (await import('@line/liff')).default
-        if (liff.isLoggedIn()) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          liffAccessToken = (liff as any).getAccessToken() || null
+        if (typeof window !== 'undefined' && window.liff?.isLoggedIn()) {
+          liffAccessToken = window.liff.getAccessToken?.() || null
+          console.log('[Apply] LIFF access token取得成功:', !!liffAccessToken)
+        } else {
+          console.warn('[Apply] LIFF not ready or not logged in')
         }
       } catch (liffError) {
-        console.warn('LIFF access token取得失敗:', liffError)
+        console.warn('[Apply] LIFF access token取得失敗:', liffError)
       }
 
       const response = await fetch('/api/v1/talent/audition-applications', {
