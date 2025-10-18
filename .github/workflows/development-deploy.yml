@@ -60,6 +60,8 @@ jobs:
           echo "Setting Cloudflare secrets..."
           echo "$JWT_SECRET" | npx wrangler secret put JWT_SECRET --env development
           echo "$LINE_CHANNEL_ID" | npx wrangler secret put LINE_CHANNEL_ID --env development
+          echo "$LINE_CHANNEL_SECRET" | npx wrangler secret put LINE_CHANNEL_SECRET --env development
+          echo "$LINE_LIFF_ID" | npx wrangler secret put LINE_LIFF_ID --env development
           echo "$SUPABASE_URL" | npx wrangler secret put SUPABASE_URL --env development
           echo "$SUPABASE_SERVICE_ROLE_KEY" | npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env development
           echo "$ALLOWED_ORIGINS" | npx wrangler secret put ALLOWED_ORIGINS --env development
@@ -68,6 +70,8 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           LINE_CHANNEL_ID: ${{ secrets.LINE_CHANNEL_ID }}
+          LINE_CHANNEL_SECRET: ${{ secrets.LINE_CHANNEL_SECRET }}
+          LINE_LIFF_ID: ${{ secrets.LINE_LIFF_ID }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
@@ -100,6 +104,8 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           LINE_CHANNEL_ID: ${{ secrets.LINE_CHANNEL_ID }}
+          LINE_CHANNEL_SECRET: ${{ secrets.LINE_CHANNEL_SECRET }}
+          LINE_LIFF_ID: ${{ secrets.LINE_LIFF_ID }}
           ALLOWED_ORIGINS: ${{ secrets.ALLOWED_ORIGINS }}
 
   notify-dev:

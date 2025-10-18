@@ -98,11 +98,25 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
       setIsSubmitting(true)
       setError(null)
 
+      // LIFFアクセストークンを取得（通知送信用）
+      let liffAccessToken: string | null = null
+      try {
+        const liff = (await import('@line/liff')).default
+        if (liff.isLoggedIn()) {
+          liffAccessToken = (liff as any).getAccessToken() || null
+        }
+      } catch (liffError) {
+        console.warn('LIFF access token取得失敗:', liffError)
+      }
+
       const response = await fetch('/api/v1/talent/audition-applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ auditionId }),
+        body: JSON.stringify({ 
+          auditionId,
+          liffAccessToken, // 通知送信用
+        }),
       })
 
       if (response.ok) {

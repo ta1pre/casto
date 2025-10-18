@@ -115,6 +115,8 @@ jobs:
           echo "Setting Cloudflare secrets (production)..."
           echo "$JWT_SECRET" | npx wrangler secret put JWT_SECRET --env production
           echo "$LINE_CHANNEL_ID" | npx wrangler secret put LINE_CHANNEL_ID --env production
+          echo "$LINE_CHANNEL_SECRET" | npx wrangler secret put LINE_CHANNEL_SECRET --env production
+          echo "$LINE_LIFF_ID" | npx wrangler secret put LINE_LIFF_ID --env production
           echo "$SUPABASE_URL" | npx wrangler secret put SUPABASE_URL --env production
           echo "$SUPABASE_SERVICE_ROLE_KEY" | npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY --env production
           echo "$ALLOWED_ORIGINS" | npx wrangler secret put ALLOWED_ORIGINS --env production
@@ -123,6 +125,8 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           JWT_SECRET: ${{ secrets.PROD_JWT_SECRET }}
           LINE_CHANNEL_ID: ${{ secrets.PROD_LINE_CHANNEL_ID }}
+          LINE_CHANNEL_SECRET: ${{ secrets.PROD_LINE_CHANNEL_SECRET }}
+          LINE_LIFF_ID: ${{ secrets.PROD_LINE_LIFF_ID }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           ALLOWED_ORIGINS: ${{ secrets.PROD_ALLOWED_ORIGINS }}
@@ -168,6 +172,8 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           JWT_SECRET: ${{ secrets.PROD_JWT_SECRET }}
           LINE_CHANNEL_ID: ${{ secrets.PROD_LINE_CHANNEL_ID }}
+          LINE_CHANNEL_SECRET: ${{ secrets.PROD_LINE_CHANNEL_SECRET }}
+          LINE_LIFF_ID: ${{ secrets.PROD_LINE_LIFF_ID }}
           ALLOWED_ORIGINS: ${{ secrets.PROD_ALLOWED_ORIGINS }}
 
   health-check:

@@ -18,11 +18,12 @@ const LINE_NOTIFIER_API_BASE = 'https://api.line.me/message/v3'
  * ステートレスチャネルアクセストークンを取得
  */
 async function getStatelessChannelAccessToken(env: Bindings): Promise<string> {
-  const channelId = env.LINE_MINI_APP_CHANNEL_ID
-  const channelSecret = env.LINE_MINI_APP_CHANNEL_SECRET
+  // LINEミニアプリ専用の設定があればそれを使用、なければLINEログインのチャネル情報を使用
+  const channelId = env.LINE_MINI_APP_CHANNEL_ID || env.LINE_CHANNEL_ID
+  const channelSecret = env.LINE_MINI_APP_CHANNEL_SECRET || env.LINE_CHANNEL_SECRET
 
   if (!channelId || !channelSecret) {
-    throw new Error('LINE_MINI_APP_CHANNEL_ID and LINE_MINI_APP_CHANNEL_SECRET are required')
+    throw new Error('LINE_CHANNEL_ID and LINE_CHANNEL_SECRET are required')
   }
 
   // ステートレストークンのフォーマット: {channelId}:{channelSecret}

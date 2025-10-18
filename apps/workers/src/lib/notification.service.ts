@@ -84,7 +84,8 @@ export async function createNotification(
   // LINEサービスメッセージ送信
   if (channel === 'line' && liffAccessToken) {
     try {
-      const params = template.params ? template.params(context) : {}
+      const liffId = env.LINE_LIFF_ID || ''
+      const params = template.params ? template.params(context, liffId) : {}
       const result = await sendServiceMessageWithToken(
         liffAccessToken,
         template.templateName,

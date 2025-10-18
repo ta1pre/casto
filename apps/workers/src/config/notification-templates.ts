@@ -16,9 +16,9 @@ export interface NotificationTemplate {
   /** メッセージ本文生成関数 */
   message: (context: Record<string, any>) => string
   /** LIFFへのDeep Link（オプション） */
-  actionUrl?: (context: Record<string, any>) => string
+  actionUrl?: (context: Record<string, any>, liffId?: string) => string
   /** テンプレート変数のマッピング */
-  params?: (context: Record<string, any>) => Record<string, string>
+  params?: (context: Record<string, any>, liffId?: string) => Record<string, string>
 }
 
 /**
@@ -26,16 +26,18 @@ export interface NotificationTemplate {
  */
 export const notificationTemplates: Record<NotificationType, NotificationTemplate> = {
   application_received: {
-    templateName: 'application_received_ja',
+    templateName: 'entry_s_t_ja',
     title: '応募を受け付けました',
     message: (ctx) => 
       `${ctx.auditionTitle} への応募が完了しました。選考結果は通知でお知らせします。`,
-    actionUrl: (ctx) => 
-      `line://app/${process.env.LIFF_ID}?redirect=/applications/${ctx.applicationId}`,
-    params: (ctx) => ({
-      audition_title: ctx.auditionTitle,
-      application_id: ctx.applicationId,
-      button_uri_1: `line://app/${process.env.LIFF_ID}?redirect=/applications/${ctx.applicationId}`
+    actionUrl: (ctx, liffId) => 
+      `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`,
+    params: (ctx, liffId) => ({
+      number: ctx.applicationId.substring(0, 8).toUpperCase(),  // 受付番号（IDの先頭8文字）
+      btn1_url: `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`,
+      btn2_url: `line://app/${liffId}?redirect=/help`,
+      btn3_url: `line://app/${liffId}?redirect=/applications/${ctx.applicationId}/edit`,
+      btn4_url: `line://app/${liffId}?redirect=/applications/${ctx.applicationId}/withdraw`
     })
   },
   
@@ -44,12 +46,12 @@ export const notificationTemplates: Record<NotificationType, NotificationTemplat
     title: '選考通過のお知らせ',
     message: (ctx) => 
       `おめでとうございます！${ctx.auditionTitle} の${ctx.stepName}を通過しました。`,
-    actionUrl: (ctx) => 
-      `line://app/${process.env.LIFF_ID}?redirect=/applications/${ctx.applicationId}`,
-    params: (ctx) => ({
+    actionUrl: (ctx, liffId) => 
+      `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`,
+    params: (ctx, liffId) => ({
       audition_title: ctx.auditionTitle,
       step_name: ctx.stepName,
-      button_uri_1: `line://app/${process.env.LIFF_ID}?redirect=/applications/${ctx.applicationId}`
+      button_uri_1: `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`
     })
   },
   
@@ -58,11 +60,11 @@ export const notificationTemplates: Record<NotificationType, NotificationTemplat
     title: '選考結果のお知らせ',
     message: (ctx) => 
       `${ctx.auditionTitle} の選考結果をお知らせします。残念ながら今回は見送りとなりました。`,
-    actionUrl: (ctx) => 
-      `line://app/${process.env.LIFF_ID}?redirect=/applications/${ctx.applicationId}`,
-    params: (ctx) => ({
+    actionUrl: (ctx, liffId) => 
+      `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`,
+    params: (ctx, liffId) => ({
       audition_title: ctx.auditionTitle,
-      button_uri_1: `line://app/${process.env.LIFF_ID}?redirect=/applications/${ctx.applicationId}`
+      button_uri_1: `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`
     })
   },
   
@@ -79,12 +81,12 @@ export const notificationTemplates: Record<NotificationType, NotificationTemplat
     title: '応募締切が迫っています',
     message: (ctx) => 
       `${ctx.auditionTitle} の応募締切が ${ctx.deadlineDate} に迫っています。`,
-    actionUrl: (ctx) => 
-      `line://app/${process.env.LIFF_ID}?redirect=/auditions/${ctx.auditionId}`,
-    params: (ctx) => ({
+    actionUrl: (ctx, liffId) => 
+      `line://app/${liffId}?redirect=/auditions/${ctx.auditionId}`,
+    params: (ctx, liffId) => ({
       audition_title: ctx.auditionTitle,
       deadline_date: ctx.deadlineDate,
-      button_uri_1: `line://app/${process.env.LIFF_ID}?redirect=/auditions/${ctx.auditionId}`
+      button_uri_1: `line://app/${liffId}?redirect=/auditions/${ctx.auditionId}`
     })
   },
   
@@ -93,11 +95,11 @@ export const notificationTemplates: Record<NotificationType, NotificationTemplat
     title: 'オーディション情報が更新されました',
     message: (ctx) => 
       `${ctx.auditionTitle} の情報が更新されました。詳細をご確認ください。`,
-    actionUrl: (ctx) => 
-      `line://app/${process.env.LIFF_ID}?redirect=/auditions/${ctx.auditionId}`,
-    params: (ctx) => ({
+    actionUrl: (ctx, liffId) => 
+      `line://app/${liffId}?redirect=/auditions/${ctx.auditionId}`,
+    params: (ctx, liffId) => ({
       audition_title: ctx.auditionTitle,
-      button_uri_1: `line://app/${process.env.LIFF_ID}?redirect=/auditions/${ctx.auditionId}`
+      button_uri_1: `line://app/${liffId}?redirect=/auditions/${ctx.auditionId}`
     })
   }
 } as const

@@ -9,7 +9,7 @@ export type Bindings = {
   LINE_CHANNEL_ID?: string
   LINE_MINI_APP_CHANNEL_ID?: string
   LINE_MINI_APP_CHANNEL_SECRET?: string
-  LIFF_ID?: string
+  LINE_LIFF_ID?: string
   STRIPE_SECRET_KEY?: string
   ENVIRONMENT?: string
   ALLOWED_ORIGINS?: string
