@@ -42,6 +42,9 @@ const LIFF_SCRIPT_SRC = 'https://static.line-scdn.net/liff/edge/2/sdk.js'
 const MINIAPP_FALLBACK_MESSAGE = 'LINEミニアプリはこちらからアクセスしてください'
 const TOKEN_EXP_SKEW_MS = 5 * 1000
 
+// グローバルフラグ: コンポーネントがアンマウント/再マウントされてもリセットされない [SF][PA]
+let globalInitializingFlag = false
+
 function isInLineClient(): boolean {
   if (typeof window === 'undefined') return false
   try {
@@ -74,27 +77,6 @@ export function useLiffAuth(): UseLiffAuthReturn {
   const [error, setError] = useState<string | null>(null)
   const [inClient, setInClient] = useState(false) // メモ化 [PA]
   const loginTriggeredRef = useRef(false)
-  const initializingRef = useRef(false) // 初期化済みフラグ [SF][PA]
-  
-  // マウント/アンマウント検出
-  useEffect(() => {
-    console.log('[useLiffAuth] ===== COMPONENT MOUNTED =====')
-    return () => {
-      console.log('[useLiffAuth] ===== COMPONENT UNMOUNTED =====')
-    }
-  }, [])
-  
-  // デバッグログ（開発環境のみ）
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[useLiffAuth] State:', { 
-      authLoading, 
-      isAuthenticating, 
-      isLiffReady, 
-      user: !!user,
-      error: !!error,
-      initializingRef: initializingRef.current
-    })
-  }
 
   const handleTokenIssue = useCallback(() => {
     const inClient = isInLineClient()
@@ -235,13 +217,14 @@ export function useLiffAuth(): UseLiffAuthReturn {
   }, []) // 依存配列を空に: 1回だけ実行 [SF][PA]
 
   useEffect(() => {
-    // 既に初期化中または初期化済みの場合はスキップ [SF][PA]
-    if (initializingRef.current) {
-      console.log('[useLiffAuth] Already initializing or initialized, skipping')
+    // 既に初期化中または初期化済みの場合はスキップ（グローバルフラグ使用）[SF][PA]
+    if (globalInitializingFlag) {
+      console.log('[useLiffAuth] Already initializing or initialized (global), skipping')
       return
     }
     
-    initializingRef.current = true
+    globalInitializingFlag = true
+    console.log('[useLiffAuth] Starting LIFF initialization (global flag set)')
     void initializeLiff()
   }, [])
 
