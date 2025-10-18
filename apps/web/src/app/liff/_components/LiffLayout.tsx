@@ -16,6 +16,14 @@ export function LiffLayout({ children }: LiffLayoutProps) {
   const hasRedirectedRef = useRef(false)
   const [showBanner, setShowBanner] = useState(false) // Hydration Mismatch回避 [REH]
 
+  // マウント/アンマウント検出
+  useEffect(() => {
+    console.log('[LiffLayout] ===== COMPONENT MOUNTED =====')
+    return () => {
+      console.log('[LiffLayout] ===== COMPONENT UNMOUNTED =====')
+    }
+  }, [])
+
   useEffect(() => {
     if (typeof document !== "undefined") {
       document.title = "casto"

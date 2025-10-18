@@ -76,6 +76,14 @@ export function useLiffAuth(): UseLiffAuthReturn {
   const loginTriggeredRef = useRef(false)
   const initializingRef = useRef(false) // 初期化済みフラグ [SF][PA]
   
+  // マウント/アンマウント検出
+  useEffect(() => {
+    console.log('[useLiffAuth] ===== COMPONENT MOUNTED =====')
+    return () => {
+      console.log('[useLiffAuth] ===== COMPONENT UNMOUNTED =====')
+    }
+  }, [])
+  
   // デバッグログ（開発環境のみ）
   if (process.env.NODE_ENV === 'development') {
     console.log('[useLiffAuth] State:', { 
@@ -83,7 +91,8 @@ export function useLiffAuth(): UseLiffAuthReturn {
       isAuthenticating, 
       isLiffReady, 
       user: !!user,
-      error: !!error
+      error: !!error,
+      initializingRef: initializingRef.current
     })
   }
 
