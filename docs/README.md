@@ -7,23 +7,30 @@ Casto開発で参照する標準ガイドラインとタスク管理の入口で
 ```
 docs/
 ├── README.md                      # このファイル
-├── DATABASE_MANAGEMENT.md         # ★ データベース管理の標準手順
 ├── ARCHITECTURE.md                # システムアーキテクチャ概要
 ├── AUDITION_SYSTEM_DESIGN.md      # オーディションシステム設計
 ├── CRITICAL_RULES.md              # 必読：重要な開発ルール
+├── DATABASE_MANAGEMENT.md         # ★ データベース管理の標準手順
 ├── DEVELOPMENT_RULES.md           # 開発ルール詳細
 ├── setup/                         # セットアップ関連
 │   ├── LOCAL_DEVELOPMENT.md       # ローカル開発環境(Docker)
-│   ├── SUPABASE_AUTH_SETUP.md     # Supabase認証設定
 │   ├── PROFILE_IMPLEMENTATION.md  # プロフィール機能実装
+│   ├── SUPABASE_AUTH_SETUP.md     # Supabase認証設定
 │   └── WORKERS_STRUCTURE.md       # Workers API構成
-├── tasks/                         # タスク管理
-│   ├── TODO.md                    # 現在のタスクリスト
-│   └── ...
-├── tasksarchive/                  # 完了タスクのアーカイブ
-└── technical/                     # 技術仕様
-    ├── SESSION_MANAGEMENT.md      # セッション管理戦略
-    └── LINE_TOKEN_REFRESH_STRATEGY.md
+├── tasks/                         # 現在進行中のタスク管理
+│   ├── README.md                  # タスク管理ガイド
+│   └── TODO.md                    # 現在のタスクリスト
+├── tasksarchive/                  # 完了タスク・実装レポートのアーカイブ
+│   ├── AUDITION_MAIN_VISUAL_IMPLEMENTATION.md
+│   ├── AUDITION_STEPS_IMPLEMENTATION.md
+│   ├── DATABASE_REORGANIZATION_2025-10-16.md
+│   ├── DIRECTORY_STRUCTURE.md
+│   ├── LINE_AUTH_IMPLEMENTATION.md
+│   └── PHASE1_DEPLOYMENT.md
+├── technical/                     # 技術仕様
+│   ├── LINE_TOKEN_REFRESH_STRATEGY.md
+│   └── SESSION_MANAGEMENT.md      # セッション管理戦略
+└── ui/                            # UI設計・ガイドライン
 ```
 
 ## 🚀 クイックスタート
@@ -182,6 +189,6 @@ supabase db push --include-all
 
 ---
 
-**最終更新**: 2025/10/16  
+**最終更新**: 2025/10/18  
 **Project ID**: `sfscmpjplvxtikmifqhe`  
 **Environment**: Development (`casto.sb2024.xyz`) / Production (`casto.io`)
