@@ -308,12 +308,13 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
       </div>
 
       {/* ステップ別評価 */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h2 className="text-lg font-semibold mb-4">ステップ別評価</h2>
-        
-        {steps.length === 0 ? (
-          <p className="text-gray-500 text-sm">ステップが設定されていません</p>
-        ) : (
+      {application.overallStatus !== 'withdrawn' && (
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-4">ステップ別評価</h2>
+          
+          {steps.length === 0 ? (
+            <p className="text-gray-500 text-sm">ステップが設定されていません</p>
+          ) : (
           <div className="space-y-4">
             {steps.map((step) => {
               const evaluation = getEvaluationForStep(step.id)
@@ -555,38 +556,50 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
               )
             })}
           </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* アクション */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold mb-4">ステータス操作</h2>
-        <div className="flex flex-wrap gap-3">
-          {application.currentStepId && (
+      {application.overallStatus !== 'withdrawn' && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold mb-4">ステータス操作</h2>
+          <div className="flex flex-wrap gap-3">
+            {application.currentStepId && (
+              <button
+                type="button"
+                onClick={moveToNextStep}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                次のステップに進める
+              </button>
+            )}
             <button
               type="button"
-              onClick={moveToNextStep}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              onClick={() => handleUpdateApplicationStatus('passed')}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
             >
-              次のステップに進める
+              最終選考通過にする
             </button>
-          )}
-          <button
-            type="button"
-            onClick={() => handleUpdateApplicationStatus('passed')}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
-            最終選考通過にする
-          </button>
-          <button
-            type="button"
-            onClick={() => handleUpdateApplicationStatus('rejected')}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            不合格にする
-          </button>
+            <button
+              type="button"
+              onClick={() => handleUpdateApplicationStatus('rejected')}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              不合格にする
+            </button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* 辞退時のメッセージ */}
+      {application.overallStatus === 'withdrawn' && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+          <p className="text-yellow-800 font-medium">
+            この応募はタレントが辞退したため、評価やステータス操作はできません。
+          </p>
+        </div>
+      )}
     </div>
   )
 }

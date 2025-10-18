@@ -147,6 +147,35 @@ export function TalentProfileModal({ talentId, talentName, isOpen, onClose }: Ta
 
           {profile && !loading && (
             <div className="space-y-6">
+              {/* 写真 */}
+              {(profile.photoFaceUrl || profile.photoFullBodyUrl) && (
+                <section>
+                  <h3 className="text-lg font-bold mb-3 pb-2 border-b">写真</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {profile.photoFaceUrl && (
+                      <div>
+                        <p className="text-sm text-gray-600 mb-2">顔写真</p>
+                        <img 
+                          src={profile.photoFaceUrl} 
+                          alt="顔写真" 
+                          className="w-full h-64 object-cover rounded-lg border"
+                        />
+                      </div>
+                    )}
+                    {profile.photoFullBodyUrl && (
+                      <div>
+                        <p className="text-sm text-gray-600 mb-2">全身写真</p>
+                        <img 
+                          src={profile.photoFullBodyUrl} 
+                          alt="全身写真" 
+                          className="w-full h-64 object-cover rounded-lg border"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
+
               {/* 基本情報 */}
               <section>
                 <h3 className="text-lg font-bold mb-3 pb-2 border-b">基本情報</h3>
