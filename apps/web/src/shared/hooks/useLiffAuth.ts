@@ -74,6 +74,17 @@ export function useLiffAuth(): UseLiffAuthReturn {
   const [error, setError] = useState<string | null>(null)
   const [inClient, setInClient] = useState(false) // メモ化 [PA]
   const loginTriggeredRef = useRef(false)
+  
+  // デバッグログ（開発環境のみ）
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[useLiffAuth] State:', { 
+      authLoading, 
+      isAuthenticating, 
+      isLiffReady, 
+      user: !!user,
+      error: !!error
+    })
+  }
 
   const handleTokenIssue = useCallback(() => {
     const inClient = isInLineClient()
@@ -181,12 +192,16 @@ export function useLiffAuth(): UseLiffAuthReturn {
         return
       }
 
+      console.log('[useLiffAuth] LIFF initialized successfully')
       setIsLiffReady(true)
 
       if (!window.liff.isLoggedIn()) {
+        console.log('[useLiffAuth] Not logged in, calling handleTokenIssue')
         handleTokenIssue()
         return
       }
+      
+      console.log('[useLiffAuth] Already logged in, synchronizing session')
 
       await synchronizeLineSession()
     }
@@ -233,9 +248,12 @@ export function useLiffAuth(): UseLiffAuthReturn {
     }
   }, [authLogout])
 
+  // isLoadingの安定化: isLiffReadyがtrueになったら、authLoadingの変化を無視 [PA]
+  const isLoading = !isLiffReady || isAuthenticating
+
   return {
     user,
-    isLoading: authLoading || isAuthenticating || !isLiffReady,
+    isLoading,
     isLiffReady,
     isAuthenticating,
     liffProfile,
