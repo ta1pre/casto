@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useEffect } from "react"
+import React, { useEffect, useRef } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { BottomNav, BOTTOM_NAV_HEIGHT } from "./BottomNav"
 import { useLiffAuth } from "@/shared/hooks/useLiffAuth"
 
@@ -9,13 +10,52 @@ interface LiffLayoutProps {
 }
 
 export function LiffLayout({ children }: LiffLayoutProps) {
-  const { isLoading, error, isLiffReady } = useLiffAuth()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { isLoading, error, isLiffReady, user } = useLiffAuth()
+  const hasRedirectedRef = useRef(false)
 
   useEffect(() => {
     if (typeof document !== "undefined") {
       document.title = "casto"
     }
   }, [])
+
+  /**
+   * 認証完了後のリダイレクト処理 [SF][REH]
+   * 
+   * 通知リンク（例: line://app/{liffId}?redirect=/auditions/123）から開かれた場合、
+   * 認証完了後に指定されたページへ自動遷移します。
+   * 
+   * - 無限ループ防止: hasRedirectedRefで1回のみ実行
+   * - 安全性: /liff/ 配下のパスのみ許可
+   * - タイミング: 認証完了（user存在）かつLIFF準備完了後
+   */
+  useEffect(() => {
+    // 認証完了前、またはLIFF未準備の場合はスキップ
+    if (!user || !isLiffReady || hasRedirectedRef.current) {
+      return
+    }
+
+    const redirectPath = searchParams.get('redirect')
+    if (!redirectPath) {
+      return
+    }
+
+    // セキュリティ: /liff/ 配下のパスのみ許可（外部URLや他のパスへの遷移を防止）
+    if (!redirectPath.startsWith('/')) {
+      console.warn('[LiffLayout] Invalid redirect path (must start with /):', redirectPath)
+      return
+    }
+
+    // 既にリダイレクト済みの場合はスキップ（無限ループ防止）
+    hasRedirectedRef.current = true
+
+    console.log('[LiffLayout] Redirecting to:', redirectPath)
+    
+    // Next.js Router でページ遷移（LIFFコンテキスト内を維持）
+    router.push(`/liff${redirectPath}`)
+  }, [user, isLiffReady, searchParams, router])
 
   const mainBottomPadding = `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom) + 24px)`
 

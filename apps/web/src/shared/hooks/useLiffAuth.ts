@@ -91,7 +91,24 @@ export function useLiffAuth(): UseLiffAuthReturn {
     } catch (logoutError) {
       console.warn('[useLiffAuth] Failed to logout before re-login', logoutError)
     }
-    window.liff?.login({ redirectUri: window.location.href })
+    
+    /**
+     * redirectパラメータを保持してliff.login()を呼び出す [SF][REH]
+     * 
+     * 通知リンクから開かれた場合（例: ?redirect=/auditions/123）、
+     * 再認証後も同じredirectパラメータを維持することで、
+     * 認証完了後に正しいページへ遷移できるようにします。
+     */
+    const currentUrl = new URL(window.location.href)
+    const redirectPath = currentUrl.searchParams.get('redirect')
+    
+    // redirectパラメータがある場合、それを保持したURLをredirectUriに設定
+    const redirectUri = redirectPath 
+      ? `${currentUrl.origin}${currentUrl.pathname}?redirect=${encodeURIComponent(redirectPath)}`
+      : window.location.href
+    
+    console.log('[useLiffAuth] Calling liff.login() with redirectUri:', redirectUri)
+    window.liff?.login({ redirectUri })
   }, [])
 
   const synchronizeLineSession = useCallback(async () => {
