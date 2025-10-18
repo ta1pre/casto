@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { BottomNav, BOTTOM_NAV_HEIGHT } from "./BottomNav"
 import { useLiffAuth } from "@/shared/hooks/useLiffAuth"
@@ -14,12 +14,20 @@ export function LiffLayout({ children }: LiffLayoutProps) {
   const searchParams = useSearchParams()
   const { isLoading, error, isLiffReady, user, isInClient } = useLiffAuth()
   const hasRedirectedRef = useRef(false)
+  const [showBanner, setShowBanner] = useState(false) // Hydration Mismatch回避 [REH]
 
   useEffect(() => {
     if (typeof document !== "undefined") {
       document.title = "casto"
     }
   }, [])
+
+  // 外部ブラウザバナー表示制御（Hydration Mismatch回避）[REH]
+  useEffect(() => {
+    if (isLiffReady && !isInClient) {
+      setShowBanner(true)
+    }
+  }, [isLiffReady, isInClient])
 
   /**
    * 認証完了後のリダイレクト処理 [SF][REH]
@@ -105,8 +113,8 @@ export function LiffLayout({ children }: LiffLayoutProps) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* 外部ブラウザ用バナー [SF] */}
-      {!isInClient && isLiffReady && (
+      {/* 外部ブラウザ用バナー（Hydration Mismatch回避）[SF][REH] */}
+      {showBanner && (
         <div className="bg-blue-600/90 text-white px-4 py-2 text-xs text-center backdrop-blur-sm sticky top-0 z-50">
           <span className="inline-block mr-2">ℹ️</span>
           LINEアプリで開くと、より快適にご利用いただけます

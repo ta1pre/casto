@@ -2,18 +2,16 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 /**
- * LIFF エリアへのアクセス制御（多段ゲート）[SF][REH]
- * - 目的: /liff を直打ちさせない（UIを一切表示しない）
- * - 戦略:
- *   1) LINE 以外の UA は 404
- *   2) 認証済み（casto_auth）または短命ゲート（liff_gate）所持なら許可
- *   3) miniapp 由来（Sec-Fetch-Site: cross-site or ?from=miniapp）は初回のみ許可し、liff_gate を付与
- *   4) それ以外（直打ち/同一サイト）は miniapp へ 302 リダイレクト
+ * LIFF エリアへのアクセス制御 [SF][REH]
+ * 
+ * 戦略:
+ *   1) 認証済み（casto_auth or liff_gate）→ 無条件通過
+ *   2) 外部ブラウザ → 通常ナビゲーションのみ許可、liff.init()でLINE認証へ
+ *   3) LINEアプリ → 通過 + liff_gate付与
  * 
  * 外部ブラウザ対応（2025-10-19）:
- *   - liff.init({ withLoginOnExternalBrowser: true }) により、外部ブラウザでもLINE認証が可能
- *   - 外部ブラウザの場合、LINEのOAuth認証を経由するため、最終的にはLINE経由のアクセスとなる
- *   - UA判定は維持し、悪意のある直接アクセスは引き続きブロック
+ *   - withLoginOnExternalBrowser=true により外部ブラウザでもLINE認証可能
+ *   - 悪意のあるボット対策として Sec-Fetch-* ヘッダーチェック
  */
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl
@@ -54,10 +52,9 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // 3) LINEアプリ内からのアクセスは通す（miniapp由来、またはLINE UAからの初回） [REH]
+  // 3) LINEアプリ内からのアクセスは通す [REH]
   if (isLineApp) {
     const res = NextResponse.next()
-    // 5分だけ有効なゲートクッキー
     res.cookies.set('liff_gate', '1', {
       httpOnly: true,
       secure: true,
@@ -68,20 +65,7 @@ export function middleware(request: NextRequest) {
     return res
   }
 
-  // 4) ここまで到達したら予期しないケース（外部ブラウザでSec-Fetch-*が異常）
-  // 念のためLIFFミニアプリへリダイレクト [SF]
-  const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
-  if (liffId) {
-    const liffUrl = `https://miniapp.line.me/${liffId}`
-    console.log('[Middleware][LIFF Gate] redirect-to-miniapp (fallback)', {
-      secFetchSite,
-      secFetchMode,
-      secFetchDest,
-    })
-    return NextResponse.redirect(liffUrl)
-  }
-
-  // LIFF ID 未設定なら404
+  // 4) 予期しないケース（外部ブラウザで異常なリクエスト）
   return new NextResponse('Not Found', { status: 404 })
 }
 
