@@ -103,6 +103,7 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
       try {
         const liff = (await import('@line/liff')).default
         if (liff.isLoggedIn()) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           liffAccessToken = (liff as any).getAccessToken() || null
         }
       } catch (liffError) {
