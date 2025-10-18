@@ -7,27 +7,44 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, Calendar } from 'lucide-react'
+import { Search, Calendar, CheckCircle } from 'lucide-react'
 import { apiFetch } from '@/shared/lib/api'
-import type { Audition } from '@casto/shared'
+import type { Audition, AuditionApplication } from '@casto/shared'
 import { VideoThumbnail } from '@/shared/components/VideoThumbnail'
 
 export default function AuditionsPage() {
   const [auditions, setAuditions] = useState<Audition[]>([])
+  const [appliedAuditionIds, setAppliedAuditionIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
-    fetchAuditions()
+    fetchData()
   }, [])
 
-  async function fetchAuditions() {
+  /**
+   * オーディション一覧と応募済み情報を取得 [SF][DRY]
+   */
+  async function fetchData() {
     try {
       setLoading(true)
       setError(null)
-      const data = await apiFetch<{ auditions: Audition[] }>('/api/v1/talent/auditions')
-      setAuditions(data.auditions || [])
+      
+      // オーディション一覧と応募一覧を並行取得
+      const [auditionsData, applicationsData] = await Promise.all([
+        apiFetch<{ auditions: Audition[] }>('/api/v1/talent/auditions'),
+        apiFetch<{ applications: AuditionApplication[] }>('/api/v1/talent/audition-applications')
+          .catch(() => ({ applications: [] })) // 認証エラー時は空配列
+      ])
+      
+      setAuditions(auditionsData.auditions || [])
+      
+      // 応募済みオーディションIDのSetを作成
+      const appliedIds = new Set(
+        applicationsData.applications.map(app => app.auditionId)
+      )
+      setAppliedAuditionIds(appliedIds)
     } catch (err) {
       console.error('Failed to fetch auditions:', err)
       setError(err instanceof Error ? err.message : '読み込みに失敗しました')
@@ -116,9 +133,19 @@ export default function AuditionsPage() {
 
                   {/* コンテンツ */}
                   <div className="p-4">
-                    <h3 className="font-semibold text-foreground mb-2 text-lg">
-                      {audition.title}
-                    </h3>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="font-semibold text-foreground text-lg flex-1">
+                        {audition.title}
+                      </h3>
+                      
+                      {/* 応募済みバッジ */}
+                      {appliedAuditionIds.has(audition.id) && (
+                        <span className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium whitespace-nowrap">
+                          <CheckCircle className="h-3 w-3" />
+                          応募済み
+                        </span>
+                      )}
+                    </div>
                     
                     {audition.shortDescription && (
                       <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
