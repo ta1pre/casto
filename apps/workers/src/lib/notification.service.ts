@@ -87,9 +87,14 @@ export async function createNotification(
       const liffId = env.LINE_LIFF_ID || ''
       const params = template.params ? template.params(context, liffId) : {}
       
+      // テンプレート名を動的に決定（関数の場合は実行）
+      const templateName = typeof template.templateName === 'function'
+        ? template.templateName(context)
+        : template.templateName
+      
       const result = await sendServiceMessageWithToken(
         liffAccessToken,
-        template.templateName,
+        templateName,
         params,
         env
       )

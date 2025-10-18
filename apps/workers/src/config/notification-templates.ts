@@ -45,8 +45,8 @@ const COMMON_PARTS = {
  * LINEサービスメッセージテンプレート
  */
 export interface NotificationTemplate {
-  /** LINE Developersコンソールに登録したテンプレート名（正確に一致させること） */
-  templateName: string
+  /** LINE Developersコンソールに登録したテンプレート名（正確に一致させること） - 動的に決定する場合は関数 */
+  templateName: string | ((context: Record<string, any>) => string)
   /** 通知タイトル（トーク画面に表示） */
   title: string
   /** メッセージ本文生成関数 */
@@ -75,11 +75,20 @@ export const notificationTemplates: Record<NotificationType, NotificationTemplat
    * 
    * トリガー: ユーザーがオーディションに応募した直後
    * 目的: 応募完了の確認、次のアクションを促す
+   * 
+   * NOTE: プロフィール充実度に応じて2つのテンプレートを使い分ける
+   * - application_received_prompt (80%未満) - プロフィール充実促進あり
+   * - application_received_complete (80%以上) - プロフィール完成
    */
   application_received: {
-    templateName: 'entry_s_t_ja',  // ← LINE Developersコンソールで登録した実際の名前
+    templateName: (ctx) => {
+      const profileRate = ctx.profileCompletionRate || 0
+      return profileRate < 80 
+        ? 'application_received_prompt'  // プロフィール充実促進あり
+        : 'application_received_complete' // プロフィール完成
+    },
     title: '✅ 応募を受け付けました',
-    description: '応募完了直後に送信。応募詳細ページへの導線とプロフィール充実を促す',
+    description: '応募完了直後に送信。プロフィール充実度に応じてテンプレートを切り替え',
     message: (ctx) => {
       const profileRate = ctx.profileCompletionRate || 0
       return (
@@ -96,6 +105,7 @@ export const notificationTemplates: Record<NotificationType, NotificationTemplat
     params: (ctx, liffId) => {
       const profileRate = ctx.profileCompletionRate || 0
       return {
+        audition_title: ctx.auditionTitle,
         number: ctx.applicationId.substring(0, 8).toUpperCase(),
         btn1_url: `line://app/${liffId}?redirect=/applications/${ctx.applicationId}`,  // 応募詳細
         btn2_url: profileRate < 80
