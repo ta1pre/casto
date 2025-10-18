@@ -110,7 +110,7 @@ export function TalentProfileModal({ talentId, talentName, isOpen, onClose }: Ta
       onClick={onClose}
     >
       <div 
-        className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto m-4 shadow-2xl animate-in slide-in-from-bottom-4 duration-300"
+        className="relative bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto m-4 shadow-2xl animate-in slide-in-from-bottom-4 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ヘッダー */}
@@ -331,32 +331,32 @@ export function TalentProfileModal({ talentId, talentName, isOpen, onClose }: Ta
         </div>
       </div>
 
-      {/* 写真拡大表示オーバーレイ */}
+      {/* 写真拡大表示（モーダル内オーバーレイ） */}
       {expandedPhoto && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center p-4"
+          className="absolute inset-0 bg-black bg-opacity-95 z-20 flex flex-col items-center justify-center p-8 rounded-lg"
           onClick={() => setExpandedPhoto(null)}
         >
-          <div className="relative max-w-7xl max-h-full">
-            {/* 閉じるボタン */}
-            <button
-              onClick={() => setExpandedPhoto(null)}
-              className="absolute -top-12 right-0 text-white hover:text-gray-300 flex items-center gap-2"
-            >
-              <span className="text-sm">ESCキーまたはクリックで閉じる</span>
-              <X className="w-8 h-8" />
-            </button>
-            
-            {/* 写真ラベル */}
-            <div className="absolute -top-12 left-0 text-white text-lg font-medium">
+          {/* ヘッダー */}
+          <div className="w-full max-w-5xl flex items-center justify-between mb-4">
+            <div className="text-white text-lg font-medium">
               {expandedPhoto.label}
             </div>
+            <button
+              onClick={() => setExpandedPhoto(null)}
+              className="text-white hover:text-gray-300 flex items-center gap-2"
+            >
+              <span className="text-sm">ESCキーまたはクリックで閉じる</span>
+              <X className="w-6 h-6" />
+            </button>
+          </div>
 
-            {/* 拡大写真 */}
+          {/* 拡大写真 */}
+          <div className="flex-1 flex items-center justify-center w-full max-w-5xl">
             <img
               src={expandedPhoto.url}
               alt={expandedPhoto.label}
-              className="max-w-full max-h-[90vh] object-contain"
+              className="max-w-full max-h-full object-contain"
               onClick={(e) => e.stopPropagation()}
             />
           </div>
