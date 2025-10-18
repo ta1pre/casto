@@ -159,15 +159,17 @@ export function TalentProfileModal({ talentId, talentName, isOpen, onClose }: Ta
                         return (
                           <div key={index}>
                             <p className="text-sm text-gray-600 mb-2">{photoLabels[index] || `写真${index + 1}`}</p>
-                            <img 
-                              src={photoUrl} 
-                              alt={photoLabels[index] || `写真${index + 1}`}
-                              className="w-full h-64 object-cover rounded-lg border"
-                              onError={(e) => {
-                                console.error(`Failed to load image: ${photoUrl}`)
-                                e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3E画像エラー%3C/text%3E%3C/svg%3E'
-                              }}
-                            />
+                            <div className="w-full h-64 bg-gray-50 rounded-lg border flex items-center justify-center overflow-hidden">
+                              <img 
+                                src={photoUrl} 
+                                alt={photoLabels[index] || `写真${index + 1}`}
+                                className="max-w-full max-h-full object-contain"
+                                onError={(e) => {
+                                  console.error(`Failed to load image: ${photoUrl}`)
+                                  e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3E画像エラー%3C/text%3E%3C/svg%3E'
+                                }}
+                              />
+                            </div>
                           </div>
                         )
                       })}
