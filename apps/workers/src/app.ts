@@ -19,6 +19,7 @@ import organizerMainVisualRoutes from './features/organizer/auditions/mainVisual
 import organizerAreaRoutes from './features/organizer/areas/routes'
 import organizerApplicationRoutes from './features/organizer/applications/routes'
 import organizerTalentProfilesRoutes from './features/organizer/talents/profiles.routes'
+import organizerTalentPhotosRoutes from './features/organizer/talents/photos.routes'
 import talentAuditionRoutes from './features/talent/auditions/routes'
 import talentAuditionApplicationsRoutes from './features/talent/auditions/applications.routes'
 import talentApplicationRoutes from './features/talent/applications/routes'
@@ -70,6 +71,7 @@ export function createApp() {
   app.route('/api/v1/organizer/areas', organizerAreaRoutes)
   app.route('/api/v1/organizer', organizerApplicationRoutes)
   app.route('/api/v1/organizer/talents', organizerTalentProfilesRoutes)
+  app.route('/api/v1/organizer/talents/photos', organizerTalentPhotosRoutes)
   app.route('/api/v1/talent/auditions', talentAuditionRoutes)
   app.route('/api/v1/talent/audition-applications', talentAuditionApplicationsRoutes)
   app.route('/api/v1/talent/applications', talentApplicationRoutes)

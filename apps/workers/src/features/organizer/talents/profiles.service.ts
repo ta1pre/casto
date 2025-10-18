@@ -28,7 +28,13 @@ export async function getTalentProfile(
   }
 
   // photo_urls配列から写真URLを取得（index 0=顔写真, 1=全身写真）
+  // LIFF用のURLを主催者用のURLに変換
   const photoUrls = data.photo_urls || []
+  const convertToOrganizerUrl = (url: string | null) => {
+    if (!url) return null
+    // /api/v1/liff/profile/photos/view/{userId}/{index} -> /api/v1/organizer/talents/photos/{userId}/{index}
+    return url.replace('/api/v1/liff/profile/photos/view/', '/api/v1/organizer/talents/photos/')
+  }
   
   // snake_case から camelCase へ変換
   return {
@@ -51,8 +57,8 @@ export async function getTalentProfile(
     tiktok: data.tiktok,
     youtube: data.youtube,
     followers: data.followers,
-    photoFaceUrl: photoUrls[0] || null,  // 顔写真
-    photoFullBodyUrl: photoUrls[1] || null,  // 全身写真
+    photoFaceUrl: convertToOrganizerUrl(photoUrls[0]),  // 顔写真
+    photoFullBodyUrl: convertToOrganizerUrl(photoUrls[1]),  // 全身写真
     completionRate: data.completion_rate,
     completionSections: data.completion_sections,
     createdAt: data.created_at,
