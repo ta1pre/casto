@@ -243,11 +243,16 @@ organizerAuthRoutes.post('/auth/update-password', async (c) => {
   try {
     const body = await c.req.json<{ 
       accessToken: string
+      refreshToken?: string
       newPassword: string 
     }>()
     
     if (!body.accessToken || !body.newPassword) {
       return c.json({ error: 'Access token and new password are required' }, 400)
+    }
+
+    if (!body.refreshToken) {
+      return c.json({ error: 'Refresh token is required' }, 400)
     }
     
     // パスワードの強度チェック（最低8文字）
@@ -256,7 +261,7 @@ organizerAuthRoutes.post('/auth/update-password', async (c) => {
     }
     
     // パスワードを更新
-    await updatePassword(c, body.accessToken, body.newPassword)
+    await updatePassword(c, body.accessToken, body.refreshToken, body.newPassword)
     
     return c.json({
       success: true,

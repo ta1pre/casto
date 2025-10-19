@@ -8,12 +8,20 @@
 import { useState, useEffect, FormEvent, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
+type StoredResetToken = {
+  accessToken?: string
+  refreshToken?: string
+  tokenHash?: string
+  tokenType?: string
+}
+
 function ResetPasswordConfirmContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const TOKEN_STORAGE_KEY = 'organizer_reset_token'
 
   const [accessToken, setAccessToken] = useState<string | null>(null)
+  const [refreshToken, setRefreshToken] = useState<string | null>(null)
   const [tokenHash, setTokenHash] = useState<string | null>(null)
   const [tokenType, setTokenType] = useState<string | null>(null)
   const [password, setPassword] = useState('')
@@ -44,15 +52,14 @@ function ResetPasswordConfirmContent() {
 
     if (storedToken) {
       try {
-        const parsed = JSON.parse(storedToken) as {
-          accessToken?: string
-          tokenHash?: string
-          tokenType?: string
-        }
+        const parsed = JSON.parse(storedToken) as StoredResetToken
 
         if (parsed.accessToken) {
           console.log('[Organizer Reset] Restored access token from storage')
           setAccessToken(parsed.accessToken)
+          if (parsed.refreshToken) {
+            setRefreshToken(parsed.refreshToken)
+          }
           setInitialized(true)
           return
         }
@@ -61,6 +68,9 @@ function ResetPasswordConfirmContent() {
           console.log('[Organizer Reset] Restored token hash from storage')
           setTokenHash(parsed.tokenHash)
           setTokenType(parsed.tokenType)
+          if (parsed.refreshToken) {
+            setRefreshToken(parsed.refreshToken)
+          }
           setInitialized(true)
           return
         }
@@ -99,6 +109,7 @@ function ResetPasswordConfirmContent() {
     // PKCE Flowのトークン
     const queryToken = searchParams.get('access_token')
     // PKCE Flowのtoken_hash（verifyOtpで使用）
+    const refreshTokenParam = params.get('refresh_token') || searchParams.get('refresh_token')
     const tokenHashParam = searchParams.get('token_hash')
     const type = searchParams.get('type')
     
@@ -108,9 +119,12 @@ function ResetPasswordConfirmContent() {
       // Implicit Flow
       console.log('[Organizer Reset] Using Implicit Flow')
       setAccessToken(hashToken)
+      if (refreshTokenParam) {
+        setRefreshToken(refreshTokenParam)
+      }
       sessionStorage.setItem(
         TOKEN_STORAGE_KEY,
-        JSON.stringify({ accessToken: hashToken })
+        JSON.stringify({ accessToken: hashToken, refreshToken: refreshTokenParam ?? undefined })
       )
       // ハッシュをクリア（ブラウザの履歴に残さない）
       window.history.replaceState(null, '', window.location.pathname + window.location.search)
@@ -118,9 +132,12 @@ function ResetPasswordConfirmContent() {
       // PKCE Flow（クエリパラメータにaccess_token）
       console.log('[Organizer Reset] Using PKCE Flow (query access_token)')
       setAccessToken(queryToken)
+      if (refreshTokenParam) {
+        setRefreshToken(refreshTokenParam)
+      }
       sessionStorage.setItem(
         TOKEN_STORAGE_KEY,
-        JSON.stringify({ accessToken: queryToken })
+        JSON.stringify({ accessToken: queryToken, refreshToken: refreshTokenParam ?? undefined })
       )
     } else if (tokenHashParam && type === 'recovery') {
       // PKCE Flow（token_hashを保存するだけ、検証は後で）
@@ -165,17 +182,21 @@ function ResetPasswordConfirmContent() {
 
       console.log('[Organizer Reset] Verification successful, setting access token')
       setAccessToken(data.access_token)
+      if (data.refresh_token) {
+        setRefreshToken(data.refresh_token)
+      }
       setTokenHash(null) // 検証済みなのでクリア
       setTokenType(null)
       sessionStorage.setItem(
         TOKEN_STORAGE_KEY,
-        JSON.stringify({ accessToken: data.access_token })
+        JSON.stringify({ accessToken: data.access_token, refreshToken: data.refresh_token ?? undefined })
       )
       setError(null) // エラーを明示的にクリア
     } catch (err) {
       console.error('[Organizer Reset] Error during verification:', err)
       setError('リンクの有効期限が切れています。もう一度パスワードリセットを申請してください。')
       setAccessToken(null) // エラー時はaccessTokenをクリア
+      setRefreshToken(null)
       sessionStorage.removeItem(TOKEN_STORAGE_KEY)
     } finally {
       setIsVerifying(false)
@@ -204,7 +225,7 @@ function ResetPasswordConfirmContent() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     
-    if (!accessToken) {
+    if (!accessToken || !refreshToken) {
       setError('無効なリンクです')
       return
     }
@@ -224,6 +245,7 @@ function ResetPasswordConfirmContent() {
         },
         body: JSON.stringify({ 
           accessToken,
+          refreshToken,
           newPassword: password 
         }),
         credentials: 'include',
