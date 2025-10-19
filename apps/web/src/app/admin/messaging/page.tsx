@@ -7,6 +7,11 @@
 
 import { useState, useEffect } from 'react'
 import { useAdminAuth } from '../_hooks/useAdminAuth'
+import { FriendshipStats } from './_components/FriendshipStats'
+import { MessagingQuota } from './_components/MessagingQuota'
+import { BroadcastActions } from './_components/BroadcastActions'
+import { SendHistory } from './_components/SendHistory'
+import { UserFriendshipList } from './_components/UserFriendshipList'
 
 interface MessagingStats {
   monthlyQuota: number
@@ -14,6 +19,13 @@ interface MessagingStats {
   remaining: number
   exceeded: boolean
   percentage: number
+}
+
+interface FriendshipStatsData {
+  total: number
+  friends: number
+  blocked: number
+  unknown: number
 }
 
 interface SendHistory {
@@ -27,7 +39,8 @@ interface SendHistory {
 
 export default function MessagingPage() {
   const { user, isLoading: authLoading } = useAdminAuth()
-  const [stats, setStats] = useState<MessagingStats | null>(null)
+  const [messagingStats, setMessagingStats] = useState<MessagingStats | null>(null)
+  const [friendshipStats, setFriendshipStats] = useState<FriendshipStatsData | null>(null)
   const [history, setHistory] = useState<SendHistory[]>([])
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
@@ -41,8 +54,11 @@ export default function MessagingPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [statsRes, historyRes] = await Promise.all([
+      const [messagingRes, friendshipRes, historyRes] = await Promise.all([
         fetch('/api/v1/internal/messaging/stats', {
+          credentials: 'include'
+        }),
+        fetch('/api/v1/internal/messaging/friendship-stats', {
           credentials: 'include'
         }),
         fetch('/api/v1/internal/messaging/history?limit=10', {
@@ -50,14 +66,19 @@ export default function MessagingPage() {
         })
       ])
 
-      if (statsRes.ok) {
-        const statsData = await statsRes.json()
-        setStats(statsData)
+      if (messagingRes.ok) {
+        const data = await messagingRes.json()
+        setMessagingStats(data)
+      }
+
+      if (friendshipRes.ok) {
+        const data = await friendshipRes.json()
+        setFriendshipStats(data)
       }
 
       if (historyRes.ok) {
-        const historyData = await historyRes.json()
-        setHistory(historyData.logs || [])
+        const data = await historyRes.json()
+        setHistory(data.logs || [])
       }
     } catch (error) {
       console.error('Failed to fetch data:', error)
@@ -92,12 +113,12 @@ export default function MessagingPage() {
     }
   }
 
-  if (authLoading || loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-gray-600">読み込み中...</p>
+          <p className="text-gray-600">認証中...</p>
         </div>
       </div>
     )
@@ -105,104 +126,26 @@ export default function MessagingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">LINE配信管理</h1>
+      <div className="max-w-7xl mx-auto space-y-6">
+        <h1 className="text-3xl font-bold text-gray-900">LINE配信管理</h1>
+
+        {/* 友だち追加状態 */}
+        <FriendshipStats stats={friendshipStats} loading={loading} />
 
         {/* 無料枠モニター */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">無料枠残量</h2>
-          {stats && (
-            <div>
-              <div className="flex items-end gap-4 mb-4">
-                <div className="text-4xl font-bold text-blue-600">
-                  {stats.remaining}
-                </div>
-                <div className="text-gray-600 mb-1">/ {stats.monthlyQuota}通</div>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
-                <div
-                  className={`h-3 rounded-full transition-all ${
-                    stats.percentage >= 90 ? 'bg-red-500' : 
-                    stats.percentage >= 70 ? 'bg-yellow-500' : 'bg-blue-500'
-                  }`}
-                  style={{ width: `${Math.min(stats.percentage, 100)}%` }}
-                />
-              </div>
-              <p className="text-sm text-gray-500">
-                今月の使用量: {stats.sent}通 ({stats.percentage}%)
-                {stats.exceeded && (
-                  <span className="ml-2 text-red-600 font-medium">⚠️ 無料枠を超過しています</span>
-                )}
-              </p>
-            </div>
-          )}
-        </div>
+        <MessagingQuota stats={messagingStats} loading={loading} />
 
         {/* 配信アクション */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">配信アクション</h2>
-          <div className="space-y-3">
-            <button
-              onClick={handleSendWeeklySummary}
-              disabled={sending}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-            >
-              {sending ? '配信中...' : '📮 週次まとめを配信'}
-            </button>
-            <p className="text-sm text-gray-500">
-              ※ 過去7日間の新着オーディションを友だち追加済みユーザー全員に配信します
-            </p>
-          </div>
-        </div>
+        <BroadcastActions
+          sending={sending}
+          onSendWeeklySummary={handleSendWeeklySummary}
+        />
 
         {/* 送信履歴 */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold mb-4">送信履歴</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">送信日時</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">タイプ</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">対象数</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">成功</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">失敗</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {history.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
-                      送信履歴がありません
-                    </td>
-                  </tr>
-                ) : (
-                  history.map((log) => (
-                    <tr key={log.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(log.sent_at).toLocaleString('ja-JP')}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {log.message_type === 'weekly_summary' ? '週次まとめ' : 
-                         log.message_type === 'audition_announcement' ? 'オーディション告知' : 
-                         'カスタム'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {log.recipient_count}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">
-                        {log.success_count}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">
-                        {log.failed_count}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <SendHistory history={history} loading={loading} />
+
+        {/* ユーザー一覧 */}
+        <UserFriendshipList />
       </div>
     </div>
   )

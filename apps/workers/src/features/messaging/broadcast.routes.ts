@@ -14,7 +14,9 @@ import {
   sendAuditionAnnouncement,
   sendWeeklySummary,
   getMonthlyMessageCount,
-  checkFreeQuota
+  checkFreeQuota,
+  getFriendshipStats,
+  getUsersWithFriendship
 } from './broadcast.service'
 
 const router = new Hono<AppBindings>()
@@ -169,6 +171,68 @@ router.get('/history', async (c) => {
     })
   } catch (error) {
     console.error('[API] Error getting history:', error)
+    return c.json({
+      error: error instanceof Error ? error.message : 'Internal server error'
+    }, 500)
+  }
+})
+
+/**
+ * 友だち追加状態の統計
+ * 
+ * @route GET /api/v1/internal/messaging/friendship-stats
+ * @access Admin only
+ */
+router.get('/friendship-stats', async (c) => {
+  try {
+    // 管理者認証チェック
+    const user = c.get('user')
+    if (!user || !user.roles.includes('admin')) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const supabase = createSupabaseClient(c)
+    const stats = await getFriendshipStats(supabase)
+
+    return c.json(stats)
+  } catch (error) {
+    console.error('[API] Error getting friendship stats:', error)
+    return c.json({
+      error: error instanceof Error ? error.message : 'Internal server error'
+    }, 500)
+  }
+})
+
+/**
+ * ユーザー一覧（友だち状態付き）
+ * 
+ * @route GET /api/v1/internal/messaging/users
+ * @access Admin only
+ */
+router.get('/users', async (c) => {
+  try {
+    // 管理者認証チェック
+    const user = c.get('user')
+    if (!user || !user.roles.includes('admin')) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const supabase = createSupabaseClient(c)
+    
+    // クエリパラメータ
+    const status = c.req.query('status') as 'friends' | 'blocked' | 'unknown' | 'all' | undefined
+    const limit = Number(c.req.query('limit')) || 20
+    const offset = Number(c.req.query('offset')) || 0
+
+    const result = await getUsersWithFriendship(supabase, {
+      status,
+      limit,
+      offset
+    })
+
+    return c.json(result)
+  } catch (error) {
+    console.error('[API] Error getting users:', error)
     return c.json({
       error: error instanceof Error ? error.message : 'Internal server error'
     }, 500)
