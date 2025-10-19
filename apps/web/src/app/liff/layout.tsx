@@ -2,10 +2,12 @@
 
 import React, { useEffect, Suspense } from 'react'
 import { LiffLayout as LiffLayoutWrapper } from './_components/LiffLayout'
+import { AuthProvider } from '@/shared/providers/AuthProvider'
 
 /**
  * LIFF Root Layout [SF][REH]
  * LIFF SDK の読み込みと基本構造を提供
+ * AuthProvider: LINE認証が必要な/liff配下のみに適用
  * 
  * Suspenseでラップ: LiffLayoutWrapper内でuseSearchParams()を使用するため、
  * Next.js 15の要件に従いSuspenseバウンダリーが必要
@@ -28,20 +30,22 @@ export default function LiffRootLayout({ children }: { children: React.ReactNode
       {/* LIFF SDK preload（事前読み込みで高速化）[PA] */}
       <link rel="preload" href="https://static.line-scdn.net/liff/edge/2/sdk.js" as="script" />
       
-      <Suspense fallback={
-        <div className="flex min-h-screen items-center justify-center bg-background">
-          <div className="text-center">
-            <div className="mb-4 text-lg font-medium">読み込み中...</div>
-            <div className="text-sm text-muted-foreground">
-              LINEミニアプリを初期化しています
+      <AuthProvider>
+        <Suspense fallback={
+          <div className="flex min-h-screen items-center justify-center bg-background">
+            <div className="text-center">
+              <div className="mb-4 text-lg font-medium">読み込み中...</div>
+              <div className="text-sm text-muted-foreground">
+                LINEミニアプリを初期化しています
+              </div>
             </div>
           </div>
-        </div>
-      }>
-        <LiffLayoutWrapper>
-          {children}
-        </LiffLayoutWrapper>
-      </Suspense>
+        }>
+          <LiffLayoutWrapper>
+            {children}
+          </LiffLayoutWrapper>
+        </Suspense>
+      </AuthProvider>
     </>
   )
 }

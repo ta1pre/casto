@@ -1,7 +1,6 @@
 import React from 'react'
 import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider } from "@/shared/providers/AuthProvider";
 
 export const metadata: Metadata = {
   title: "casto",
@@ -16,9 +15,7 @@ export default function RootLayout({
   return (
     <html lang="ja" suppressHydrationWarning>
       <body className="antialiased">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        {children}
       </body>
     </html>
   );
