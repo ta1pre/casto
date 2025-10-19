@@ -25,6 +25,9 @@ export default function LiffRootLayout({ children }: { children: React.ReactNode
 
   return (
     <>
+      {/* LIFF SDK preload（事前読み込みで高速化）[PA] */}
+      <link rel="preload" href="https://static.line-scdn.net/liff/edge/2/sdk.js" as="script" crossOrigin="anonymous" />
+      
       <Suspense fallback={
         <div className="flex min-h-screen items-center justify-center bg-background">
           <div className="text-center">

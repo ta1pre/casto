@@ -5,7 +5,6 @@ import React, {
   useState,
   useEffect,
   useCallback,
-  useRef,
   type ReactNode
 } from 'react'
 import type { AuthContextType, User, AuthRole } from '../types/auth'
@@ -95,7 +94,6 @@ const mapUser = (input: UserResponse | null | undefined): User | null => {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const initializingRef = useRef(false)
 
   const refreshSession = useCallback(async (): Promise<User | null> => {
     try {
@@ -119,43 +117,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
-  // LIFF初期化 + 認証（1回だけ実行）[SF][PA][REH]
+  // LIFF初期化 + 認証（1回だけ実行、並行処理で高速化）[SF][PA][REH]
   useEffect(() => {
-    if (initializingRef.current) {
-      console.log('[AuthProvider] Already initializing, skipping')
+    if (globalLiffInitialized) {
+      console.log('[AuthProvider] Already initialized, skipping')
       return
     }
     
-    initializingRef.current = true
+    globalLiffInitialized = true
     
     const initialize = async () => {
       try {
-        console.log('[AuthProvider] Starting initialization...')
+        console.log('[AuthProvider] Starting parallel initialization...')
         
-        // 1. LIFF SDK初期化（グローバルフラグでチェック）
-        if (!globalLiffInitialized) {
-          await initializeLiff()
-          globalLiffInitialized = true
-        }
+        // 1. LIFF初期化とセッション取得を並行実行（高速化）[PA]
+        const [liffResult] = await Promise.allSettled([
+          initializeLiff(),
+          refreshSession()
+        ])
         
-        // 2. LINEログイン済みならトークン検証（期限チェック付き）[SF][PA]
-        if (typeof window !== 'undefined' && window.liff?.isLoggedIn?.()) {
+        // 2. LIFF初期化成功 & LINEログイン済みならトークン検証
+        if (liffResult.status === 'fulfilled' && window.liff?.isLoggedIn?.()) {
           const idToken = window.liff?.getIDToken?.()
-          if (idToken) {
-            // トークン期限を事前チェック（無駄な401リクエスト排除）[PA]
-            if (isTokenValid(idToken)) {
-              console.log('[AuthProvider] LINE token valid, authenticating...')
-              await loginWithLine(idToken)
-              console.log('[AuthProvider] LINE authentication complete')
-              return
-            } else {
-              console.log('[AuthProvider] LINE token expired, skipping to session check')
-            }
+          if (idToken && isTokenValid(idToken)) {
+            console.log('[AuthProvider] LINE token valid, authenticating...')
+            await loginWithLine(idToken)
+            console.log('[AuthProvider] LINE authentication complete')
+            return
           }
         }
         
-        // 3. セッションチェック（LINEログインしていない場合 or トークン期限切れ）
-        await refreshSession()
         console.log('[AuthProvider] Initialization complete')
       } catch (error) {
         console.error('[AuthProvider] Initialization failed:', error)
