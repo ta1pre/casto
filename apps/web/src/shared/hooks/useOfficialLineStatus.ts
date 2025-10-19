@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLiffAuth } from './useLiffAuth'
 
 /**
@@ -26,8 +26,8 @@ export function useOfficialLineStatus(): UseOfficialLineStatusReturn {
   const [error, setError] = useState<string | null>(null)
   const [lastCheckedAt, setLastCheckedAt] = useState<number | null>(null)
 
-  // 友だち追加状態取得ロジック
-  const fetchFriendship = async () => {
+  // 友だち追加状態取得ロジック（useCallbackでメモ化）[PA]
+  const fetchFriendship = useCallback(async () => {
     // LIFF未初期化の場合はスキップ
     if (!isLiffReady || typeof window === 'undefined' || !window.liff) {
       setIsFriend(null)
@@ -54,28 +54,29 @@ export function useOfficialLineStatus(): UseOfficialLineStatusReturn {
       if (process.env.NODE_ENV === 'development') {
         console.log('[useOfficialLineStatus] Friendship status:', friendship.friendFlag)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // API未許可（403）: 認証審査前などで取得できない場合
-      if (err.code === 403 || err.message?.includes('403')) {
+      const error = err as { code?: number; message?: string }
+      if (error.code === 403 || error.message?.includes('403')) {
         console.warn('[useOfficialLineStatus] Friendship API not permitted (403). This is expected for unapproved apps.')
         setIsFriend(null) // 不明として扱う
       } else {
         // その他のエラー
         console.error('[useOfficialLineStatus] Error fetching friendship:', err)
-        setError(err.message || 'Unknown error')
+        setError(error.message || 'Unknown error')
         setIsFriend(null)
       }
     } finally {
       setLoading(false)
     }
-  }
+  }, [isLiffReady])
 
   // LIFF準備完了後に友だち追加状態を取得
   useEffect(() => {
     if (isLiffReady) {
       fetchFriendship()
     }
-  }, [isLiffReady])
+  }, [isLiffReady, fetchFriendship])
 
   return {
     isFriend,
