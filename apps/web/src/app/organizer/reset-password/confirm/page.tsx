@@ -31,11 +31,32 @@ function ResetPasswordConfirmContent() {
       
       const hash = window.location.hash.substring(1) // # を除去
       const params = new URLSearchParams(hash)
+      
+      // エラーチェック
+      const error = params.get('error')
+      const errorCode = params.get('error_code')
+      const errorDescription = params.get('error_description')
+      
+      if (error) {
+        if (errorCode === 'otp_expired') {
+          setError('リンクの有効期限が切れています。パスワードリセットメールは1時間で無効になります。もう一度申請してください。')
+        } else {
+          setError(errorDescription ? decodeURIComponent(errorDescription) : '無効なリンクです。もう一度パスワードリセットを申請してください。')
+        }
+        return null
+      }
+      
       return params.get('access_token')
     }
 
     // Implicit Flowのトークン
     const hashToken = getTokenFromHash()
+    
+    // エラーが設定されている場合は処理を中断
+    if (error) {
+      return
+    }
+    
     // PKCE Flowのトークン
     const queryToken = searchParams.get('access_token')
     // PKCE Flowのtoken_hash（verifyOtpで使用）
@@ -56,7 +77,7 @@ function ResetPasswordConfirmContent() {
     } else {
       setError('無効なリンクです。もう一度パスワードリセットを申請してください。')
     }
-  }, [searchParams])
+  }, [searchParams, error])
 
   const verifyTokenHash = async (tokenHash: string, type: string) => {
     try {
