@@ -20,12 +20,18 @@ const PUBLIC_PATHS = ['/organizer/login', '/organizer/signup', '/organizer/forgo
 export function OrganizerLayout({ children }: OrganizerLayoutProps) {
   const pathname = usePathname()
   const isPublicPath = PUBLIC_PATHS.some(path => pathname.startsWith(path))
-  const { user, isLoading, logout } = useOrganizerAuth()
 
-  // 認証不要なページはそのまま表示
+  // 認証不要なページはそのまま表示（認証フックを呼ばない）
   if (isPublicPath) {
     return <div className="min-h-screen bg-gray-50">{children}</div>
   }
+
+  // 認証が必要なページのみ認証フックを使用
+  return <AuthenticatedLayout>{children}</AuthenticatedLayout>
+}
+
+function AuthenticatedLayout({ children }: { children: ReactNode }) {
+  const { user, isLoading, logout } = useOrganizerAuth()
 
   // 認証チェック中、または認証されていない場合はローディング表示
   if (isLoading || !user) {
