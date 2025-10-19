@@ -118,7 +118,7 @@ export default function LiffHomePage() {
                 オーディションの通知や最新情報を受け取るために、公式LINEへの参加をお勧めします
               </p>
               <a
-                href="https://lin.ee/586kihzi"
+                href={process.env.NEXT_PUBLIC_LINE_OFFICIAL_ACCOUNT_URL || "https://lin.ee/586kihzi"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-[#06C755] text-white px-4 py-2 rounded-md hover:bg-[#05B34A] transition-colors text-sm font-medium"
