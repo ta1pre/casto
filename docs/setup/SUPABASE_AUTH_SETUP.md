@@ -4,6 +4,20 @@
 
 ### 1. URL Configuration
 
+**方法1: Supabase CLI（推奨）**
+
+`supabase/config.toml`を編集してリモートにプッシュ:
+
+```bash
+# supabase/config.toml の [auth] セクションを編集
+# その後、以下のコマンドで設定を反映
+supabase config push --project-ref sfscmpjplvxtikmifqhe
+```
+
+設定内容は `supabase/config.toml` の `[auth]` セクションを参照。
+
+**方法2: Supabase Dashboard**
+
 **Supabase Dashboard → Authentication → URL Configuration**
 
 #### Site URL

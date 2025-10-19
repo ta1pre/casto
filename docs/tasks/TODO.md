@@ -402,11 +402,17 @@
 - [x] `types/lineMessaging.ts` - LINE API型定義
 - [x] `lib/line-messaging.ts` - プッシュ/マルチキャスト送信
 
-**LINE Developers設定** 🔄
-- [ ] **Webhook URL設定（要対応）**
+**LINE Developers設定** ✅
+- [x] **Webhook URL設定完了**
   - URL: `https://casto-workers-dev.casto-api.workers.dev/api/v1/webhook/line`
   - Webhook有効化
-- [ ] Webhook再送信機能有効化
+- [x] Webhook再送信機能有効化
+
+**動作確認** 🔄
+- [ ] 友だち追加 → `line_friendship_status = true` に更新されるか確認
+- [ ] ブロック → `line_friendship_status = false` に更新されるか確認
+- [ ] `/admin/messaging` 画面表示確認
+- [ ] 週次まとめ配信テスト
 
 #### Phase 3: Messaging API活用 ✅ 実装完了（2025-10-19）
 
