@@ -15,6 +15,7 @@ import {
 } from './service'
 import { createJWT, setAuthCookie } from '../../../lib/auth'
 import { verifyOrganizerAuth } from '../../../middleware/verifyRoleAuth'
+import { createSupabaseClient } from '../../../lib/supabase'
 
 const organizerAuthRoutes = new Hono<AppBindings>()
 
@@ -186,6 +187,51 @@ organizerAuthRoutes.post('/auth/reset-password', async (c) => {
       success: true,
       message: 'If the email exists, a password reset link has been sent.',
     })
+  }
+})
+
+/**
+ * OTP/トークンハッシュ検証（PKCE Flow用）
+ * POST /api/v1/organizer/auth/verify-otp
+ */
+organizerAuthRoutes.post('/auth/verify-otp', async (c) => {
+  try {
+    const body = await c.req.json<{ 
+      token_hash: string
+      type: string 
+    }>()
+    
+    if (!body.token_hash || !body.type) {
+      return c.json({ error: 'Token hash and type are required' }, 400)
+    }
+    
+    const supabase = createSupabaseClient(c)
+    
+    // verifyOtpでtoken_hashを検証
+    const { data, error } = await supabase.auth.verifyOtp({
+      token_hash: body.token_hash,
+      type: body.type as any,
+    })
+    
+    if (error || !data.session) {
+      console.error('[Organizer Auth] OTP verification failed:', error)
+      return c.json({ error: 'Invalid or expired token' }, 400)
+    }
+    
+    return c.json({
+      success: true,
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+    })
+  } catch (error) {
+    console.error('[Organizer Auth] OTP verification error:', error)
+    return c.json(
+      {
+        error: 'OTP verification failed',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      400
+    )
   }
 })
 

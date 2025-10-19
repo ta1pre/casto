@@ -22,7 +22,10 @@ function ResetPasswordConfirmContent() {
 
   useEffect(() => {
     // URLからアクセストークンを取得
-    // Supabaseはハッシュフラグメント（#の後）にパラメータを含める
+    // Supabaseは2つのフローをサポート:
+    // 1. Implicit Flow: ハッシュフラグメント（#access_token=...）
+    // 2. PKCE Flow: クエリパラメータ（?token_hash=...&type=recovery）
+    
     const getTokenFromHash = () => {
       if (typeof window === 'undefined') return null
       
@@ -31,18 +34,52 @@ function ResetPasswordConfirmContent() {
       return params.get('access_token')
     }
 
-    const token = getTokenFromHash() || searchParams.get('access_token')
+    // Implicit Flowのトークン
+    const hashToken = getTokenFromHash()
+    // PKCE Flowのトークン
+    const queryToken = searchParams.get('access_token')
+    // PKCE Flowのtoken_hash（verifyOtpで使用）
+    const tokenHash = searchParams.get('token_hash')
+    const type = searchParams.get('type')
     
-    if (!token) {
-      setError('無効なリンクです。もう一度パスワードリセットを申請してください。')
-    } else {
-      setAccessToken(token)
+    if (hashToken) {
+      // Implicit Flow
+      setAccessToken(hashToken)
       // ハッシュをクリア（ブラウザの履歴に残さない）
-      if (window.location.hash) {
-        window.history.replaceState(null, '', window.location.pathname + window.location.search)
-      }
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    } else if (queryToken) {
+      // PKCE Flow（クエリパラメータにaccess_token）
+      setAccessToken(queryToken)
+    } else if (tokenHash && type === 'recovery') {
+      // PKCE Flow（token_hashを使用してverifyOtp）
+      verifyTokenHash(tokenHash, type)
+    } else {
+      setError('無効なリンクです。もう一度パスワードリセットを申請してください。')
     }
   }, [searchParams])
+
+  const verifyTokenHash = async (tokenHash: string, type: string) => {
+    try {
+      const response = await fetch('/api/v1/admin/auth/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token_hash: tokenHash, type }),
+        credentials: 'include',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || !data.access_token) {
+        throw new Error('トークンの検証に失敗しました')
+      }
+
+      setAccessToken(data.access_token)
+    } catch (err) {
+      setError('無効なリンクです。もう一度パスワードリセットを申請してください。')
+    }
+  }
 
   const validatePassword = (pwd: string, confirm: string) => {
     if (pwd.length < 8) {
