@@ -22,6 +22,7 @@ function ResetPasswordConfirmContent() {
   const [error, setError] = useState<string | null>(null)
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
     // URLからアクセストークンを取得
@@ -30,6 +31,17 @@ function ResetPasswordConfirmContent() {
     // 2. PKCE Flow: クエリパラメータ（?token_hash=...&type=recovery）
     
     if (typeof window === 'undefined') return
+    
+    // 既に初期化済みの場合はスキップ
+    if (initialized) {
+      console.log('[Organizer Reset] Already initialized, skipping URL parsing')
+      return
+    }
+    
+    console.log('[Organizer Reset] Page loaded, checking URL params')
+    console.log('[Organizer Reset] Full URL:', window.location.href)
+    console.log('[Organizer Reset] Hash:', window.location.hash)
+    console.log('[Organizer Reset] Search:', window.location.search)
     
     const hash = window.location.hash.substring(1) // # を除去
     const params = new URLSearchParams(hash)
@@ -40,6 +52,7 @@ function ResetPasswordConfirmContent() {
     const errorDescription = params.get('error_description')
     
     if (errorParam) {
+      console.log('[Organizer Reset] Error in URL:', { errorParam, errorCode, errorDescription })
       if (errorCode === 'otp_expired') {
         setError('リンクの有効期限が切れています。パスワードリセットメールは1時間で無効になります。もう一度申請してください。')
       } else {
@@ -54,31 +67,41 @@ function ResetPasswordConfirmContent() {
     // PKCE Flowのトークン
     const queryToken = searchParams.get('access_token')
     // PKCE Flowのtoken_hash（verifyOtpで使用）
-    const tokenHash = searchParams.get('token_hash')
+    const tokenHashParam = searchParams.get('token_hash')
     const type = searchParams.get('type')
+    
+    console.log('[Organizer Reset] Extracted params:', { hashToken: !!hashToken, queryToken: !!queryToken, tokenHash: !!tokenHashParam, type })
     
     if (hashToken) {
       // Implicit Flow
+      console.log('[Organizer Reset] Using Implicit Flow')
       setAccessToken(hashToken)
       // ハッシュをクリア（ブラウザの履歴に残さない）
       window.history.replaceState(null, '', window.location.pathname + window.location.search)
     } else if (queryToken) {
       // PKCE Flow（クエリパラメータにaccess_token）
+      console.log('[Organizer Reset] Using PKCE Flow (query access_token)')
       setAccessToken(queryToken)
-    } else if (tokenHash && type === 'recovery') {
+    } else if (tokenHashParam && type === 'recovery') {
       // PKCE Flow（token_hashを保存するだけ、検証は後で）
       // Gmail/Chromeの先読みでトークンが消費されないよう、ユーザーのクリックまで待つ
-      setTokenHash(tokenHash)
+      console.log('[Organizer Reset] Using PKCE Flow (token_hash), waiting for user click')
+      setTokenHash(tokenHashParam)
       setTokenType(type)
     } else {
+      console.error('[Organizer Reset] No valid token found')
       setError('無効なリンクです。もう一度パスワードリセットを申請してください。')
     }
-  }, [searchParams])
+    
+    // 初期化完了
+    setInitialized(true)
+  }, [searchParams, initialized])
 
   const verifyTokenHash = async (hash: string, type: string) => {
     setIsVerifying(true)
     setError(null)
     try {
+      console.log('[Organizer Reset] Verifying token hash...')
       const response = await fetch('/api/v1/organizer/auth/verify-otp', {
         method: 'POST',
         headers: {
@@ -89,16 +112,22 @@ function ResetPasswordConfirmContent() {
       })
 
       const data = await response.json()
+      console.log('[Organizer Reset] Verify response:', { status: response.status, data })
 
       if (!response.ok || !data.access_token) {
+        console.error('[Organizer Reset] Verification failed:', data)
         throw new Error('トークンの検証に失敗しました')
       }
 
+      console.log('[Organizer Reset] Verification successful, setting access token')
       setAccessToken(data.access_token)
       setTokenHash(null) // 検証済みなのでクリア
       setTokenType(null)
+      setError(null) // エラーを明示的にクリア
     } catch (err) {
+      console.error('[Organizer Reset] Error during verification:', err)
       setError('リンクの有効期限が切れています。もう一度パスワードリセットを申請してください。')
+      setAccessToken(null) // エラー時はaccessTokenをクリア
     } finally {
       setIsVerifying(false)
     }
@@ -323,9 +352,9 @@ function ResetPasswordConfirmContent() {
           </div>
 
           {/* エラー表示 */}
-          {error && (
+          {passwordError && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{error}</p>
+              <p className="text-sm text-red-600">{passwordError}</p>
             </div>
           )}
 
