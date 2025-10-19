@@ -153,7 +153,7 @@ organizerAuthRoutes.get('/auth/session', verifyOrganizerAuth, async (c) => {
  */
 organizerAuthRoutes.post('/auth/reset-password', async (c) => {
   try {
-    const body = await c.req.json<{ email: string }>()
+    const body = await c.req.json<{ email: string; redirectTo?: string }>()
     
     if (!body.email) {
       return c.json({ error: 'Email is required' }, 400)
@@ -167,10 +167,12 @@ organizerAuthRoutes.post('/auth/reset-password', async (c) => {
     
     // パスワードリセットメールを送信
     const webUrl = c.env.WEB_URL || 'http://localhost:3000'
+    const redirectUrl = body.redirectTo || `${webUrl}/organizer/reset-password/confirm`
+    
     await sendPasswordResetEmail(
       c, 
       body.email, 
-      `${webUrl}/organizer/reset-password/confirm`
+      redirectUrl
     )
     
     return c.json({

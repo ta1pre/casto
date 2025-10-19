@@ -21,12 +21,18 @@ export default function OrganizerForgotPasswordPage() {
     setError(null)
 
     try {
+      // リダイレクト先URLを指定
+      const redirectTo = `${window.location.origin}/organizer/reset-password/confirm`
+      
       const response = await fetch('/api/v1/organizer/auth/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ 
+          email,
+          redirectTo 
+        }),
         credentials: 'include',
       })
 

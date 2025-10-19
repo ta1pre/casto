@@ -21,12 +21,18 @@ export default function AdminForgotPasswordPage() {
     setError(null)
 
     try {
+      // リダイレクト先URLを指定
+      const redirectTo = `${window.location.origin}/admin/reset-password/confirm`
+      
       const response = await fetch('/api/v1/admin/auth/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ 
+          email,
+          redirectTo 
+        }),
         credentials: 'include',
       })
 

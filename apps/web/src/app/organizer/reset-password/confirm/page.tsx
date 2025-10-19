@@ -22,11 +22,25 @@ function ResetPasswordConfirmContent() {
 
   useEffect(() => {
     // URLからアクセストークンを取得
-    const token = searchParams.get('access_token')
+    // Supabaseはハッシュフラグメント（#の後）にパラメータを含める
+    const getTokenFromHash = () => {
+      if (typeof window === 'undefined') return null
+      
+      const hash = window.location.hash.substring(1) // # を除去
+      const params = new URLSearchParams(hash)
+      return params.get('access_token')
+    }
+
+    const token = getTokenFromHash() || searchParams.get('access_token')
+    
     if (!token) {
       setError('無効なリンクです。もう一度パスワードリセットを申請してください。')
     } else {
       setAccessToken(token)
+      // ハッシュをクリア（ブラウザの履歴に残さない）
+      if (window.location.hash) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+      }
     }
   }, [searchParams])
 
