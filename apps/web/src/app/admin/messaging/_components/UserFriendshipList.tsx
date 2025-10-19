@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { LineMessageModal } from './LineMessageModal'
 
 interface User {
   id: string
@@ -35,6 +36,7 @@ export function UserFriendshipList({ initialUsers = [], initialTotal = 0 }: User
   const [filter, setFilter] = useState<FilterStatus>('all')
   const [page, setPage] = useState(0)
   const limit = 20
+  const [selectedUser, setSelectedUser] = useState<{ id: string; name: string; lineUserId: string } | null>(null)
 
   useEffect(() => {
     fetchUsers()
@@ -231,6 +233,11 @@ export function UserFriendshipList({ initialUsers = [], initialTotal = 0 }: User
                           {user.line_friendship_status === true && user.line_user_id ? (
                             <button
                               type="button"
+                              onClick={() => setSelectedUser({
+                                id: user.id,
+                                name: getDisplayName(user),
+                                lineUserId: user.line_user_id!
+                              })}
                               className="inline-flex items-center rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1"
                             >
                               LINE送信
@@ -284,6 +291,18 @@ export function UserFriendshipList({ initialUsers = [], initialTotal = 0 }: User
             </div>
           )}
         </>
+      )}
+
+      {/* LINE送信モーダル */}
+      {selectedUser && (
+        <LineMessageModal
+          isOpen={!!selectedUser}
+          onClose={() => setSelectedUser(null)}
+          recipient={selectedUser}
+          onSendSuccess={() => {
+            fetchUsers()
+          }}
+        />
       )}
     </div>
   )

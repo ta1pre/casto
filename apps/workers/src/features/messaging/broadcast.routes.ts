@@ -18,6 +18,8 @@ import {
   getFriendshipStats,
   getUsersWithFriendship
 } from './broadcast.service'
+import type { LineTextMessage } from '../../types/lineMessaging'
+import { sendPushMessage } from '../../lib/line-messaging'
 
 const router = new Hono<AppBindings>()
 
@@ -233,6 +235,65 @@ router.get('/users', async (c) => {
     return c.json(result)
   } catch (error) {
     console.error('[API] Error getting users:', error)
+    return c.json({
+      error: error instanceof Error ? error.message : 'Internal server error'
+    }, 500)
+  }
+})
+
+/**
+ * 個別メッセージ送信
+ * 
+ * @route POST /api/v1/internal/messaging/send-direct
+ * @access Admin only
+ */
+router.post('/send-direct', async (c) => {
+  try {
+    // 管理者認証チェック
+    const user = c.get('user')
+    if (!user || !user.roles.includes('admin')) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const { lineUserId, message } = await c.req.json<{
+      lineUserId: string
+      message: string
+    }>()
+
+    if (!lineUserId || !message) {
+      return c.json({ error: 'lineUserId and message are required' }, 400)
+    }
+
+    if (message.length > 500) {
+      return c.json({ error: 'Message must be 500 characters or less' }, 400)
+    }
+
+    // LINE Messaging APIで送信
+    const textMessage: LineTextMessage = {
+      type: 'text',
+      text: message
+    }
+    
+    await sendPushMessage(
+      lineUserId,
+      [textMessage],
+      c.env
+    )
+
+    // 送信ログを記録
+    const supabase = createSupabaseClient(c)
+    await supabase.from('messaging_logs').insert({
+      message_type: 'direct_message',
+      recipient_count: 1,
+      success_count: 1,
+      failed_count: 0,
+      sent_by: user.id,
+      sent_at: new Date().toISOString()
+    })
+
+    return c.json({ success: true })
+  } catch (error) {
+    console.error('[API] Error sending direct message:', error)
     return c.json({
       error: error instanceof Error ? error.message : 'Internal server error'
     }, 500)
