@@ -11,9 +11,13 @@
 import { Hono } from 'hono'
 import type { AppBindings } from '../../../types'
 import { createSupabaseClient } from '../../../lib/supabase'
+import { verifyAdminAuth } from '../../../middleware/verifyRoleAuth'
 import { getAuditions, getAuditionDetail } from './service'
 
 const router = new Hono<AppBindings>()
+
+// 全ルートに管理者認証を適用
+router.use('/*', verifyAdminAuth)
 
 /**
  * オーディション一覧取得
@@ -23,12 +27,6 @@ const router = new Hono<AppBindings>()
  */
 router.get('/', async (c) => {
   try {
-    // 管理者認証チェック
-    const user = c.get('user')
-    if (!user || !user.roles.includes('admin')) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
-
     const status = c.req.query('status')
     const limit = Number(c.req.query('limit')) || 50
     const offset = Number(c.req.query('offset')) || 0
@@ -65,12 +63,6 @@ router.get('/', async (c) => {
  */
 router.get('/:id', async (c) => {
   try {
-    // 管理者認証チェック
-    const user = c.get('user')
-    if (!user || !user.roles.includes('admin')) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
-
     const auditionId = c.req.param('id')
 
     const supabase = createSupabaseClient(c)

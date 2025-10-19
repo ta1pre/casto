@@ -10,9 +10,13 @@
 import { Hono } from 'hono'
 import type { AppBindings } from '../../../types'
 import { createSupabaseClient } from '../../../lib/supabase'
+import { verifyAdminAuth } from '../../../middleware/verifyRoleAuth'
 import { getOverviewStats, getRecentActivities } from './service'
 
 const router = new Hono<AppBindings>()
+
+// 全ルートに管理者認証を適用
+router.use('/*', verifyAdminAuth)
 
 /**
  * ダッシュボード統計値取得
@@ -22,12 +26,6 @@ const router = new Hono<AppBindings>()
  */
 router.get('/overview', async (c) => {
   try {
-    // 管理者認証チェック
-    const user = c.get('user')
-    if (!user || !user.roles.includes('admin')) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
-
     const supabase = createSupabaseClient(c)
     const stats = await getOverviewStats(supabase)
 
@@ -56,12 +54,6 @@ router.get('/overview', async (c) => {
  */
 router.get('/recent-activities', async (c) => {
   try {
-    // 管理者認証チェック
-    const user = c.get('user')
-    if (!user || !user.roles.includes('admin')) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
-
     const limit = Number(c.req.query('limit')) || 10
 
     const supabase = createSupabaseClient(c)

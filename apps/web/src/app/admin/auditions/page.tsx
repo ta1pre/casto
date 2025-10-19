@@ -50,9 +50,14 @@ export default function AuditionsPage() {
       if (res.ok) {
         const data = await res.json()
         setAuditions(data.auditions || [])
+      } else {
+        const error = await res.json()
+        console.error('API Error:', error)
+        alert(`データ取得エラー: ${error.error || 'Unknown error'}`)
       }
     } catch (error) {
       console.error('Failed to fetch auditions:', error)
+      alert('オーディション一覧の取得に失敗しました')
     } finally {
       setLoading(false)
     }
