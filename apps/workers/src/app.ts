@@ -8,6 +8,7 @@ import authRoutes from './features/auth/routes'
 import profileRoutes from './features/liff/profile/routes'
 import photosRoutes from './features/liff/profile/photos.routes'
 import adminAuthRoutes from './features/admin/auth/routes'
+import adminStatsRoutes from './features/admin/stats/routes'
 import organizerAuthRoutes from './features/organizer/auth/routes'
 import organizerProfileRoutes from './features/organizer/profile/routes'
 import organizerAuditionRoutes from './features/organizer/auditions/routes'
@@ -64,7 +65,8 @@ export function createApp() {
   app.route('/api/v1', usersRoutes)
   app.route('/api/v1/liff/profile', profileRoutes)
   app.route('/api/v1/liff/profile/photos', photosRoutes)
-  app.route('/api/v1/admin', adminAuthRoutes)
+  app.route('/api/v1/admin/auth', adminAuthRoutes)
+  app.route('/api/v1/admin/stats', adminStatsRoutes)
   app.route('/api/v1/organizer', organizerAuthRoutes)
   app.route('/api/v1/organizer', organizerProfileRoutes)
   app.route('/api/v1/organizer/auditions', organizerAuditionRoutes)
