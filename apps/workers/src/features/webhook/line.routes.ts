@@ -39,9 +39,9 @@ router.post('/', async (c) => {
       return c.json({ error: 'Signature verification failed' }, 401)
     }
 
-    const channelSecret = env.LINE_CHANNEL_SECRET
+    const channelSecret = env.LINE_MESSAGING_CHANNEL_SECRET
     if (!channelSecret) {
-      console.error('[Webhook] LINE_CHANNEL_SECRET not configured')
+      console.error('[Webhook] LINE_MESSAGING_CHANNEL_SECRET not configured')
       return c.json({ error: 'Server configuration error' }, 500)
     }
 
