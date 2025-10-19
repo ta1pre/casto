@@ -253,7 +253,22 @@ function ResetPasswordConfirmContent() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'パスワードの更新に失敗しました')
+        // Supabaseのエラーメッセージを日本語化
+        let errorMessage = 'パスワードの更新に失敗しました'
+        
+        if (data.details) {
+          if (data.details.includes('New password should be different from the old password')) {
+            errorMessage = '新しいパスワードは現在のパスワードと異なるものを設定してください'
+          } else if (data.details.includes('Password must be at least')) {
+            errorMessage = 'パスワードは8文字以上で入力してください'
+          } else {
+            errorMessage = data.details
+          }
+        } else if (data.error) {
+          errorMessage = data.error
+        }
+        
+        throw new Error(errorMessage)
       }
 
       setSuccess(true)
@@ -263,7 +278,8 @@ function ResetPasswordConfirmContent() {
         router.push('/admin/login')
       }, 3000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'パスワードの更新に失敗しました')
+      console.error('[Admin Reset] Password update error:', err)
+      setPasswordError(err instanceof Error ? err.message : 'パスワードの更新に失敗しました')
     } finally {
       setIsLoading(false)
     }

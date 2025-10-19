@@ -77,7 +77,7 @@ https://casto.io/organizer/reset-password/confirm
 
 <p><a href="{{ .ConfirmationURL }}">パスワードをリセットする</a></p>
 
-<p>このリンクは24時間有効です。</p>
+<p><strong>※ このリンクは1時間有効です。</strong></p>
 
 <p>このメールに心当たりがない場合は、削除してください。パスワードは変更されません。</p>
 
