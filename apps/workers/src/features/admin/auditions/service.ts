@@ -78,9 +78,18 @@ export async function getAuditions(
           .eq('audition_id', audition.id)
 
         const profiles = audition.organizer_profiles as any
+        const organizerProfile = Array.isArray(profiles)
+          ? profiles.length > 0
+            ? profiles[0]
+            : undefined
+          : profiles || undefined
         return {
           ...audition,
-          organizer_profiles: Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : undefined,
+          organizer_profiles: organizerProfile
+            ? {
+                name: organizerProfile.name ?? undefined,
+              }
+            : undefined,
           _count: {
             audition_applications: appCount || 0,
           },
@@ -137,9 +146,18 @@ export async function getAuditionDetail(
       .eq('audition_id', auditionId)
 
     const profiles = data.organizer_profiles as any
+    const organizerProfile = Array.isArray(profiles)
+      ? profiles.length > 0
+        ? profiles[0]
+        : undefined
+      : profiles || undefined
     return {
       ...data,
-      organizer_profiles: Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : undefined,
+      organizer_profiles: organizerProfile
+        ? {
+            name: organizerProfile.name ?? undefined,
+          }
+        : undefined,
       _count: {
         audition_applications: appCount || 0,
       },
