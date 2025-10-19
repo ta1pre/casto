@@ -12,7 +12,7 @@ interface Audition {
   id: string
   title: string
   status: 'draft' | 'published' | 'closed'
-  deadline: string
+  application_end_date: string
   created_at: string
   organizer_profiles?: {
     name: string
@@ -205,7 +205,7 @@ export default function AuditionsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
-                        {new Date(audition.deadline).toLocaleDateString('ja-JP')}
+                        {new Date(audition.application_end_date).toLocaleDateString('ja-JP')}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

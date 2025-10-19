@@ -9,7 +9,7 @@ export interface AuditionListItem {
   id: string
   title: string
   status: string
-  deadline: string
+  application_end_date: string
   created_at: string
   organizer_id?: string
   organizer_profiles?: {
@@ -39,7 +39,7 @@ export async function getAuditions(
         id,
         title,
         status,
-        deadline,
+        application_end_date,
         created_at,
         organizer_id,
         organizer_profiles!auditions_organizer_profiles_fk (
@@ -115,7 +115,7 @@ export async function getAuditionDetail(
         id,
         title,
         status,
-        deadline,
+        application_end_date,
         created_at,
         organizer_id,
         organizer_profiles!auditions_organizer_profiles_fk (
