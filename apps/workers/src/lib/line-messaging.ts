@@ -27,11 +27,11 @@ const LINE_MESSAGING_API_BASE = 'https://api.line.me/v2/bot'
  * @returns チャネルアクセストークン（15分間有効）
  */
 async function getChannelAccessToken(env: Bindings): Promise<string> {
-  const channelId = env.LINE_CHANNEL_ID
-  const channelSecret = env.LINE_CHANNEL_SECRET
+  const channelId = env.LINE_MESSAGING_CHANNEL_ID
+  const channelSecret = env.LINE_MESSAGING_CHANNEL_SECRET
 
   if (!channelId || !channelSecret) {
-    throw new Error('LINE_CHANNEL_ID and LINE_CHANNEL_SECRET are required')
+    throw new Error('LINE_MESSAGING_CHANNEL_ID and LINE_MESSAGING_CHANNEL_SECRET are required')
   }
 
   console.log('[Messaging] Issuing stateless channel access token')

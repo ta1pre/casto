@@ -6,8 +6,9 @@ export type Bindings = {
   SUPABASE_URL?: string
   SUPABASE_SERVICE_ROLE_KEY?: string
   // LINE認証・通知用
-  LINE_CHANNEL_ID?: string
+  LINE_CHANNEL_ID?: string  // LINEログインチャネル用
   LINE_CHANNEL_SECRET?: string  // LINEログインチャネル用
+  LINE_MESSAGING_CHANNEL_ID?: string  // Messaging APIチャネル用（メッセージ送信）
   LINE_MESSAGING_CHANNEL_SECRET?: string  // Messaging APIチャネル用（Webhook署名検証）
   LINE_LIFF_ID?: string
   STRIPE_SECRET_KEY?: string

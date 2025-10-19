@@ -61,6 +61,7 @@ jobs:
           echo "$JWT_SECRET" | npx wrangler secret put JWT_SECRET --env development
           echo "$LINE_CHANNEL_ID" | npx wrangler secret put LINE_CHANNEL_ID --env development
           echo "$LINE_CHANNEL_SECRET" | npx wrangler secret put LINE_CHANNEL_SECRET --env development
+          echo "$LINE_MESSAGING_CHANNEL_ID" | npx wrangler secret put LINE_MESSAGING_CHANNEL_ID --env development
           echo "$LINE_MESSAGING_CHANNEL_SECRET" | npx wrangler secret put LINE_MESSAGING_CHANNEL_SECRET --env development
           echo "$LINE_LIFF_ID" | npx wrangler secret put LINE_LIFF_ID --env development
           echo "$SUPABASE_URL" | npx wrangler secret put SUPABASE_URL --env development
@@ -72,6 +73,7 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           LINE_CHANNEL_ID: ${{ secrets.LINE_CHANNEL_ID }}
           LINE_CHANNEL_SECRET: ${{ secrets.LINE_CHANNEL_SECRET }}
+          LINE_MESSAGING_CHANNEL_ID: ${{ secrets.LINE_MESSAGING_CHANNEL_ID }}
           LINE_MESSAGING_CHANNEL_SECRET: ${{ secrets.LINE_MESSAGING_CHANNEL_SECRET }}
           LINE_LIFF_ID: ${{ secrets.LINE_LIFF_ID }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
