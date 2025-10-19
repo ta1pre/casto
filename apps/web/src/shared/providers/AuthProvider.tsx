@@ -123,13 +123,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const idToken = window.liff?.getIDToken?.()
           if (idToken) {
             console.log('[AuthProvider] LINE logged in, verifying token...')
-            await loginWithLine(idToken)
-            console.log('[AuthProvider] LINE authentication complete')
-            return
+            try {
+              await loginWithLine(idToken)
+              console.log('[AuthProvider] LINE authentication complete')
+              return
+            } catch (error) {
+              // トークン期限切れなどのエラーの場合、セッションチェックにフォールバック [REH]
+              if (error instanceof ApiError && error.status === 401) {
+                console.log('[AuthProvider] LINE token expired, falling back to session check')
+              } else {
+                throw error // その他のエラーは再スロー
+              }
+            }
           }
         }
         
-        // 3. セッションチェック（LINEログインしていない場合）
+        // 3. セッションチェック（LINEログインしていない場合 or トークン期限切れ）
         await refreshSession()
         console.log('[AuthProvider] Initialization complete')
       } catch (error) {
