@@ -385,38 +385,51 @@
 - [ ] エラー時: 灰色アイコン + 確認中メッセージ表示確認
 - [ ] LIFF未初期化時: エラーハンドリング正常動作確認
 
-#### Phase 2: Webhook連携 + DB保存（将来実装）
+#### Phase 2: Webhook連携 + DB保存 ✅ 実装完了（2025-10-19）
 
-**データベース**
-- [ ] マイグレーション: `add_line_friendship_to_users.sql`
-  - `users` テーブルに `line_friendship_status` カラム追加（boolean）
-  - `line_friendship_updated_at` カラム追加（timestamptz）
-  - RLS ポリシー設定
+**データベース** ✅
+- [x] マイグレーション: `20251019000000_add_line_friendship_and_messaging_logs.sql`
+  - `users.line_friendship_status` カラム追加（boolean）
+  - `users.line_friendship_updated_at` カラム追加（timestamptz）
+  - `messaging_logs` テーブル追加（送信履歴管理）
+  - RLS ポリシー設定完了
 
-**Workers API**
-- [ ] `features/webhook/line.service.ts` - Webhook処理ロジック
-- [ ] `features/webhook/line.routes.ts` - `POST /api/v1/webhook/line`
-- [ ] Webhook署名検証実装
-- [ ] 友だち追加/ブロック/解除イベント処理
+**Workers API** ✅
+- [x] `features/webhook/line.service.ts` - Webhook処理ロジック
+- [x] `features/webhook/line.routes.ts` - `POST /api/v1/webhook/line`
+- [x] HMAC-SHA256署名検証実装
+- [x] 友だち追加/ブロック/解除イベント処理
+- [x] `types/lineMessaging.ts` - LINE API型定義
+- [x] `lib/line-messaging.ts` - プッシュ/マルチキャスト送信
 
-**LINE Developers設定**
-- [ ] Webhook URL設定（開発: `https://casto-workers-dev.casto-api.workers.dev/api/v1/webhook/line`）
+**LINE Developers設定** 🔄
+- [ ] **Webhook URL設定（要対応）**
+  - URL: `https://casto-workers-dev.casto-api.workers.dev/api/v1/webhook/line`
+  - Webhook有効化
 - [ ] Webhook再送信機能有効化
 
-#### Phase 3: Messaging API活用（将来実装）
+#### Phase 3: Messaging API活用 ✅ 実装完了（2025-10-19）
 
-**Workers API**
-- [ ] `features/messaging/broadcast.service.ts` - 一斉配信ロジック
-- [ ] `features/messaging/broadcast.routes.ts` - `POST /api/v1/internal/messaging/broadcast`
-- [ ] 新着オーディション告知機能
-- [ ] 週次まとめ配信機能
+**Workers API** ✅
+- [x] `features/messaging/broadcast.service.ts` - 一斉配信ロジック
+- [x] `features/messaging/broadcast.routes.ts` - 配信API（4エンドポイント）
+  - `POST /api/v1/internal/messaging/audition-announcement` - 新着告知
+  - `POST /api/v1/internal/messaging/weekly-summary` - 週次まとめ
+  - `GET /api/v1/internal/messaging/stats` - 無料枠モニター
+  - `GET /api/v1/internal/messaging/history` - 送信履歴
+- [x] メッセージテンプレート生成（FlexMessage）
+- [x] バッチ送信（500件ずつ）
 
-**Web UI（管理者向け）**
-- [ ] `apps/web/src/app/admin/messaging/page.tsx` - 一斉配信管理画面
+**Web UI（管理者向け）** ✅
+- [x] `apps/web/src/app/admin/messaging/page.tsx` - 配信管理画面
+  - 無料枠モニター表示（残量/使用率）
+  - 週次まとめ配信ボタン
+  - 送信履歴一覧
 
-**コスト管理**
-- [ ] 無料枠（500通/月）で運用
-- [ ] 超過時の有料プラン検討（Light/Standard）
+**コスト管理** ✅
+- [x] 無料枠（500通/月）で運用
+- [x] 月間送信数カウント機能
+- [x] 超過警告表示
 
 ---
 
