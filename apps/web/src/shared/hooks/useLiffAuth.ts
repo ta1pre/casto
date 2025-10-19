@@ -38,13 +38,20 @@ export function useLiffAuth(): UseLiffAuthReturn {
   const { user, isLoading, logout, refreshSession } = useAuth()
   const [inClient, setInClient] = useState(false)
   
-  // LINEアプリ内判定（クライアントサイドのみ）[PA]
-  useEffect(() => {
-    setInClient(isInLineClient())
-  }, [])
-  
   // LIFF初期化状態（window.liffの存在で判定）
   const isLiffReady = typeof window !== 'undefined' && !!window.liff
+  
+  // LINEアプリ内判定（LIFF準備完了後に再判定）[PA][REH]
+  useEffect(() => {
+    if (isLiffReady) {
+      // LIFF準備完了後に判定を行う
+      const result = isInLineClient()
+      setInClient(result)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[useLiffAuth] isInClient:', result)
+      }
+    }
+  }, [isLiffReady])
 
   return {
     user,

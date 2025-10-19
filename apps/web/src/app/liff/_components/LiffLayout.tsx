@@ -24,8 +24,9 @@ export function LiffLayout({ children }: LiffLayoutProps) {
 
   // 外部ブラウザバナー表示制御（Hydration Mismatch回避）[REH]
   useEffect(() => {
-    if (isLiffReady && !isInClient) {
-      setShowBanner(true)
+    if (isLiffReady) {
+      // LINEアプリ内の場合はバナーを表示しない
+      setShowBanner(!isInClient)
     }
   }, [isLiffReady, isInClient])
 

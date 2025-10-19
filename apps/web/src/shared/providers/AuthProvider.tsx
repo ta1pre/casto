@@ -22,6 +22,7 @@ declare global {
       getIDToken?: () => string | null
       getAccessToken?: () => string | null
       isInClient?: () => boolean
+      getFriendship?: () => Promise<{ friendFlag: boolean }>
     }
   }
 }
