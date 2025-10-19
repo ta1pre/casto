@@ -109,6 +109,33 @@ supabase migration list --linked
 
 ### 4. マイグレーション適用
 
+#### 🚀 推奨方法: 自動化スクリプト（最も簡単）
+
+**パスワード入力不要で全自動実行:**
+
+```bash
+# 方法1: Makefileコマンド（推奨）
+make migrate
+
+# 方法2: スクリプト直接実行
+./scripts/migrate-db.sh
+```
+
+このスクリプトが自動で実行する処理:
+1. `apps/web/.env.local`から`SUPABASE_DB_PASSWORD`を読み込み
+2. マイグレーション整合性チェック（`supabase migration list --linked`）
+3. 未適用マイグレーションを自動適用（`supabase db push --include-all`）
+4. 適用後の整合性確認
+
+**必須条件:**
+- `apps/web/.env.local`に`SUPABASE_DB_PASSWORD`が設定されていること
+- プロジェクトルートで実行すること
+
+**注意:** 初回実行時に実行権限が必要な場合は:
+```bash
+chmod +x scripts/migrate-db.sh
+```
+
 #### ケースA: 通常適用（Remote列が全て埋まっている）
 
 ```bash
@@ -261,14 +288,41 @@ connection refused
 
 **すべて✅になるまでデプロイしないこと:**
 
-1. [ ] **整合性確認** - `supabase migration list --linked` でLocal/Remote列が完全一致
-2. [ ] **べき等性確認** - マイグレーションファイルに `DROP ... IF EXISTS` を使用
-3. [ ] **ローカルビルド** - `npm run build` が成功
-4. [ ] **Workers再デプロイ** - `cd apps/workers && npx wrangler deploy --env development`
-5. [ ] **APIヘルスチェック** - `curl https://casto.sb2024.xyz/api/v1/health` が成功
-6. [ ] **実機能確認** - ブラウザで実際の機能をテスト
+1. [ ] **環境変数確認** - `apps/web/.env.local`に`SUPABASE_DB_PASSWORD`が設定済み
+2. [ ] **整合性確認** - `supabase migration list --linked` でLocal/Remote列が完全一致
+3. [ ] **べき等性確認** - マイグレーションファイルに `DROP ... IF EXISTS` を使用
+4. [ ] **マイグレーション適用** - `make migrate` が成功
+5. [ ] **Workers再デプロイ** - `cd apps/workers && npx wrangler deploy --env development`
+6. [ ] **APIヘルスチェック** - `curl https://casto.sb2024.xyz/api/v1/health` が成功
+7. [ ] **実機能確認** - ブラウザで実際の機能をテスト
 
 **これらを守れば、マイグレーションの問題は起きません。**
+
+## 🧪 手順の検証方法
+
+**マイグレーション手順が正しく再現できるか確認:**
+
+```bash
+# 1. 環境変数が設定されているか確認
+grep "SUPABASE_DB_PASSWORD" apps/web/.env.local
+
+# 2. スクリプトが実行可能か確認
+test -x scripts/migrate-db.sh && echo "✅ OK" || echo "❌ NG"
+
+# 3. 現在の整合性を確認（すべてLocal/Remote列が一致すること）
+supabase migration list --linked
+
+# 4. ドライラン（整合性チェックのみ）
+make migrate  # Yを押す前に中断可能
+
+# 5. 実際に適用（すべて確認後）
+make migrate
+```
+
+**期待される結果:**
+- ✅ すべてのLocal列とRemote列が一致
+- ✅ パスワード入力不要で完了
+- ✅ エラーなく完了
 
 ## 🚨 緊急時の手順
 

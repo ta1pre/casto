@@ -6,7 +6,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createHmac } from 'crypto'
+import { createHmac } from 'node:crypto'
 
 /**
  * LINE Webhook イベント型定義

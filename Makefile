@@ -41,7 +41,7 @@ setup-supabase:
 # マイグレーション適用のみ（完全自動）
 migrate:
 	@echo "📊 マイグレーション適用..."
-	@node scripts/db-cleanup.js
+	@./scripts/migrate-db.sh
 
 # DB完全リセット＆マイグレーション
 reset-db:
