@@ -9,8 +9,6 @@ export default function AuthFlowDebugPage() {
   const [isMounted, setIsMounted] = useState(false)
   const {
     isLiffReady,
-    isAuthenticating,
-    liffProfile,
     error,
     refreshSession,
     user,
@@ -41,9 +39,7 @@ export default function AuthFlowDebugPage() {
         <h2 className="font-bold mb-2">🔵 LIFF認証状態</h2>
         <div className="space-y-1 text-sm">
           <div>✓ isLiffReady: {String(isLiffReady)}</div>
-          <div>✓ isAuthenticating: {String(isAuthenticating)}</div>
           <div>✓ isLoading: {String(isLoading)}</div>
-          <div>✓ liffProfile: {liffProfile ? JSON.stringify(liffProfile) : 'null'}</div>
           <div>✓ user: {user ? JSON.stringify(user) : 'null'}</div>
           <div>✓ error: {error || 'null'}</div>
         </div>
@@ -95,9 +91,7 @@ export default function AuthFlowDebugPage() {
               navigator.clipboard.writeText(JSON.stringify({
                 liff: {
                   isLiffReady,
-                  isAuthenticating,
                   isLoading,
-                  liffProfile,
                   user,
                   error
                 },
