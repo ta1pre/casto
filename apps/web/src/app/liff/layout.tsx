@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useEffect, Suspense } from 'react'
-import Script from 'next/script'
 import { LiffLayout as LiffLayoutWrapper } from './_components/LiffLayout'
 
 /**
@@ -26,19 +25,6 @@ export default function LiffRootLayout({ children }: { children: React.ReactNode
 
   return (
     <>
-      {/* LIFF SDK preload [PA] */}
-      <link rel="preload" href="https://static.line-scdn.net/liff/edge/2/sdk.js" as="script" />
-      
-      <Script
-        src="https://static.line-scdn.net/liff/edge/2/sdk.js"
-        strategy="afterInteractive"
-        onLoad={() => {
-          console.log('[LIFF Layout] SDK script loaded')
-        }}
-        onError={(event) => {
-          console.error('[LIFF Layout] Failed to load LIFF SDK', event)
-        }}
-      />
       <Suspense fallback={
         <div className="flex min-h-screen items-center justify-center bg-background">
           <div className="text-center">

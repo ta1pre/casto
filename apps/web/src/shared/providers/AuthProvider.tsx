@@ -5,15 +5,35 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
   type ReactNode
 } from 'react'
 import type { AuthContextType, User, AuthRole } from '../types/auth'
 import type { UserResponse } from '@casto/shared'
 import { apiFetch, ApiError } from '@/shared/lib/api'
 
+// LIFF SDK型定義
+declare global {
+  interface Window {
+    liff?: {
+      init: (config: { liffId: string; withLoginOnExternalBrowser?: boolean }) => Promise<void>
+      isLoggedIn: () => boolean
+      login: (config?: { redirectUri?: string }) => void
+      logout: () => void
+      getIDToken?: () => string | null
+      isInClient?: () => boolean
+    }
+  }
+}
+
+const LIFF_SCRIPT_SRC = 'https://static.line-scdn.net/liff/edge/2/sdk.js'
+
 const uninitialized = () => {
   throw new Error('AuthProvider is not initialized yet')
 }
+
+// LIFF初期化済みフラグ（グローバル）[SF][PA]
+let globalLiffInitialized = false
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -54,6 +74,7 @@ const mapUser = (input: UserResponse | null | undefined): User | null => {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const initializingRef = useRef(false)
 
   const refreshSession = useCallback(async (): Promise<User | null> => {
     try {
@@ -77,21 +98,48 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
+  // LIFF初期化 + 認証（1回だけ実行）[SF][PA][REH]
   useEffect(() => {
+    if (initializingRef.current) {
+      console.log('[AuthProvider] Already initializing, skipping')
+      return
+    }
+    
+    initializingRef.current = true
+    
     const initialize = async () => {
       try {
-        console.log('[AuthProvider] Initializing...')
+        console.log('[AuthProvider] Starting initialization...')
+        
+        // 1. LIFF SDK初期化（グローバルフラグでチェック）
+        if (!globalLiffInitialized) {
+          await initializeLiff()
+          globalLiffInitialized = true
+        }
+        
+        // 2. LINEログイン済みならトークン検証
+        if (typeof window !== 'undefined' && window.liff?.isLoggedIn?.()) {
+          const idToken = window.liff?.getIDToken?.()
+          if (idToken) {
+            console.log('[AuthProvider] LINE logged in, verifying token...')
+            await loginWithLine(idToken)
+            console.log('[AuthProvider] LINE authentication complete')
+            return
+          }
+        }
+        
+        // 3. セッションチェック（LINEログインしていない場合）
         await refreshSession()
         console.log('[AuthProvider] Initialization complete')
       } catch (error) {
-        console.error('[AuthProvider] Initial session fetch failed:', error)
+        console.error('[AuthProvider] Initialization failed:', error)
       } finally {
         setIsLoading(false)
       }
     }
 
     void initialize()
-  }, [refreshSession])
+  }, []) // 空の依存配列で1回だけ実行
 
   // 定期的なセッションリフレッシュ（20分ごと）[REH]
   // JWTの有効期限（24時間）より十分前にリフレッシュしてクッキーを延長
@@ -173,6 +221,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = useCallback(async () => {
     try {
+      // LIFFログアウト
+      if (typeof window !== 'undefined' && window.liff?.isLoggedIn()) {
+        window.liff.logout()
+      }
+      
+      // APIログアウト
       await apiFetch('/api/v1/auth/logout', {
         method: 'POST',
         parseJson: false
@@ -183,6 +237,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null)
     }
   }, [])
+  
+  // LIFF SDK初期化関数 [SF][PA]
+  const initializeLiff = async () => {
+    const liffId = process.env.NEXT_PUBLIC_LINE_LIFF_ID || process.env.NEXT_PUBLIC_LIFF_ID
+    if (!liffId) {
+      console.error('[AuthProvider] LIFF ID not configured')
+      return
+    }
+    
+    // LIFF SDK読み込み
+    if (typeof window === 'undefined') return
+    
+    if (!window.liff) {
+      await new Promise<void>((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = LIFF_SCRIPT_SRC
+        script.async = true
+        script.onload = () => resolve()
+        script.onerror = () => reject(new Error('Failed to load LIFF SDK'))
+        document.head.appendChild(script)
+      })
+    }
+    
+    // LIFF初期化
+    try {
+      await window.liff!.init({
+        liffId,
+        withLoginOnExternalBrowser: true
+      })
+      console.log('[AuthProvider] LIFF initialized successfully')
+    } catch (error) {
+      console.error('[AuthProvider] LIFF initialization failed:', error)
+      throw error
+    }
+  }
 
   const value: AuthContextType = {
     user,
