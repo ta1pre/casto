@@ -15,13 +15,16 @@ import type { AuditionApplication } from '@casto/shared'
 export function MyApplicationsClient() {
   const { user, isLoading: isAuthLoading } = useLiffAuth()
   const [applications, setApplications] = useState<AuditionApplication[]>([])
-  const [isLoading, setIsLoading] = useState(false) // 初期値をfalseに [SF]
+  const [isLoading, setIsLoading] = useState(true) // 初期値をtrueに（ちらつき防止）[SF][PA]
   const [filter, setFilter] = useState<string>('all')
   const [refetchTrigger, setRefetchTrigger] = useState(0) // リフェッチトリガー [SF]
 
   // データ取得（userとfilterの変更を監視）[SF][PA]
   useEffect(() => {
-    if (!user) return
+    if (!user) {
+      setIsLoading(false) // 未ログイン時もローディング解除 [REH]
+      return
+    }
 
     const fetchApplications = async () => {
       try {
