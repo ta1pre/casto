@@ -191,6 +191,7 @@ export async function sendPasswordResetEmail(
 export async function updatePassword(
   c: AppContext,
   accessToken: string,
+  refreshToken: string,
   newPassword: string
 ): Promise<void> {
   const supabase = createSupabaseClient(c)
@@ -198,7 +199,7 @@ export async function updatePassword(
   // アクセストークンでセッションを設定
   const { error: sessionError } = await supabase.auth.setSession({
     access_token: accessToken,
-    refresh_token: '', // リセットトークンの場合は不要
+    refresh_token: refreshToken,
   })
   
   if (sessionError) {
