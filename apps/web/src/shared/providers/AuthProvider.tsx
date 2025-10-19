@@ -28,6 +28,7 @@ declare global {
 }
 
 const LIFF_SCRIPT_SRC = 'https://static.line-scdn.net/liff/edge/2/sdk.js'
+const TOKEN_EXP_SKEW_MS = 5 * 1000 // トークン期限の余裕（5秒）
 
 const uninitialized = () => {
   throw new Error('AuthProvider is not initialized yet')
@@ -35,6 +36,25 @@ const uninitialized = () => {
 
 // LIFF初期化済みフラグ（グローバル）[SF][PA]
 let globalLiffInitialized = false
+
+// トークン期限をデコード [SF][PA]
+function decodeTokenExpiration(token: string): number | null {
+  try {
+    const [, payload] = token.split('.')
+    if (!payload) return null
+    const json = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as { exp?: number }
+    return typeof json.exp === 'number' ? json.exp * 1000 : null
+  } catch {
+    return null
+  }
+}
+
+// トークンが有効かチェック [SF][PA]
+function isTokenValid(token: string): boolean {
+  const exp = decodeTokenExpiration(token)
+  if (!exp) return false
+  return exp > Date.now() + TOKEN_EXP_SKEW_MS
+}
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
@@ -118,22 +138,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
           globalLiffInitialized = true
         }
         
-        // 2. LINEログイン済みならトークン検証
+        // 2. LINEログイン済みならトークン検証（期限チェック付き）[SF][PA]
         if (typeof window !== 'undefined' && window.liff?.isLoggedIn?.()) {
           const idToken = window.liff?.getIDToken?.()
           if (idToken) {
-            console.log('[AuthProvider] LINE logged in, verifying token...')
-            try {
+            // トークン期限を事前チェック（無駄な401リクエスト排除）[PA]
+            if (isTokenValid(idToken)) {
+              console.log('[AuthProvider] LINE token valid, authenticating...')
               await loginWithLine(idToken)
               console.log('[AuthProvider] LINE authentication complete')
               return
-            } catch (error) {
-              // トークン期限切れなどのエラーの場合、セッションチェックにフォールバック [REH]
-              if (error instanceof ApiError && error.status === 401) {
-                console.log('[AuthProvider] LINE token expired, falling back to session check')
-              } else {
-                throw error // その他のエラーは再スロー
-              }
+            } else {
+              console.log('[AuthProvider] LINE token expired, skipping to session check')
             }
           }
         }

@@ -91,10 +91,18 @@ export async function apiFetch<T = unknown>(path: string, options: ApiFetchOptio
       body,
       bodyText,
       headers: Object.fromEntries(response.headers.entries()),
-      requestHeaders: finalHeaders,
+      requestHeaders: headers ? Object.fromEntries(
+        Object.entries(headers).filter(([_, v]) => v !== undefined)
+      ) as Record<string, string> : {},
       timestamp: new Date().toISOString()
     }
-    console.error('[API Error]', errorDetails)
+    
+    // 401エラー（トークン期限切れなど）は想定内なので、warningレベルに [REH]
+    if (response.status === 401) {
+      console.warn('[API Warning]', { url, status: response.status, message: 'Unauthorized (will fallback)' })
+    } else {
+      console.error('[API Error]', errorDetails)
+    }
     
     // エラーを画面に強制表示（デバッグ用）
     if (typeof window !== 'undefined') {
