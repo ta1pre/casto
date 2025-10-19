@@ -92,7 +92,9 @@ export async function getAuditions(
     }
   } catch (error) {
     console.error('[getAuditions] Error:', error)
-    throw new Error('Failed to fetch auditions')
+    // 詳細なエラー情報を含める
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    throw new Error(`Failed to fetch auditions: ${errorMessage}`)
   }
 }
 
