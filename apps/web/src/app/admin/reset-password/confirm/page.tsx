@@ -26,6 +26,11 @@ function ResetPasswordConfirmContent() {
     // 1. Implicit Flow: ハッシュフラグメント（#access_token=...）
     // 2. PKCE Flow: クエリパラメータ（?token_hash=...&type=recovery）
     
+    // デバッグ用
+    console.log('[Admin Reset Password] Full URL:', window.location.href)
+    console.log('[Admin Reset Password] Hash:', window.location.hash)
+    console.log('[Admin Reset Password] Search:', window.location.search)
+    
     const getTokenFromHash = () => {
       if (typeof window === 'undefined') return null
       
@@ -42,18 +47,27 @@ function ResetPasswordConfirmContent() {
     const tokenHash = searchParams.get('token_hash')
     const type = searchParams.get('type')
     
+    console.log('[Admin Reset Password] hashToken:', hashToken)
+    console.log('[Admin Reset Password] queryToken:', queryToken)
+    console.log('[Admin Reset Password] tokenHash:', tokenHash)
+    console.log('[Admin Reset Password] type:', type)
+    
     if (hashToken) {
       // Implicit Flow
+      console.log('[Admin Reset Password] Using Implicit Flow')
       setAccessToken(hashToken)
       // ハッシュをクリア（ブラウザの履歴に残さない）
       window.history.replaceState(null, '', window.location.pathname + window.location.search)
     } else if (queryToken) {
       // PKCE Flow（クエリパラメータにaccess_token）
+      console.log('[Admin Reset Password] Using PKCE Flow (query access_token)')
       setAccessToken(queryToken)
     } else if (tokenHash && type === 'recovery') {
       // PKCE Flow（token_hashを使用してverifyOtp）
+      console.log('[Admin Reset Password] Using PKCE Flow (verifyOtp)')
       verifyTokenHash(tokenHash, type)
     } else {
+      console.error('[Admin Reset Password] No valid token found')
       setError('無効なリンクです。もう一度パスワードリセットを申請してください。')
     }
   }, [searchParams])
