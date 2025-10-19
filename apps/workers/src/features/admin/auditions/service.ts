@@ -11,8 +11,9 @@ export interface AuditionListItem {
   status: string
   deadline: string
   created_at: string
+  organizer_id?: string
   organizer_profiles?: {
-    name: string
+    name?: string
   }
   _count?: {
     audition_applications: number
@@ -40,10 +41,7 @@ export async function getAuditions(
         status,
         deadline,
         created_at,
-        organizer_id,
-        organizer_profiles!organizer_id (
-          name
-        )
+        organizer_id
       `,
         { count: 'exact' }
       )
@@ -68,6 +66,27 @@ export async function getAuditions(
       throw error
     }
 
+    const organizerIds = Array.from(
+      new Set((data || []).map((audition) => audition.organizer_id).filter((id): id is string => !!id))
+    )
+
+    let organizerProfilesMap = new Map<string, { name?: string }>()
+
+    if (organizerIds.length > 0) {
+      const { data: organizerProfiles, error: organizerProfilesError } = await supabase
+        .from('organizer_profiles')
+        .select('organizer_id, name')
+        .in('organizer_id', organizerIds)
+
+      if (organizerProfilesError) {
+        throw organizerProfilesError
+      }
+
+      organizerProfiles?.forEach((profile) => {
+        organizerProfilesMap.set(profile.organizer_id, { name: profile.name ?? undefined })
+      })
+    }
+
     // 応募数を取得
     const auditionsWithCount = await Promise.all(
       (data || []).map(async (audition) => {
@@ -76,10 +95,11 @@ export async function getAuditions(
           .select('id', { count: 'exact', head: true })
           .eq('audition_id', audition.id)
 
-        const profiles = audition.organizer_profiles as any
         return {
           ...audition,
-          organizer_profiles: Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : undefined,
+          organizer_profiles: audition.organizer_id
+            ? organizerProfilesMap.get(audition.organizer_id)
+            : undefined,
           _count: {
             audition_applications: appCount || 0,
           },
@@ -116,10 +136,7 @@ export async function getAuditionDetail(
         status,
         deadline,
         created_at,
-        organizer_id,
-        organizer_profiles!organizer_id (
-          name
-        )
+        organizer_id
       `
       )
       .eq('id', auditionId)
@@ -135,10 +152,29 @@ export async function getAuditionDetail(
       .select('id', { count: 'exact', head: true })
       .eq('audition_id', auditionId)
 
-    const profiles = data.organizer_profiles as any
+    let organizerProfile: { name?: string } | undefined
+
+    if (data.organizer_id) {
+      const { data: profileData, error: profileError } = await supabase
+        .from('organizer_profiles')
+        .select('organizer_id, name')
+        .eq('organizer_id', data.organizer_id)
+        .maybeSingle()
+
+      if (profileError) {
+        throw profileError
+      }
+
+      if (profileData) {
+        organizerProfile = {
+          name: profileData.name ?? undefined,
+        }
+      }
+    }
+
     return {
       ...data,
-      organizer_profiles: Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : undefined,
+      organizer_profiles: organizerProfile,
       _count: {
         audition_applications: appCount || 0,
       },
