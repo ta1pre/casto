@@ -40,7 +40,8 @@ export async function getAuditions(
         status,
         deadline,
         created_at,
-        organizer_profiles!auditions_organizer_id_fkey (
+        organizer_id,
+        organizer_profiles!organizer_id (
           name
         )
       `,
@@ -115,7 +116,8 @@ export async function getAuditionDetail(
         status,
         deadline,
         created_at,
-        organizer_profiles!auditions_organizer_id_fkey (
+        organizer_id,
+        organizer_profiles!organizer_id (
           name
         )
       `
