@@ -44,7 +44,7 @@ export async function sendAuditionAnnouncement(
     // 1. オーディション情報取得
     const { data: audition, error: auditionError } = await supabase
       .from('auditions')
-      .select('id, title, deadline, main_visual_url')
+      .select('id, title, application_end_date, main_visual_url')
       .eq('id', auditionId)
       .single()
 
@@ -66,7 +66,7 @@ export async function sendAuditionAnnouncement(
     const messages = createAuditionAnnouncementMessage({
       id: audition.id,
       title: audition.title,
-      deadline: new Date(audition.deadline).toLocaleDateString('ja-JP'),
+      deadline: new Date(audition.application_end_date).toLocaleDateString('ja-JP'),
       mainVisualUrl: audition.main_visual_url || undefined,
       liffUrl
     })
@@ -123,7 +123,7 @@ export async function sendWeeklySummary(
 
     const { data: auditions, error: auditionsError } = await supabase
       .from('auditions')
-      .select('id, title, deadline')
+      .select('id, title, application_end_date')
       .eq('status', 'published')
       .gte('created_at', sevenDaysAgo.toISOString())
       .order('created_at', { ascending: false })
@@ -146,7 +146,7 @@ export async function sendWeeklySummary(
     const formattedAuditions = (auditions || []).map(a => ({
       id: a.id,
       title: a.title,
-      deadline: new Date(a.deadline).toLocaleDateString('ja-JP')
+      deadline: new Date(a.application_end_date).toLocaleDateString('ja-JP')
     }))
     const messages = createWeeklySummaryMessage(formattedAuditions, liffBaseUrl)
 
