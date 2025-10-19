@@ -15,10 +15,30 @@ type StoredResetToken = {
   tokenType?: string
 }
 
+const TOKEN_STORAGE_KEY = 'organizer_reset_token'
+
+// ヘルパー関数
+const saveTokenToStorage = (token: StoredResetToken) => {
+  sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(token))
+}
+
+const clearTokenFromStorage = () => {
+  sessionStorage.removeItem(TOKEN_STORAGE_KEY)
+}
+
+const translateErrorMessage = (data: { details?: string; error?: string }): string => {
+  if (data.details?.includes('New password should be different from the old password')) {
+    return '新しいパスワードは現在のパスワードと異なるものを設定してください'
+  }
+  if (data.details?.includes('Password must be at least')) {
+    return 'パスワードは8文字以上で入力してください'
+  }
+  return data.details || data.error || 'パスワードの更新に失敗しました'
+}
+
 function ResetPasswordConfirmContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const TOKEN_STORAGE_KEY = 'organizer_reset_token'
 
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [refreshToken, setRefreshToken] = useState<string | null>(null)
@@ -55,37 +75,26 @@ function ResetPasswordConfirmContent() {
         const parsed = JSON.parse(storedToken) as StoredResetToken
 
         if (parsed.accessToken) {
-          console.log('[Organizer Reset] Restored access token from storage')
           setAccessToken(parsed.accessToken)
-          if (parsed.refreshToken) {
-            setRefreshToken(parsed.refreshToken)
-          }
+          parsed.refreshToken && setRefreshToken(parsed.refreshToken)
           setInitialized(true)
           return
         }
 
         if (parsed.tokenHash && parsed.tokenType) {
-          console.log('[Organizer Reset] Restored token hash from storage')
           setTokenHash(parsed.tokenHash)
           setTokenType(parsed.tokenType)
-          if (parsed.refreshToken) {
-            setRefreshToken(parsed.refreshToken)
-          }
+          parsed.refreshToken && setRefreshToken(parsed.refreshToken)
           setInitialized(true)
           return
         }
       } catch (storageError) {
-        console.error('[Organizer Reset] Failed to restore token from storage:', storageError)
-        sessionStorage.removeItem(TOKEN_STORAGE_KEY)
+        console.error('[Organizer Reset] Failed to restore token:', storageError)
+        clearTokenFromStorage()
       }
     }
 
-    console.log('[Organizer Reset] Page loaded, checking URL params')
-    console.log('[Organizer Reset] Full URL:', window.location.href)
-    console.log('[Organizer Reset] Hash:', window.location.hash)
-    console.log('[Organizer Reset] Search:', window.location.search)
-    
-    const hash = window.location.hash.substring(1) // # を除去
+    const hash = window.location.hash.substring(1)
     const params = new URLSearchParams(hash)
     
     // エラーチェック
@@ -94,7 +103,6 @@ function ResetPasswordConfirmContent() {
     const errorDescription = params.get('error_description')
     
     if (errorParam) {
-      console.log('[Organizer Reset] Error in URL:', { errorParam, errorCode, errorDescription })
       if (errorCode === 'otp_expired') {
         setError('リンクの有効期限が切れています。パスワードリセットメールは1時間で無効になります。もう一度申請してください。')
       } else {
@@ -112,43 +120,23 @@ function ResetPasswordConfirmContent() {
     const refreshTokenParam = params.get('refresh_token') || searchParams.get('refresh_token')
     const tokenHashParam = searchParams.get('token_hash')
     const type = searchParams.get('type')
-    
-    console.log('[Organizer Reset] Extracted params:', { hashToken: !!hashToken, queryToken: !!queryToken, tokenHash: !!tokenHashParam, type })
-    
+
     if (hashToken) {
       // Implicit Flow
-      console.log('[Organizer Reset] Using Implicit Flow')
       setAccessToken(hashToken)
-      if (refreshTokenParam) {
-        setRefreshToken(refreshTokenParam)
-      }
-      sessionStorage.setItem(
-        TOKEN_STORAGE_KEY,
-        JSON.stringify({ accessToken: hashToken, refreshToken: refreshTokenParam ?? undefined })
-      )
-      // ハッシュをクリア（ブラウザの履歴に残さない）
+      refreshTokenParam && setRefreshToken(refreshTokenParam)
+      saveTokenToStorage({ accessToken: hashToken, refreshToken: refreshTokenParam ?? undefined })
       window.history.replaceState(null, '', window.location.pathname + window.location.search)
     } else if (queryToken) {
       // PKCE Flow（クエリパラメータにaccess_token）
-      console.log('[Organizer Reset] Using PKCE Flow (query access_token)')
       setAccessToken(queryToken)
-      if (refreshTokenParam) {
-        setRefreshToken(refreshTokenParam)
-      }
-      sessionStorage.setItem(
-        TOKEN_STORAGE_KEY,
-        JSON.stringify({ accessToken: queryToken, refreshToken: refreshTokenParam ?? undefined })
-      )
+      refreshTokenParam && setRefreshToken(refreshTokenParam)
+      saveTokenToStorage({ accessToken: queryToken, refreshToken: refreshTokenParam ?? undefined })
     } else if (tokenHashParam && type === 'recovery') {
-      // PKCE Flow（token_hashを保存するだけ、検証は後で）
-      // Gmail/Chromeの先読みでトークンが消費されないよう、ユーザーのクリックまで待つ
-      console.log('[Organizer Reset] Using PKCE Flow (token_hash), waiting for user click')
+      // PKCE Flow（token_hash）
       setTokenHash(tokenHashParam)
       setTokenType(type)
-      sessionStorage.setItem(
-        TOKEN_STORAGE_KEY,
-        JSON.stringify({ tokenHash: tokenHashParam, tokenType: type })
-      )
+      saveTokenToStorage({ tokenHash: tokenHashParam, tokenType: type })
     } else {
       console.error('[Organizer Reset] No valid token found')
       setError('無効なリンクです。もう一度パスワードリセットを申請してください。')
@@ -162,42 +150,33 @@ function ResetPasswordConfirmContent() {
     setIsVerifying(true)
     setError(null)
     try {
-      console.log('[Organizer Reset] Verifying token hash...')
       const response = await fetch('/api/v1/organizer/auth/verify-otp', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token_hash: hash, type }),
         credentials: 'include',
       })
 
       const data = await response.json()
-      console.log('[Organizer Reset] Verify response:', { status: response.status, data })
 
       if (!response.ok || !data.access_token) {
-        console.error('[Organizer Reset] Verification failed:', data)
         throw new Error('トークンの検証に失敗しました')
       }
 
-      console.log('[Organizer Reset] Verification successful, setting access token')
       setAccessToken(data.access_token)
-      if (data.refresh_token) {
-        setRefreshToken(data.refresh_token)
-      }
-      setTokenHash(null) // 検証済みなのでクリア
+      data.refresh_token && setRefreshToken(data.refresh_token)
+      setTokenHash(null)
       setTokenType(null)
-      sessionStorage.setItem(
-        TOKEN_STORAGE_KEY,
-        JSON.stringify({ accessToken: data.access_token, refreshToken: data.refresh_token ?? undefined })
-      )
-      setError(null) // エラーを明示的にクリア
+      saveTokenToStorage({ 
+        accessToken: data.access_token, 
+        refreshToken: data.refresh_token ?? undefined 
+      })
     } catch (err) {
-      console.error('[Organizer Reset] Error during verification:', err)
+      console.error('[Organizer Reset] Verification error:', err)
       setError('リンクの有効期限が切れています。もう一度パスワードリセットを申請してください。')
-      setAccessToken(null) // エラー時はaccessTokenをクリア
+      setAccessToken(null)
       setRefreshToken(null)
-      sessionStorage.removeItem(TOKEN_STORAGE_KEY)
+      clearTokenFromStorage()
     } finally {
       setIsVerifying(false)
     }
@@ -254,26 +233,11 @@ function ResetPasswordConfirmContent() {
       const data = await response.json()
 
       if (!response.ok) {
-        // Supabaseのエラーメッセージを日本語化
-        let errorMessage = 'パスワードの更新に失敗しました'
-        
-        if (data.details) {
-          if (data.details.includes('New password should be different from the old password')) {
-            errorMessage = '新しいパスワードは現在のパスワードと異なるものを設定してください'
-          } else if (data.details.includes('Password must be at least')) {
-            errorMessage = 'パスワードは8文字以上で入力してください'
-          } else {
-            errorMessage = data.details
-          }
-        } else if (data.error) {
-          errorMessage = data.error
-        }
-        
-        throw new Error(errorMessage)
+        throw new Error(translateErrorMessage(data))
       }
 
       setSuccess(true)
-      sessionStorage.removeItem(TOKEN_STORAGE_KEY)
+      clearTokenFromStorage()
       
       setTimeout(() => {
         router.push('/organizer/login')
