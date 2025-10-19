@@ -11,6 +11,8 @@ import { useRouter, useSearchParams } from 'next/navigation'
 function ResetPasswordConfirmContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const TOKEN_STORAGE_KEY = 'organizer_reset_token'
+
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [tokenHash, setTokenHash] = useState<string | null>(null)
   const [tokenType, setTokenType] = useState<string | null>(null)
@@ -37,7 +39,37 @@ function ResetPasswordConfirmContent() {
       console.log('[Organizer Reset] Already initialized, skipping URL parsing')
       return
     }
-    
+
+    const storedToken = sessionStorage.getItem(TOKEN_STORAGE_KEY)
+
+    if (storedToken) {
+      try {
+        const parsed = JSON.parse(storedToken) as {
+          accessToken?: string
+          tokenHash?: string
+          tokenType?: string
+        }
+
+        if (parsed.accessToken) {
+          console.log('[Organizer Reset] Restored access token from storage')
+          setAccessToken(parsed.accessToken)
+          setInitialized(true)
+          return
+        }
+
+        if (parsed.tokenHash && parsed.tokenType) {
+          console.log('[Organizer Reset] Restored token hash from storage')
+          setTokenHash(parsed.tokenHash)
+          setTokenType(parsed.tokenType)
+          setInitialized(true)
+          return
+        }
+      } catch (storageError) {
+        console.error('[Organizer Reset] Failed to restore token from storage:', storageError)
+        sessionStorage.removeItem(TOKEN_STORAGE_KEY)
+      }
+    }
+
     console.log('[Organizer Reset] Page loaded, checking URL params')
     console.log('[Organizer Reset] Full URL:', window.location.href)
     console.log('[Organizer Reset] Hash:', window.location.hash)
@@ -76,18 +108,30 @@ function ResetPasswordConfirmContent() {
       // Implicit Flow
       console.log('[Organizer Reset] Using Implicit Flow')
       setAccessToken(hashToken)
+      sessionStorage.setItem(
+        TOKEN_STORAGE_KEY,
+        JSON.stringify({ accessToken: hashToken })
+      )
       // ハッシュをクリア（ブラウザの履歴に残さない）
       window.history.replaceState(null, '', window.location.pathname + window.location.search)
     } else if (queryToken) {
       // PKCE Flow（クエリパラメータにaccess_token）
       console.log('[Organizer Reset] Using PKCE Flow (query access_token)')
       setAccessToken(queryToken)
+      sessionStorage.setItem(
+        TOKEN_STORAGE_KEY,
+        JSON.stringify({ accessToken: queryToken })
+      )
     } else if (tokenHashParam && type === 'recovery') {
       // PKCE Flow（token_hashを保存するだけ、検証は後で）
       // Gmail/Chromeの先読みでトークンが消費されないよう、ユーザーのクリックまで待つ
       console.log('[Organizer Reset] Using PKCE Flow (token_hash), waiting for user click')
       setTokenHash(tokenHashParam)
       setTokenType(type)
+      sessionStorage.setItem(
+        TOKEN_STORAGE_KEY,
+        JSON.stringify({ tokenHash: tokenHashParam, tokenType: type })
+      )
     } else {
       console.error('[Organizer Reset] No valid token found')
       setError('無効なリンクです。もう一度パスワードリセットを申請してください。')
@@ -123,11 +167,16 @@ function ResetPasswordConfirmContent() {
       setAccessToken(data.access_token)
       setTokenHash(null) // 検証済みなのでクリア
       setTokenType(null)
+      sessionStorage.setItem(
+        TOKEN_STORAGE_KEY,
+        JSON.stringify({ accessToken: data.access_token })
+      )
       setError(null) // エラーを明示的にクリア
     } catch (err) {
       console.error('[Organizer Reset] Error during verification:', err)
       setError('リンクの有効期限が切れています。もう一度パスワードリセットを申請してください。')
       setAccessToken(null) // エラー時はaccessTokenをクリア
+      sessionStorage.removeItem(TOKEN_STORAGE_KEY)
     } finally {
       setIsVerifying(false)
     }
@@ -187,6 +236,7 @@ function ResetPasswordConfirmContent() {
       }
 
       setSuccess(true)
+      sessionStorage.removeItem(TOKEN_STORAGE_KEY)
       
       setTimeout(() => {
         router.push('/organizer/login')
