@@ -384,11 +384,16 @@ export async function getUsersWithFriendship(
 ): Promise<{
   users: Array<{
     id: string
+    display_name: string | null
     email: string | null
     line_user_id: string | null
     line_friendship_status: boolean | null
     line_friendship_updated_at: string | null
     created_at: string
+    talent_profiles: {
+      stage_name: string | null
+      agency: string | null
+    } | null
   }>
   total: number
 }> {
@@ -397,8 +402,22 @@ export async function getUsersWithFriendship(
 
     let query = supabase
       .from('users')
-      .select('id, email, line_user_id, line_friendship_status, line_friendship_updated_at, created_at', { count: 'exact' })
-      .not('line_user_id', 'is', null)
+      .select(
+        `
+        id,
+        display_name,
+        email,
+        line_user_id,
+        line_friendship_status,
+        line_friendship_updated_at,
+        created_at,
+        talent_profiles (
+          stage_name,
+          agency
+        )
+      `,
+        { count: 'exact' }
+      )
       .order('created_at', { ascending: false })
 
     // ステータスフィルタ
@@ -417,7 +436,22 @@ export async function getUsersWithFriendship(
     }
 
     return {
-      users: data || [],
+      users:
+        data?.map((item: any) => ({
+          id: item.id,
+          display_name: item.display_name ?? null,
+          email: item.email ?? null,
+          line_user_id: item.line_user_id ?? null,
+          line_friendship_status: item.line_friendship_status ?? null,
+          line_friendship_updated_at: item.line_friendship_updated_at ?? null,
+          created_at: item.created_at,
+          talent_profiles: item.talent_profiles
+            ? {
+                stage_name: item.talent_profiles.stage_name ?? null,
+                agency: item.talent_profiles.agency ?? null,
+              }
+            : null,
+        })) || [],
       total: count || 0
     }
   } catch (error) {

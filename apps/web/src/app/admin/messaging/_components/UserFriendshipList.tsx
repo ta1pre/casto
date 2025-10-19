@@ -9,11 +9,16 @@ import { useState, useEffect } from 'react'
 
 interface User {
   id: string
+  display_name: string | null
   email: string | null
   line_user_id: string | null
   line_friendship_status: boolean | null
   line_friendship_updated_at: string | null
   created_at: string
+  talent_profiles?: {
+    stage_name: string | null
+    agency: string | null
+  } | null
 }
 
 interface UserFriendshipListProps {
@@ -59,6 +64,30 @@ export function UserFriendshipList({ initialUsers = [], initialTotal = 0 }: User
   const handleFilterChange = (newFilter: FilterStatus) => {
     setFilter(newFilter)
     setPage(0)
+  }
+
+  const getDisplayName = (user: User) => {
+    if (user.display_name) {
+      return user.display_name
+    }
+
+    if (user.talent_profiles?.stage_name) {
+      return user.talent_profiles.stage_name
+    }
+
+    return '-'
+  }
+
+  const getCompanyName = (user: User) => {
+    return user.talent_profiles?.agency || '-'
+  }
+
+  const formatLineId = (lineId: string | null) => {
+    if (!lineId) {
+      return '-'
+    }
+
+    return lineId.length > 12 ? `${lineId.slice(0, 12)}…` : lineId
   }
 
   const getStatusBadge = (status: boolean | null) => {
@@ -144,30 +173,43 @@ export function UserFriendshipList({ initialUsers = [], initialTotal = 0 }: User
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ユーザー名</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">会社名</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">メール</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">LINE User ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">LINE ID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">友だち状態</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">更新日時</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">登録日</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">アクション</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {users.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                    <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
                       ユーザーが見つかりません
                     </td>
                   </tr>
                 ) : (
                   users.map((user) => (
                     <tr key={user.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500" title={user.id}>
+                        {user.id.slice(0, 8)}…
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {getDisplayName(user)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {getCompanyName(user)}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {user.email || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono text-xs">
                         {user.line_user_id ? (
-                          <span className="truncate max-w-[200px] inline-block" title={user.line_user_id}>
-                            {user.line_user_id}
+                          <span className="inline-block" title={user.line_user_id}>
+                            {formatLineId(user.line_user_id)}
                           </span>
                         ) : (
                           '-'
@@ -183,6 +225,29 @@ export function UserFriendshipList({ initialUsers = [], initialTotal = 0 }: User
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Date(user.created_at).toLocaleDateString('ja-JP')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {user.line_friendship_status === true && user.line_user_id ? (
+                            <button
+                              type="button"
+                              className="inline-flex items-center rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1"
+                            >
+                              LINE送信
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            className={`inline-flex items-center rounded-md px-3 py-1 text-xs font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+                              user.email
+                                ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
+                                : 'bg-gray-200 text-gray-500 cursor-not-allowed focus:ring-gray-300'
+                            }`}
+                            disabled={!user.email}
+                          >
+                            メール送信
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
