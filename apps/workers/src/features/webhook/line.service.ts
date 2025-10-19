@@ -45,9 +45,16 @@ export function verifySignature(
   signature: string,
   channelSecret: string
 ): boolean {
+  // デバッグ用ログ
+  console.log('[Webhook] Channel Secret length:', channelSecret.length)
+  console.log('[Webhook] Signature received:', signature)
+  
   const hash = createHmac('sha256', channelSecret)
     .update(body)
     .digest('base64')
+  
+  console.log('[Webhook] Signature computed:', hash)
+  console.log('[Webhook] Signatures match:', hash === signature)
   
   return hash === signature
 }
