@@ -33,6 +33,7 @@ docker restart casto
 ### **セットアップ**
 - [setup/LOCAL_DEVELOPMENT.md](./setup/LOCAL_DEVELOPMENT.md) - ローカル環境
 - [setup/SUPABASE_AUTH_SETUP.md](./setup/SUPABASE_AUTH_SETUP.md) - 認証設定
+- [SUPABASE_CONFIGURATION.md](./SUPABASE_CONFIGURATION.md) - Supabase設定管理 ⭐ **必読**
 
 ### **技術仕様**
 - [technical/SESSION_MANAGEMENT.md](./technical/SESSION_MANAGEMENT.md) - セッション管理

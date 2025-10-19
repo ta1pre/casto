@@ -113,7 +113,8 @@ jspm_packages/
 .wrangler/
 wrangler.toml.backup
 
-# Supabase
+# Supabase (ローカル専用ディレクトリと一時ファイル)
+.supabase/
 supabase/.temp/
 supabase/.branches/
 supabase/schema.sql
