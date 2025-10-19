@@ -12,10 +12,13 @@ function ResetPasswordConfirmContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [accessToken, setAccessToken] = useState<string | null>(null)
+  const [tokenHash, setTokenHash] = useState<string | null>(null)
+  const [tokenType, setTokenType] = useState<string | null>(null)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [passwordError, setPasswordError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -63,21 +66,25 @@ function ResetPasswordConfirmContent() {
       // PKCE Flow（クエリパラメータにaccess_token）
       setAccessToken(queryToken)
     } else if (tokenHash && type === 'recovery') {
-      // PKCE Flow（token_hashを使用してverifyOtp）
-      verifyTokenHash(tokenHash, type)
+      // PKCE Flow（token_hashを保存するだけ、検証は後で）
+      // Gmail/Chromeの先読みでトークンが消費されないよう、ユーザーのクリックまで待つ
+      setTokenHash(tokenHash)
+      setTokenType(type)
     } else {
       setError('無効なリンクです。もう一度パスワードリセットを申請してください。')
     }
   }, [searchParams])
 
-  const verifyTokenHash = async (tokenHash: string, type: string) => {
+  const verifyTokenHash = async (hash: string, type: string) => {
+    setIsVerifying(true)
+    setError(null)
     try {
       const response = await fetch('/api/v1/organizer/auth/verify-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token_hash: tokenHash, type }),
+        body: JSON.stringify({ token_hash: hash, type }),
         credentials: 'include',
       })
 
@@ -88,8 +95,18 @@ function ResetPasswordConfirmContent() {
       }
 
       setAccessToken(data.access_token)
+      setTokenHash(null) // 検証済みなのでクリア
+      setTokenType(null)
     } catch (err) {
-      setError('無効なリンクです。もう一度パスワードリセットを申請してください。')
+      setError('リンクの有効期限が切れています。もう一度パスワードリセットを申請してください。')
+    } finally {
+      setIsVerifying(false)
+    }
+  }
+
+  const handleStartReset = async () => {
+    if (tokenHash && tokenType) {
+      await verifyTokenHash(tokenHash, tokenType)
     }
   }
 
@@ -180,6 +197,57 @@ function ResetPasswordConfirmContent() {
             </p>
             <p className="text-xs text-gray-500">
               ログインページに自動的に移動します...
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // token_hashがあり、まだ検証していない場合は「開始」ボタンを表示
+  if (tokenHash && !accessToken) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 px-4">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl mb-4">
+                <svg
+                  className="w-8 h-8 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                パスワードをリセット
+              </h2>
+              <p className="text-sm text-gray-600 mb-6">
+                パスワードリセットメールからアクセスしました。<br />
+                下のボタンをクリックして新しいパスワードを設定してください。
+              </p>
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={handleStartReset}
+              disabled={isVerifying}
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium py-3 px-4 rounded-lg hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isVerifying ? '確認中...' : 'パスワードリセットを開始'}
+            </button>
+            <p className="text-xs text-gray-500 text-center mt-4">
+              ※ このリンクは1回のみ有効です
             </p>
           </div>
         </div>
