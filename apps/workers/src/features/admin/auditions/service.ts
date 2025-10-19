@@ -11,8 +11,8 @@ export interface AuditionListItem {
   status: string
   deadline: string
   created_at: string
-  organizers?: {
-    company_name: string
+  organizer_profiles?: {
+    name: string
   }
   _count?: {
     audition_applications: number
@@ -40,8 +40,8 @@ export async function getAuditions(
         status,
         deadline,
         created_at,
-        organizers (
-          company_name
+        organizer_profiles!auditions_organizer_id_fkey (
+          name
         )
       `,
         { count: 'exact' }
@@ -75,10 +75,10 @@ export async function getAuditions(
           .select('id', { count: 'exact', head: true })
           .eq('audition_id', audition.id)
 
-        const organizers = audition.organizers as any
+        const profiles = audition.organizer_profiles as any
         return {
           ...audition,
-          organizers: Array.isArray(organizers) ? organizers[0] : organizers,
+          organizer_profiles: Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : undefined,
           _count: {
             audition_applications: appCount || 0,
           },
@@ -115,8 +115,8 @@ export async function getAuditionDetail(
         status,
         deadline,
         created_at,
-        organizers (
-          company_name
+        organizer_profiles!auditions_organizer_id_fkey (
+          name
         )
       `
       )
@@ -133,10 +133,10 @@ export async function getAuditionDetail(
       .select('id', { count: 'exact', head: true })
       .eq('audition_id', auditionId)
 
-    const organizers = data.organizers as any
+    const profiles = data.organizer_profiles as any
     return {
       ...data,
-      organizers: Array.isArray(organizers) ? organizers[0] : organizers,
+      organizer_profiles: Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : undefined,
       _count: {
         audition_applications: appCount || 0,
       },

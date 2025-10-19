@@ -14,8 +14,8 @@ interface Audition {
   status: 'draft' | 'published' | 'closed'
   deadline: string
   created_at: string
-  organizers?: {
-    company_name: string
+  organizer_profiles?: {
+    name: string
   }
   _count?: {
     audition_applications: number
@@ -67,7 +67,7 @@ export default function AuditionsPage() {
     if (searchQuery) {
       return (
         audition.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        audition.organizers?.company_name?.toLowerCase().includes(searchQuery.toLowerCase())
+        audition.organizer_profiles?.name?.toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
     return true
@@ -197,7 +197,7 @@ export default function AuditionsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
-                        {audition.organizers?.company_name || '-'}
+                        {audition.organizer_profiles?.name || '-'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
