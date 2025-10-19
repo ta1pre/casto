@@ -334,7 +334,7 @@
 
 ---
 
-### Phase 3B.6: LINE公式アカウント統合 🔄 計画中
+### Phase 3B.6: LINE公式アカウント統合 🔄 Phase 1 完了（Phase 2 以降計画中）
 
 **目標**: 友だち追加状態を表示し、将来的にMessaging API活用の基盤を構築
 
@@ -354,27 +354,27 @@
   - Phase 2でWebhook設定を実施予定
   - Webhook URL: `https://casto-workers-dev.casto-api.workers.dev/api/v1/webhook/line`
 
-#### Phase 1: 友だち追加状態の表示（今回実装）⭐️⭐️⭐️
+#### Phase 1: 友だち追加状態の表示（実装完了）⭐️⭐️⭐️
 
 **Web UI**
-- [ ] `apps/web/src/shared/hooks/useOfficialLineStatus.ts` 作成
+- [x] `apps/web/src/shared/hooks/useOfficialLineStatus.ts` 作成
   - `liff.getFriendship()` で友だち追加状態取得
   - 型定義: `{ isFriend: boolean | null, loading: boolean, error: string | null, refetch: () => Promise<void>, lastCheckedAt: number | null }`
   - エラーハンドリング: LIFF未初期化、API未許可（403）、その他エラー
   - 依存: `useLiffAuth()` で LIFF 初期化状態確認
-- [ ] `apps/web/src/app/liff/page.tsx` 修正
+- [x] `apps/web/src/app/liff/page.tsx` 修正
   - ウェルカムセクション直後に友だち追加状態カード追加
   - 条件分岐: 友だち追加済み（緑）/未追加（黄色）/確認中（灰色）
   - 未追加時: 参加促進文言 + LINEボタン（`NEXT_PUBLIC_LINE_OFFICIAL_ACCOUNT_URL`）
   - 既存カードと統一デザイン（`bg-card`, `border-border`, `rounded-lg`, `p-4`）
 
 **環境変数**
-- [ ] `.env.example` に `NEXT_PUBLIC_LINE_OFFICIAL_ACCOUNT_URL` 追加
+- [x] `.env.example` に `NEXT_PUBLIC_LINE_OFFICIAL_ACCOUNT_URL` 追加
   - プレースホルダー: `https://lin.ee/PLACEHOLDER`
   - 実際のURLに差し替え可能
 
 **ドキュメント**
-- [ ] `docs/tasks/LINE_OFFICIAL_ACCOUNT_INTEGRATION.md` 作成
+- [x] `docs/tasks/LINE_OFFICIAL_ACCOUNT_INTEGRATION.md` 作成
   - Phase 1〜3の実装計画詳細
   - Webhook設定手順（Phase 2用）
   - Messaging API活用案（Phase 3用）

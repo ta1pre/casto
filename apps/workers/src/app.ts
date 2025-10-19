@@ -24,6 +24,8 @@ import talentAuditionRoutes from './features/talent/auditions/routes'
 import talentAuditionApplicationsRoutes from './features/talent/auditions/applications.routes'
 import talentApplicationRoutes from './features/talent/applications/routes'
 import talentGenreRoutes from './features/talent/genres/routes'
+import webhookLineRoutes from './features/webhook/line.routes'
+import messagingRoutes from './features/messaging/broadcast.routes'
 import { getAllowedOrigins, getPrimaryOrigin } from './config/env'
 import type { AppBindings } from './types'
 
@@ -52,6 +54,9 @@ export function createApp() {
     return corsMiddleware(c, next)
   })
 
+  // Webhook routes (no auth required)
+  app.route('/api/v1/webhook/line', webhookLineRoutes)
+
   app.use('*', attachUserContext)
 
   app.route('/api/v1', healthRoutes)
@@ -76,6 +81,7 @@ export function createApp() {
   app.route('/api/v1/talent/audition-applications', talentAuditionApplicationsRoutes)
   app.route('/api/v1/talent/applications', talentApplicationRoutes)
   app.route('/api/v1/talent/genres', talentGenreRoutes)
+  app.route('/api/v1/internal/messaging', messagingRoutes)
 
   app.notFound((c) => {
     return c.json({ error: 'Not Found' }, 404)
