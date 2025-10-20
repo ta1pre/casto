@@ -22,6 +22,7 @@ interface OrganizerHeaderProps {
 const navLinks = [
   { href: '/organizer/dashboard', label: 'ダッシュボード', icon: '📊' },
   { href: '/organizer/auditions', label: 'オーディション', icon: '🎭' },
+  { href: '/organizer/points', label: 'ポイント', icon: '💰' },
   { href: '/organizer/profile', label: 'プロフィール', icon: '👤' },
   { href: '/organizer/settings', label: '設定', icon: '⚙️' },
 ]
