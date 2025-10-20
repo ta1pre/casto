@@ -34,10 +34,9 @@ export function useAdminPointsAccounts(limit: number = 50, offset: number = 0) {
     try {
       setLoading(true)
       setError(null)
-      const response: Response = await apiFetch(
+      const data = await apiFetch<{ accounts: PointsAccount[]; total: number }>(
         `/api/v1/admin/points/accounts?limit=${limit}&offset=${offset}`
       )
-      const data = await response.json()
       setAccounts(data.accounts)
       setTotal(data.total)
     } catch (err) {
@@ -75,8 +74,7 @@ export function useAdminPointsAccountDetail(accountId: string | null) {
     try {
       setLoading(true)
       setError(null)
-      const response: Response = await apiFetch(`/api/v1/admin/points/accounts/${accountId}`)
-      const data = await response.json()
+      const data = await apiFetch<{ account: PointsAccount }>(`/api/v1/admin/points/accounts/${accountId}`)
       setAccount(data.account)
     } catch (err) {
       console.error('[useAdminPointsAccountDetail] Error:', err)
@@ -115,17 +113,12 @@ export function useGrantPoints() {
       try {
         setLoading(true)
         setError(null)
-        const response: Response = await apiFetch('/api/v1/admin/points/grant', {
+        await apiFetch('/api/v1/admin/points/grant', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(params),
         })
         
-        if (!response.ok) {
-          const data = await response.json()
-          throw new Error(data.error || 'Failed to grant points')
-        }
-
         return true
       } catch (err) {
         console.error('[useGrantPoints] Error:', err)
@@ -157,8 +150,7 @@ export function useAdminPointsPlans() {
     try {
       setLoading(true)
       setError(null)
-      const response: Response = await apiFetch('/api/v1/admin/points/plans')
-      const data = await response.json()
+      const data = await apiFetch<{ plans: PointsPlan[] }>('/api/v1/admin/points/plans')
       setPlans(data.plans)
     } catch (err) {
       console.error('[useAdminPointsPlans] Error:', err)
@@ -198,12 +190,11 @@ export function useCreatePointsPlan() {
       try {
         setLoading(true)
         setError(null)
-        const response: Response = await apiFetch('/api/v1/admin/points/plans', {
+        const data = await apiFetch<{ plan: PointsPlan }>('/api/v1/admin/points/plans', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(plan),
         })
-        const data = await response.json()
         return data.plan
       } catch (err) {
         console.error('[useCreatePointsPlan] Error:', err)
@@ -238,12 +229,11 @@ export function useUpdatePointsPlan() {
       try {
         setLoading(true)
         setError(null)
-        const response: Response = await apiFetch(`/api/v1/admin/points/plans/${planId}`, {
+        const data = await apiFetch<{ plan: PointsPlan }>(`/api/v1/admin/points/plans/${planId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updates),
         })
-        const data = await response.json()
         return data.plan
       } catch (err) {
         console.error('[useUpdatePointsPlan] Error:', err)
@@ -274,10 +264,10 @@ export function useDeletePointsPlan() {
     try {
       setLoading(true)
       setError(null)
-      const response: Response = await apiFetch(`/api/v1/admin/points/plans/${planId}`, {
+      await apiFetch(`/api/v1/admin/points/plans/${planId}`, {
         method: 'DELETE',
       })
-      return response.ok
+      return true
     } catch (err) {
       console.error('[useDeletePointsPlan] Error:', err)
       setError(err instanceof Error ? err.message : 'Failed to delete plan')
@@ -306,8 +296,7 @@ export function useGenreCosts() {
     try {
       setLoading(true)
       setError(null)
-      const response: Response = await apiFetch('/api/v1/admin/points/genre-costs')
-      const data = await response.json()
+      const data = await apiFetch<{ genres: GenreCost[] }>('/api/v1/admin/points/genre-costs')
       setGenres(data.genres)
     } catch (err) {
       console.error('[useGenreCosts] Error:', err)
@@ -341,12 +330,12 @@ export function useUpdateGenreCost() {
       try {
         setLoading(true)
         setError(null)
-        const response: Response = await apiFetch(`/api/v1/admin/points/genre-costs/${genreId}`, {
+        await apiFetch(`/api/v1/admin/points/genre-costs/${genreId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ viewing_point_cost: viewingPointCost }),
         })
-        return response.ok
+        return true
       } catch (err) {
         console.error('[useUpdateGenreCost] Error:', err)
         setError(err instanceof Error ? err.message : 'Failed to update genre cost')
