@@ -10,6 +10,7 @@
 import { Hono } from 'hono'
 import type { AppBindings } from '../../../types'
 import { createSupabaseClient } from '../../../lib/supabase'
+import { verifyAdminAuth } from '../../../middleware/verifyRoleAuth'
 import {
   pointsGrantRequestSchema,
   createPointsPlanSchema,
@@ -32,38 +33,8 @@ import {
 
 const adminPointsRoutes = new Hono<AppBindings>()
 
-/**
- * Admin権限チェックミドルウェア
- */
-async function checkAdminRole(c: any, next: () => Promise<void>) {
-  const supabase = createSupabaseClient(c)
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    return c.json({ error: 'Unauthorized' }, 401)
-  }
-
-  // Admin権限チェック
-  const { data: userRoles } = await supabase
-    .from('user_roles')
-    .select(`
-      roles!inner(name)
-    `)
-    .eq('user_id', user.id)
-
-  const isAdmin = userRoles?.some((ur: any) => ur.roles.name === 'admin')
-
-  if (!isAdmin) {
-    return c.json({ error: 'Forbidden: Admin role required' }, 403)
-  }
-
-  await next()
-}
-
-adminPointsRoutes.use('/*', checkAdminRole)
+// Admin権限チェックを全ルートに適用
+adminPointsRoutes.use('/*', verifyAdminAuth)
 
 /**
  * GET /api/v1/admin/points/accounts
