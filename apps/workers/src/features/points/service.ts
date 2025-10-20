@@ -23,6 +23,8 @@ import type {
 
 /**
  * アカウント取得（存在しなければ作成）
+ * 
+ * [REH] 競合状態を考慮した実装
  */
 export async function getOrCreateAccount(
   supabase: SupabaseClient,
@@ -39,22 +41,39 @@ export async function getOrCreateAccount(
     return existing as PointsAccount
   }
 
-  // 新規作成
+  // 新規作成（ON CONFLICT時は既存レコードを返す）
   const { data: created, error: createError } = await supabase
     .from('points_accounts')
-    .insert({
-      user_id: params.userId,
-      account_type: params.accountType || 'organizer',
-      balance: 0,
-      total_purchased: 0,
-      total_consumed: 0,
-      total_bonus: 0,
-    })
+    .upsert(
+      {
+        user_id: params.userId,
+        account_type: params.accountType || 'organizer',
+        balance: 0,
+        total_purchased: 0,
+        total_consumed: 0,
+        total_bonus: 0,
+      },
+      {
+        onConflict: 'user_id',
+        ignoreDuplicates: false, // 既存レコードを返す
+      }
+    )
     .select()
     .single()
 
   if (createError) {
-    throw new Error(`Failed to create points account: ${createError.message}`)
+    // それでもエラーの場合は再度取得を試みる（最終手段）
+    const { data: retry, error: retryError } = await supabase
+      .from('points_accounts')
+      .select('*')
+      .eq('user_id', params.userId)
+      .single()
+    
+    if (retry && !retryError) {
+      return retry as PointsAccount
+    }
+    
+    throw new Error(`Failed to get or create points account: ${createError.message}`)
   }
 
   return created as PointsAccount

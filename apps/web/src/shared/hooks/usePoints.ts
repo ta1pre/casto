@@ -28,8 +28,7 @@ export function usePointsAccount() {
     try {
       setLoading(true)
       setError(null)
-      const response: Response = await apiFetch('/api/v1/points/account')
-      const data = await response.json()
+      const data = await apiFetch<{ account: PointsAccount }>('/api/v1/points/account')
       setAccount(data.account)
     } catch (err) {
       console.error('[usePointsAccount] Error:', err)
@@ -65,10 +64,9 @@ export function usePointsTransactions(limit: number = 50, offset: number = 0) {
     try {
       setLoading(true)
       setError(null)
-      const response: Response = await apiFetch(
+      const data = await apiFetch<{ transactions: PointsTransaction[]; total: number }>(
         `/api/v1/points/transactions?limit=${limit}&offset=${offset}`
       )
-      const data = await response.json()
       setTransactions(data.transactions)
       setTotal(data.total)
     } catch (err) {
@@ -104,8 +102,7 @@ export function usePointsPlans() {
     try {
       setLoading(true)
       setError(null)
-      const response: Response = await apiFetch('/api/v1/points/plans')
-      const data = await response.json()
+      const data = await apiFetch<{ plans: PointsPlan[] }>('/api/v1/points/plans')
       setPlans(data.plans)
     } catch (err) {
       console.error('[usePointsPlans] Error:', err)
@@ -139,12 +136,11 @@ export function useCheckViewing() {
       try {
         setLoading(true)
         setError(null)
-        const response: Response = await apiFetch('/api/v1/points/check-viewing', {
+        const data = await apiFetch<{ eligibility: ViewingEligibility }>('/api/v1/points/check-viewing', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ applicationId }),
         })
-        const data = await response.json()
         return data.eligibility
       } catch (err) {
         console.error('[useCheckViewing] Error:', err)
@@ -176,12 +172,11 @@ export function useConsumeViewing() {
       try {
         setLoading(true)
         setError(null)
-        const response: Response = await apiFetch('/api/v1/points/consume-viewing', {
+        const data = await apiFetch<{ success: boolean; pointsConsumed: number }>('/api/v1/points/consume-viewing', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ applicationId }),
         })
-        const data = await response.json()
         return data
       } catch (err) {
         console.error('[useConsumeViewing] Error:', err)
