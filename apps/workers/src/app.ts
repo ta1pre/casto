@@ -28,6 +28,8 @@ import talentApplicationRoutes from './features/talent/applications/routes'
 import talentGenreRoutes from './features/talent/genres/routes'
 import webhookLineRoutes from './features/webhook/line.routes'
 import messagingRoutes from './features/messaging/broadcast.routes'
+import pointsRoutes from './features/points/routes'
+import adminPointsRoutes from './features/admin/points/routes'
 import { getAllowedOrigins, getPrimaryOrigin } from './config/env'
 import type { AppBindings } from './types'
 
@@ -69,6 +71,7 @@ export function createApp() {
   app.route('/api/v1/admin', adminAuthRoutes)
   app.route('/api/v1/admin/stats', adminStatsRoutes)
   app.route('/api/v1/admin/auditions', adminAuditionsRoutes)
+  app.route('/api/v1/admin/points', adminPointsRoutes)
   app.route('/api/v1/organizer', organizerAuthRoutes)
   app.route('/api/v1/organizer', organizerProfileRoutes)
   app.route('/api/v1/organizer/auditions', organizerAuditionRoutes)
@@ -85,6 +88,7 @@ export function createApp() {
   app.route('/api/v1/talent/audition-applications', talentAuditionApplicationsRoutes)
   app.route('/api/v1/talent/applications', talentApplicationRoutes)
   app.route('/api/v1/talent/genres', talentGenreRoutes)
+  app.route('/api/v1/points', pointsRoutes)
   app.route('/api/v1/internal/messaging', messagingRoutes)
 
   app.notFound((c) => {
