@@ -10,6 +10,7 @@
 import { Hono } from 'hono'
 import type { AppBindings } from '../../types'
 import { createSupabaseClient } from '../../lib/supabase'
+import { verifyOrganizerAuth } from '../../middleware/verifyRoleAuth'
 import {
   checkViewingRequestSchema,
   consumeViewingRequestSchema,
@@ -28,20 +29,16 @@ const pointsRoutes = new Hono<AppBindings>()
  * GET /api/v1/points/account
  * ポイントアカウント取得
  */
-pointsRoutes.get('/account', async (c) => {
+pointsRoutes.get('/account', verifyOrganizerAuth, async (c) => {
   try {
-    const supabase = createSupabaseClient(c)
-
-    // 認証チェック
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    const userContext = c.get('user')
+    
+    if (!userContext) {
       return c.json({ error: 'Unauthorized' }, 401)
     }
 
-    const account = await getOrCreateAccount(supabase, { userId: user.id })
+    const supabase = createSupabaseClient(c)
+    const account = await getOrCreateAccount(supabase, { userId: userContext.id })
 
     return c.json({ account })
   } catch (error) {
@@ -57,24 +54,21 @@ pointsRoutes.get('/account', async (c) => {
  * GET /api/v1/points/transactions
  * 取引履歴取得
  */
-pointsRoutes.get('/transactions', async (c) => {
+pointsRoutes.get('/transactions', verifyOrganizerAuth, async (c) => {
   try {
-    const supabase = createSupabaseClient(c)
-
-    // 認証チェック
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    const userContext = c.get('user')
+    
+    if (!userContext) {
       return c.json({ error: 'Unauthorized' }, 401)
     }
+
+    const supabase = createSupabaseClient(c)
 
     // クエリパラメータ
     const limit = parseInt(c.req.query('limit') || '50', 10)
     const offset = parseInt(c.req.query('offset') || '0', 10)
 
-    const result = await getTransactions(supabase, user.id, limit, offset)
+    const result = await getTransactions(supabase, userContext.id, limit, offset)
 
     return c.json(result)
   } catch (error) {
@@ -93,7 +87,7 @@ pointsRoutes.get('/transactions', async (c) => {
  * GET /api/v1/points/plans
  * ポイントプラン一覧取得
  */
-pointsRoutes.get('/plans', async (c) => {
+pointsRoutes.get('/plans', verifyOrganizerAuth, async (c) => {
   try {
     const supabase = createSupabaseClient(c)
 
@@ -113,18 +107,15 @@ pointsRoutes.get('/plans', async (c) => {
  * POST /api/v1/points/check-viewing
  * 閲覧可否チェック
  */
-pointsRoutes.post('/check-viewing', async (c) => {
+pointsRoutes.post('/check-viewing', verifyOrganizerAuth, async (c) => {
   try {
-    const supabase = createSupabaseClient(c)
-
-    // 認証チェック
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    const userContext = c.get('user')
+    
+    if (!userContext) {
       return c.json({ error: 'Unauthorized' }, 401)
     }
+
+    const supabase = createSupabaseClient(c)
 
     // バリデーション
     const body = await c.req.json()
@@ -132,7 +123,7 @@ pointsRoutes.post('/check-viewing', async (c) => {
 
     const eligibility = await checkViewingEligibility(
       supabase,
-      user.id,
+      userContext.id,
       validated.applicationId
     )
 
@@ -155,18 +146,15 @@ pointsRoutes.post('/check-viewing', async (c) => {
  * POST /api/v1/points/consume-viewing
  * 閲覧ポイント消費
  */
-pointsRoutes.post('/consume-viewing', async (c) => {
+pointsRoutes.post('/consume-viewing', verifyOrganizerAuth, async (c) => {
   try {
-    const supabase = createSupabaseClient(c)
-
-    // 認証チェック
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    const userContext = c.get('user')
+    
+    if (!userContext) {
       return c.json({ error: 'Unauthorized' }, 401)
     }
+
+    const supabase = createSupabaseClient(c)
 
     // バリデーション
     const body = await c.req.json()
@@ -175,7 +163,7 @@ pointsRoutes.post('/consume-viewing', async (c) => {
     // 閲覧可否チェック
     const eligibility = await checkViewingEligibility(
       supabase,
-      user.id,
+      userContext.id,
       validated.applicationId
     )
 
@@ -199,7 +187,7 @@ pointsRoutes.post('/consume-viewing', async (c) => {
 
     // ポイント消費
     await consumeViewingPoints(supabase, {
-      userId: user.id,
+      userId: userContext.id,
       applicationId: validated.applicationId,
       auditionId: application.audition_id,
       pointsConsumed: eligibility.pointsRequired,
