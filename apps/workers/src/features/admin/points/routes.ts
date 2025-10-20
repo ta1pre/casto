@@ -203,6 +203,41 @@ adminPointsRoutes.delete('/plans/:id', async (c) => {
 })
 
 /**
+ * GET /api/v1/admin/points/settings
+ * システム設定取得
+ */
+adminPointsRoutes.get('/settings', async (c) => {
+  try {
+    const supabase = createSupabaseClient(c)
+
+    // システム設定を取得（points_settings テーブルは1レコードのみ）
+    const { data: settings, error } = await supabase
+      .from('points_settings')
+      .select('*')
+      .single()
+
+    if (error) {
+      console.error('[Admin Points] Settings fetch error:', error)
+      // 設定が存在しない場合はデフォルト値を返す
+      return c.json({
+        settings: {
+          default_viewing_point_cost: 10,
+          allow_negative_balance: false,
+        },
+      })
+    }
+
+    return c.json({ settings })
+  } catch (error) {
+    console.error('[Admin Points] Failed to get settings:', error)
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Failed to get settings' },
+      500
+    )
+  }
+})
+
+/**
  * PATCH /api/v1/admin/points/settings
  * システム設定更新
  */
