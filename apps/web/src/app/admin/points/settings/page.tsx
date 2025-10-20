@@ -25,9 +25,8 @@ export default function AdminPointsSettingsPage() {
   useEffect(() => {
     const fetchDefaultCost = async () => {
       try {
-        const response: Response = await apiFetch('/api/v1/admin/points/settings')
-        const data = await response.json()
-        setDefaultCost(data.default_viewing_point_cost?.toString() || '100')
+        const data = await apiFetch<{ settings: { default_viewing_point_cost?: number } }>('/api/v1/admin/points/settings')
+        setDefaultCost(data.settings?.default_viewing_point_cost?.toString() || '100')
       } catch (err) {
         console.error('Failed to fetch default cost:', err)
         setDefaultCost('100')
@@ -48,19 +47,15 @@ export default function AdminPointsSettingsPage() {
   const handleSaveDefaultCost = async () => {
     try {
       setSaving(true)
-      const response: Response = await apiFetch('/api/v1/admin/points/settings', {
+      await apiFetch('/api/v1/admin/points/settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           default_viewing_point_cost: parseInt(defaultCost, 10),
         }),
       })
-
-      if (response.ok) {
-        alert('デフォルト単価を更新しました')
-      } else {
-        alert('更新に失敗しました')
-      }
+      
+      alert('デフォルト単価を更新しました')
     } catch (err) {
       console.error('Failed to update default cost:', err)
       alert('エラーが発生しました')
