@@ -12,6 +12,16 @@ import { apiFetch } from '@/shared/lib/api'
 import type { PointsAccount, PointsPlan } from '@casto/shared'
 
 /**
+ * ジャンル別単価の型定義
+ */
+export interface GenreCost {
+  id: string
+  slug: string
+  display_name: string
+  viewing_point_cost: number | null
+}
+
+/**
  * 全アカウント一覧取得
  */
 export function useAdminPointsAccounts(limit: number = 50, offset: number = 0) {
@@ -288,7 +298,7 @@ export function useDeletePointsPlan() {
  * ジャンル別単価一覧取得
  */
 export function useGenreCosts() {
-  const [genres, setGenres] = useState<any[]>([])
+  const [genres, setGenres] = useState<GenreCost[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

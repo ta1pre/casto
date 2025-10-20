@@ -9,7 +9,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useGenreCosts, useUpdateGenreCost } from '@/shared/hooks/useAdminPoints'
+import { useGenreCosts, useUpdateGenreCost, type GenreCost } from '@/shared/hooks/useAdminPoints'
 import { apiFetch } from '@/shared/lib/api'
 import Link from 'next/link'
 
@@ -160,7 +160,7 @@ export default function AdminPointsSettingsPage() {
 }
 
 interface GenreRowProps {
-  genre: any
+  genre: GenreCost
   onUpdate: (genreId: string, cost: number | null) => void
   updating: boolean
 }

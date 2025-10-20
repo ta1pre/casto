@@ -18,8 +18,9 @@ export default function PointsPurchasePage() {
   const { balance } = usePointsAccount()
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
 
-  const handlePurchase = async (planId: string) => {
+  const handlePurchase = async (_planId: string) => {
     // Phase 3: Stripe Checkout連携を実装予定
+    // TODO: planIdを使用してStripe Checkout Sessionを作成
     alert('ポイント購入機能は準備中です。\n\nStripe連携（Phase 3）で実装予定です。')
   }
 

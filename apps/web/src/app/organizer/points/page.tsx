@@ -13,9 +13,10 @@ import { useState } from 'react'
 import { usePointsAccount, usePointsTransactions } from '@/shared/hooks/usePoints'
 import { formatDateTime } from '@/shared/lib/date'
 import Link from 'next/link'
+import type { PointsTransaction } from '@casto/shared'
 
 export default function OrganizerPointsPage() {
-  const { account, balance, loading: accountLoading, error: accountError, refetch: refetchAccount } = usePointsAccount()
+  const { account, balance, loading: accountLoading, error: accountError } = usePointsAccount()
   const [page, setPage] = useState(0)
   const limit = 20
   const { transactions, total, loading: txLoading, error: txError } = usePointsTransactions(limit, page * limit)
@@ -129,7 +130,7 @@ export default function OrganizerPointsPage() {
 }
 
 interface TransactionRowProps {
-  transaction: any
+  transaction: PointsTransaction
 }
 
 function TransactionRow({ transaction }: TransactionRowProps) {
