@@ -128,14 +128,3 @@ export const auditionPointsSettingsSchema = z.object({
     .optional(),
   unlimited_viewing: z.boolean().optional().default(false),
 })
-
-// 型推論用
-export type PointsPurchaseRequest = z.infer<typeof pointsPurchaseRequestSchema>
-export type PointsGrantRequest = z.infer<typeof pointsGrantRequestSchema>
-export type CheckViewingRequest = z.infer<typeof checkViewingRequestSchema>
-export type ConsumeViewingRequest = z.infer<typeof consumeViewingRequestSchema>
-export type CreatePointsPlan = z.infer<typeof createPointsPlanSchema>
-export type UpdatePointsPlan = z.infer<typeof updatePointsPlanSchema>
-export type UpdatePointsSettings = z.infer<typeof updatePointsSettingsSchema>
-export type UpdateGenreCost = z.infer<typeof updateGenreCostSchema>
-export type AuditionPointsSettings = z.infer<typeof auditionPointsSettingsSchema>
