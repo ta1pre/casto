@@ -179,6 +179,7 @@ async function getAuditionWithGenre(
       id,
       viewing_point_cost,
       free_viewing_quota,
+      project_type,
       max_viewing_points,
       unlimited_viewing,
       audition_genre_map!inner(
@@ -194,6 +195,18 @@ async function getAuditionWithGenre(
     return null
   }
 
+  // 種別マスタから無料閲覧枠を取得
+  let typeFreeViewCount: number | null = null
+  const { data: typeRow } = await supabase
+    .from('audition_types')
+    .select('free_view_count')
+    .eq('type_code', audition.project_type)
+    .single()
+
+  if (typeRow && typeof typeRow.free_view_count === 'number') {
+    typeFreeViewCount = typeRow.free_view_count
+  }
+
   // ジャンル情報を整形
   const genreMap = audition.audition_genre_map as any[]
   const genre = genreMap && genreMap.length > 0
@@ -204,6 +217,8 @@ async function getAuditionWithGenre(
     id: audition.id,
     viewing_point_cost: audition.viewing_point_cost,
     free_viewing_quota: audition.free_viewing_quota,
+    project_type: audition.project_type,
+    type_free_view_count: typeFreeViewCount,
     max_viewing_points: audition.max_viewing_points,
     unlimited_viewing: audition.unlimited_viewing,
     genre,
@@ -294,16 +309,19 @@ export async function checkViewingEligibility(
   }
 
   // 4. 無料閲覧枠チェック
-  if (audition.free_viewing_quota && audition.free_viewing_quota > 0) {
+  const freeQuotaLimit =
+    audition.free_viewing_quota ?? audition.type_free_view_count ?? 0
+
+  if (freeQuotaLimit > 0) {
     const viewedCount = await getViewedCountForAudition(supabase, userId, audition.id)
-    if (viewedCount < audition.free_viewing_quota) {
+    if (viewedCount < freeQuotaLimit) {
       return {
         canView: true,
         pointsRequired: 0,
         currentBalance: 0,
         alreadyViewed: false,
         reason: 'free_quota',
-        freeQuotaRemaining: audition.free_viewing_quota - viewedCount,
+        freeQuotaRemaining: freeQuotaLimit - viewedCount,
       }
     }
   }
