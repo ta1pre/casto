@@ -1,366 +1,214 @@
-# データベース管理ガイド
+# Supabase運用ガイド
 
 **シンプル・イズ・ベスト [SF][CA][DRY]**
 
-このドキュメントは、Supabaseデータベースのマイグレーション管理の標準手順を定義します。
+このガイドは、Supabaseにおける「DBマイグレーション」と「設定（`supabase/config.toml`）」の運用を一元管理します。[TR]
+
+---
 
 ## 🎯 基本原則
 
-### 1. リモートDBが常に正
-**リモート（Supabase）のデータベース状態が唯一の正解です。**
-- ローカルのマイグレーションファイルはリモートの記録
-- ローカルとリモートの不整合は即座に修正
+1. **リモート（Supabase）が唯一の正** – ローカルは常にリモートに従う。[PEC]
+2. **DB変更はマイグレーションで自動生成** – `supabase db diff` を使い手書き禁止。[SF]
+3. **操作はMakefile経由** – `make db-*` コマンドに集約し、ヒューマンエラーを削減。[DRY]
+4. **Workersデプロイとは独立** – Supabase操作（DB/設定）はCloudflare WorkersのCI/CD経路と別物。[CA]
 
-### 2. マイグレーションのみで管理
-- ✅ `supabase/migrations/` のみ使用
-- ❌ `supabase/schema/` 不使用（混乱の元）
-- ❌ `supabase/seed/` 不使用（seedもマイグレーションで管理）
+> 重要: ローカルDB（`supabase start` や `localhost:54321` 等）は使用しません。常にリモート（Supabase）を唯一のソース・オブ・トゥルースとし、操作はマイグレーションで行います。[PEC]
 
-### 3. べき等性の保証
-すべてのマイグレーションは何度実行しても同じ結果になること。
+---
 
-## 前提条件
+## 1. DBマイグレーション運用
 
-- Supabase CLI v2.51.0以上がインストール済み
-- プロジェクトが `sfscmpjplvxtikmifqhe` にリンク済み
-
-## 🔴 絶対ルール
-
-1. **リモートDBが常に正** - ローカルはリモートに従う
-2. **マイグレーションファイルは直接編集しない**（適用後）
-3. **必ず `DROP ... IF EXISTS` を使う**（べき等性のため）
-4. **seedデータもマイグレーションとして管理**
-5. **デプロイ前に `supabase migration list` で整合性確認**
-
-## 標準ワークフロー
-
-### 1. 新しいマイグレーション作成
+### 1.1 前提
 
 ```bash
-# プロジェクトルートで実行
-cd /Users/taichiumeki/dev/services/casto
-
-# マイグレーションファイル生成
-supabase migration new <説明的な名前>
-
-# 例: supabase migration new add_user_avatar
+export SUPABASE_DB_PASSWORD='your_password'  # 例: xSNOAfHLgdqCOfyM
 ```
 
-### 2. マイグレーションファイル作成のベストプラクティス
+> 一度設定すれば同じシェルで使い回せます。パスワードはSupabase Dashboardで管理。[SFT]
 
-**テンプレート:**
+### 1.2 コマンド（4つだけ）
+
+```bash
+# 新規変更を作る（自動diff）
+make db-new
+
+# リモートに適用
+make db-apply
+
+# 整合性確認
+make db-check
+
+# 不一致を修正（リモートが正）
+make db-sync
+```
+
+### 1.3 ワークフロー
+
+1. **`make db-new`** で差分を自動生成
+   - ファイル名を意味のあるものに変更（例: `20251103123456_auto_generated.sql` → `20251103123456_add_user_avatar.sql`）
+   - SQLは必ずべき等（`CREATE ... IF NOT EXISTS` / `DROP ... IF EXISTS` 等）
+   - Seedデータも同じマイグレーションに含める
+
+2. **変更をレビューしGitにコミット**
+   ```bash
+   git add supabase/migrations/*.sql
+   git commit -m "feat: add user avatar column"
+   ```
+
+3. **`make db-apply`** でSupabaseリモートへ反映
+   - べき等性を確保しているため、再実行しても安全
+   - WorkersのAPI更新は自動的にCI/CDで反映（手動デプロイ禁止）
+
+4. **`make db-check`** でLocal/Remoteが一致することを確認
+   - Local/Remote列が完全一致すればOK ✅
+   - 不一致があれば `make db-sync` を実行
+
+5. **不一致は `make db-sync` → `make db-check` で解消**
+   - リモートを正としてローカルを自動修正
+   - 完了後に `make db-check` で確認
+
+6. **Workersの再デプロイはGitHub Actionsが自動実行**
+   ```bash
+   git push origin develop  # CI/CDが自動デプロイ
+   ```
+
+### 1.4 トラブルシューティング
+
+| 症状 | 対応 |
+| ---- | ---- |
+| Local/Remote が不一致 | `make db-sync` でリモートに合わせて再度 `make db-check`。[REH] |
+| マイグレーション適用でエラー | SQLがべき等か確認。`CREATE TABLE IF NOT EXISTS` / `DROP TABLE IF EXISTS` を徹底。[REH] |
+| Workersが新テーブルを認識しない | `git push` してCI/CDによる再デプロイを待つ。手動デプロイは禁止。 |
+| パスワード不明 | Supabase Dashboard → Settings → Database で確認・更新。 |
+
+#### べき等性の例
 
 ```sql
--- <説明>
--- [CA][SF] <機能説明>
+-- ❌ 悪い例（再実行でエラー）
+CREATE TABLE users (...);
+ALTER TABLE users ADD COLUMN avatar_url TEXT;
 
--- テーブル作成
-CREATE TABLE IF NOT EXISTS public.example (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- インデックス作成
-CREATE INDEX IF NOT EXISTS idx_example_name ON public.example(name);
-
--- RLS有効化
-ALTER TABLE public.example ENABLE ROW LEVEL SECURITY;
-
--- ポリシー作成（必ず DROP IF EXISTS）
-DROP POLICY IF EXISTS "example_select_policy" ON public.example;
-CREATE POLICY "example_select_policy"
-  ON public.example
-  FOR SELECT
-  USING (true);
-
--- コメント
-COMMENT ON TABLE public.example IS '例示用テーブル';
-
--- 初期データ投入（必要に応じて）
-INSERT INTO public.example (name) VALUES
-  ('初期データ1'),
-  ('初期データ2')
-ON CONFLICT (name) DO NOTHING;  -- べき等性保証
+-- ✅ 良い例（再実行しても安全）
+CREATE TABLE IF NOT EXISTS users (...);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+DROP TABLE IF EXISTS old_table;
 ```
 
-**重要:** seedデータは別ファイルではなく、マイグレーションとして管理します。
+> 詳細な背景・履歴はアーカイブ [tasksarchive/DATABASE_MANAGEMENT_DETAILED.md](./tasksarchive/DATABASE_MANAGEMENT_DETAILED.md) を参照。[CWM]
 
-### 3. ローカル/リモート整合性チェック
+---
 
-**デプロイ前に必ず実行:**
+## 2. Supabase設定（`supabase/config.toml`）
+
+SupabaseのAuth/API/Storage設定は `supabase/config.toml` をGitで管理し、`supabase config push` でリモートへ反映します。[CA]
+
+### 2.1 ディレクトリ構成
+
+```
+supabase/
+├── config.toml          # プロジェクト設定 ✅ Git管理
+├── migrations/          # DBマイグレーション ✅ Git管理
+├── .temp/              # 一時ファイル ❌ gitignore
+└── .branches/          # ブランチ情報 ❌ gitignore
+
+.supabase/
+└── config.toml         # ローカルリンク情報 ❌ gitignore
+```
+
+| フォルダ | 役割 | 管理方針 |
+| --- | --- | --- |
+| `supabase/` | プロジェクト共通設定（Auth/Storage等） | Gitで管理 |
+| `.supabase/` | 個人マシンのリンク情報 | `supabase link` で生成。Git管理しない |
+
+### 2.2 設定変更フロー
 
 ```bash
-# 1. マイグレーション履歴確認（最重要）
-supabase migration list --linked
+# 0. 前提
+export SUPABASE_DB_PASSWORD='your_password'
 
-# 出力例:
-#   Local          | Remote         | Time (UTC)
-#  ----------------|----------------|---------------------
-#   20251015000000 | 20251015000000 | 2025-10-15 00:00:00  ← ✅ 整合性OK
-#   20251015000001 |                | 2025-10-15 00:00:01  ← ❌ リモート未適用
-#                  | 20251015000002 | 2025-10-15 00:00:02  ← ❌ ローカルにない
+# 1. 設定を編集
+vim supabase/config.toml
 
-# ✅ 理想状態: すべての行でLocal列とRemote列が一致
-# ❌ 問題状態: どれか1つでも不一致があれば修正が必要
+# 2. リモートに反映
+supabase config push --project-ref sfscmpjplvxtikmifqhe
+
+# 3. Gitにコミット
+git add supabase/config.toml
+git commit -m "chore: update supabase config"
 ```
 
-**整合性が取れていない場合は、このガイドの「トラブルシューティング」を参照してください。**
+#### 主な管理対象
 
-### 4. マイグレーション適用
+- **Auth設定**: Site URL, Redirect URLs, JWT設定
+- **API設定**: REST API, GraphQL
+- **Storage設定**: バケット設定
+- **Realtime設定**: リアルタイム通信
 
-#### 🚀 推奨方法: 自動化スクリプト（最も簡単）
+#### 設定例（`supabase/config.toml`）
 
-**パスワード入力不要で全自動実行:**
+```toml
+[auth]
+enabled = true
+site_url = "https://casto.sb2024.xyz"
+additional_redirect_urls = [
+  "https://casto.sb2024.xyz/admin/auth/callback",
+  "https://casto.sb2024.xyz/organizer/auth/callback",
+  "https://casto.sb2024.xyz/admin/reset-password/confirm",
+  "https://casto.sb2024.xyz/organizer/reset-password/confirm",
+  "https://casto.io/admin/auth/callback",
+  "https://casto.io/organizer/auth/callback",
+  "https://casto.io/admin/reset-password/confirm",
+  "https://casto.io/organizer/reset-password/confirm"
+]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = true
+```
+
+### 2.3 新しい開発環境のセットアップ
 
 ```bash
-# 方法1: Makefileコマンド（推奨）
-make migrate
+# 1. リポジトリをクローン
+git clone <repository>
+cd casto
 
-# 方法2: スクリプト直接実行
-./scripts/migrate-db.sh
+# 2. Supabaseプロジェクトにリンク（`.supabase/config.toml` 自動生成）
+supabase link --project-ref sfscmpjplvxtikmifqhe
+
+# 3. DBマイグレーションを適用
+make db-apply
 ```
 
-このスクリプトが自動で実行する処理:
-1. `apps/web/.env.local`から`SUPABASE_DB_PASSWORD`を読み込み
-2. マイグレーション整合性チェック（`supabase migration list --linked`）
-3. 未適用マイグレーションを自動適用（`supabase db push --include-all`）
-4. 適用後の整合性確認
+### 2.4 設定系トラブルシューティング
 
-**必須条件:**
-- `apps/web/.env.local`に`SUPABASE_DB_PASSWORD`が設定されていること
-- プロジェクトルートで実行すること
+| 症状 | 対応 |
+| ---- | ---- |
+| `.supabase/` がGitに入った | `.gitignore` に追記し、`git rm -r --cached .supabase/`。 |
+| 設定が反映されない | `supabase config push --project-ref ...` を再実行。必要に応じ `supabase link` をやり直す。 |
+| 設定内容を確認したい | `cat supabase/config.toml` でGit管理内容を参照。 |
 
-**注意:** 初回実行時に実行権限が必要な場合は:
-```bash
-chmod +x scripts/migrate-db.sh
-```
+---
 
-#### ケースA: 通常適用（Remote列が全て埋まっている）
+## 3. 参考情報
 
-```bash
-supabase db push
-```
+- **Project Ref**: `sfscmpjplvxtikmifqhe`
+- **パスワード**: 環境変数 `SUPABASE_DB_PASSWORD` で指定
+- **Supabase Dashboard**: https://supabase.com/dashboard/project/sfscmpjplvxtikmifqhe
+- **Supabase CLI Config**: https://supabase.com/docs/guides/local-development/cli/config
+- **Supabase Auth Redirect URLs**: https://supabase.com/docs/guides/auth/redirect-urls
+- **詳細手順**: [DATABASE_MANAGEMENT_DETAILED.md](./tasksarchive/DATABASE_MANAGEMENT_DETAILED.md)（アーカイブ）
 
-#### ケースB: 履歴不整合（Remote列が空白）
+---
 
-```bash
-# 1. 不整合があるバージョンを特定
-supabase migration list
+## 4. Workersとの関係
 
-# 2. 履歴を修復（reverted = 未適用扱い）
-supabase migration repair --status reverted <version>
+- **Supabase（DB/設定）の反映**: `make db-apply` / `supabase config push`
+- **Workersのデプロイ**: GitHub Actions（CI/CD）のみ。手動 `wrangler deploy` 禁止。[ISA]
+- **アクセス先**: 開発・本番とも Docker+Traefik 経由の `https://casto.sb2024.xyz` を使用。`localhost` 禁止。
 
-# 例:
-# supabase migration repair --status reverted 20251015000003
+詳細は [DEPLOYMENT_POLICY.md](./DEPLOYMENT_POLICY.md) と [CRITICAL_RULES.md](./CRITICAL_RULES.md) を参照。
 
-# 3. すべてのマイグレーションを適用
-supabase db push --include-all
-```
+---
 
-#### ケースC: ポリシー衝突エラー
-
-エラー例:
-```
-ERROR: policy "xxx" for table "yyy" already exists
-```
-
-**解決:**
-
-1. 該当マイグレーションファイルを編集
-2. `DROP POLICY IF EXISTS` を追加
-3. 再度 `supabase db push --include-all`
-
-### 5. Workers APIへのスキーマ反映
-
-マイグレーション適用後、Workers APIが新しいテーブルを認識するには：
-
-```bash
-# Workers再デプロイ（開発環境）
-cd apps/workers
-npx wrangler deploy --env development
-
-# 本番環境
-npx wrangler deploy --env production
-```
-
-**注意:** Workers再デプロイでSupabaseクライアントが再初期化され、スキーマキャッシュがリフレッシュされます。
-
-### 6. 整合性確認（必須）
-
-```bash
-# 1. マイグレーション履歴が一致しているか
-supabase migration list
-# → すべてのLocal/Remoteが一致していること
-
-# 2. テーブルが存在するか
-supabase db dump --linked | grep "CREATE TABLE" | grep "<your_table>"
-
-# 3. APIが正常動作するか
-curl https://casto.sb2024.xyz/api/v1/health
-
-# 4. ブラウザでページ動作確認
-# https://casto.sb2024.xyz で実際の機能をテスト
-```
-
-## トラブルシューティング
-
-### 問題1: ローカルのマイグレーションがリモートに適用されていない
-
-**症状:**
-```bash
-supabase migration list --linked
-# Local列にはあるが、Remote列が空白
-```
-
-**解決:**
-```bash
-# 1. 履歴を修復（未適用扱いにする）
-supabase migration repair --status reverted <version>
-
-# 2. すべてのマイグレーションを適用
-supabase db push --include-all
-
-# 3. Workers再デプロイ
-cd apps/workers && npx wrangler deploy --env development
-```
-
-### 問題2: リモートのマイグレーションがローカルにない
-
-**症状:**
-```bash
-supabase migration list --linked
-# Remote列にはあるが、Local列が空白
-```
-
-**原因:** 他の開発者がマイグレーションを適用したか、直接DBで作業した
-
-**解決（推奨）:**
-```bash
-# リモートDBを正として、ローカルを同期
-supabase db pull
-
-# これにより、不足しているマイグレーションファイルがローカルに作成される
-```
-
-**解決（代替案）:**
-```bash
-# ローカルに手動でマイグレーションファイルを作成
-# ファイル名はRemote列のバージョンと一致させる
-
-# 例: 20251015211706_seed_audition_genres.sql
-# 内容はリモートDBから推測または確認して作成
-```
-
-### 問題: "table not found in schema cache"
-
-**原因:** PostgRESTのスキーマキャッシュが古い
-
-**解決方法1（推奨）:** Workers再デプロイ
-```bash
-cd apps/workers
-npx wrangler deploy --env development
-```
-
-**解決方法2:** Supabase Dashboard
-1. https://supabase.com/dashboard/project/sfscmpjplvxtikmifqhe/sql/new
-2. SQL実行: `NOTIFY pgrst, 'reload schema';`
-
-**解決方法3:** プロジェクト再起動（最終手段）
-1. https://supabase.com/dashboard/project/sfscmpjplvxtikmifqhe/settings/general
-2. "Restart project" → "Fast database reboot"
-
-### 問題: マイグレーション適用時の接続エラー
-
-**症状:**
-```
-connection refused
-```
-
-**原因:** Supabase再起動中またはネットワーク問題
-
-**解決:**
-1. 1-2分待つ
-2. `supabase db push` を再実行
-3. Supabase Dashboardでプロジェクト状態を確認
-
-## ✅ デプロイ前チェックリスト
-
-**すべて✅になるまでデプロイしないこと:**
-
-1. [ ] **環境変数確認** - `apps/web/.env.local`に`SUPABASE_DB_PASSWORD`が設定済み
-2. [ ] **整合性確認** - `supabase migration list --linked` でLocal/Remote列が完全一致
-3. [ ] **べき等性確認** - マイグレーションファイルに `DROP ... IF EXISTS` を使用
-4. [ ] **マイグレーション適用** - `make migrate` が成功
-5. [ ] **Workers再デプロイ** - `cd apps/workers && npx wrangler deploy --env development`
-6. [ ] **APIヘルスチェック** - `curl https://casto.sb2024.xyz/api/v1/health` が成功
-7. [ ] **実機能確認** - ブラウザで実際の機能をテスト
-
-**これらを守れば、マイグレーションの問題は起きません。**
-
-## 🧪 手順の検証方法
-
-**マイグレーション手順が正しく再現できるか確認:**
-
-```bash
-# 1. 環境変数が設定されているか確認
-grep "SUPABASE_DB_PASSWORD" apps/web/.env.local
-
-# 2. スクリプトが実行可能か確認
-test -x scripts/migrate-db.sh && echo "✅ OK" || echo "❌ NG"
-
-# 3. 現在の整合性を確認（すべてLocal/Remote列が一致すること）
-supabase migration list --linked
-
-# 4. ドライラン（整合性チェックのみ）
-make migrate  # Yを押す前に中断可能
-
-# 5. 実際に適用（すべて確認後）
-make migrate
-```
-
-**期待される結果:**
-- ✅ すべてのLocal列とRemote列が一致
-- ✅ パスワード入力不要で完了
-- ✅ エラーなく完了
-
-## 🚨 緊急時の手順
-
-### すべてがおかしくなった場合
-
-```bash
-# ⚠️ 本番環境では絶対に実行しない - 開発環境のみ
-
-# 1. リモートDBを正として、ローカルを同期
-supabase db pull
-
-# 2. 整合性を確認
-supabase migration list --linked
-# → すべてのLocal/Remote列が一致していることを確認
-
-# 3. Workers再デプロイ
-cd apps/workers && npx wrangler deploy --env development
-
-# これで解決しない場合は、このドキュメントを最初から読み直してください
-```
-
-## 参考コマンド
-
-```bash
-# プロジェクト情報
-supabase projects list
-
-# リンク状態確認
-cat .supabase/config.toml | grep project_id
-
-# マイグレーション差分確認
-supabase db diff
-
-# リモートDBダンプ（バックアップ）
-supabase db dump --linked -f backup_$(date +%Y%m%d).sql
-```
-
-## 関連ドキュメント
-
-- [Supabase CLI Reference](https://supabase.com/docs/reference/cli)
-- [マイグレーションベストプラクティス](https://supabase.com/docs/guides/cli/local-development#database-migrations)
+**まとめ**: `make db-new` → `make db-apply` → `make db-check` と `supabase config push` の2本柱でSupabase全体の状態を保ちます。[SF][DRY]

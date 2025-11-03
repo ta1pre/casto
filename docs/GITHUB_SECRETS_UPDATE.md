@@ -17,18 +17,22 @@ GitHub Actionsのデプロイ時に、古い`LINE_CHANNEL_SECRET`が再設定さ
 
 3. **`LINE_CHANNEL_SECRET` を編集**
    - 「Update」ボタンをクリック
-   - 正しい値を入力: `6d42cdbeecf244faedd1aaf929f49dc7`
+   - 正しい値を入力（実際のシークレット値。ドキュメントに値を記載しないこと）
    - 「Update secret」をクリック
 
 ---
 
-### 2. 再デプロイ
+### 2. 再デプロイ（CI/CD）
 
-GitHub Secretsを更新したら、空コミットでデプロイをトリガー：
+GitHub Secretsを更新したら、CI/CDで再デプロイをトリガーします（手動デプロイ禁止）。
 
 ```bash
+# 開発環境
 git commit --allow-empty -m "chore: trigger redeploy with updated secrets"
 git push origin develop
+
+# 本番環境
+git checkout main && git merge develop && git push origin main
 ```
 
 ---

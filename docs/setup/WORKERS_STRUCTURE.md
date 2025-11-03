@@ -54,13 +54,15 @@ apps/workers/src/
 
 ### development（ローカル開発）
 - Primary Origin: `https://casto.sb2024.xyz`
-- Additional Origins: `http://localhost:3000`, `http://127.0.0.1:3000`
+- Additional Origins: なし（localhost系は使用しない）
 
 ### production（本番）
 - Primary Origin: `https://casto.io`
 - Additional Origins: 環境変数 `ALLOWED_ORIGINS` で動的追加可能
 
 環境変数 `ENVIRONMENT` を `development` または `production` に設定することで自動切替。
+
+> 原則: 開発時もアクセスはDocker+Traefik経由の `https://casto.sb2024.xyz` のみを使用し、`localhost`/`127.0.0.1` は許可しない。
 
 ## 実装リファレンス
 

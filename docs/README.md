@@ -3,7 +3,7 @@
 ## 📋 重要ドキュメント
 
 ### **必読**
-1. **[DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md)** - DB管理・マイグレーション手順
+1. **[DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md)** - Supabase運用ガイド（DB・設定）
 2. **[CRITICAL_RULES.md](./CRITICAL_RULES.md)** - 重要な開発ルール
 
 ### **開発ガイド**
@@ -15,25 +15,39 @@
 - **[tasks/](./tasks/)** - 進行中のタスク
 - **[tasksarchive/](./tasksarchive/)** - 完了済みタスク
 
-## 🚀 クイックコマンド
+## 🚀 開発・運用の原則
+
+- **Docker必須**: 開発サーバは必ずDocker Compose経由で起動する。
+- **localhost禁止**: `localhost:3000` 等での直接起動を行わない。
+- **デプロイはCI/CDのみ**: 手動デプロイ（wrangler deploy 含む）は禁止。詳細は [DEPLOYMENT_POLICY.md](./DEPLOYMENT_POLICY.md) を参照。
+
+### よく使うコマンド（データベース管理）
 
 ```bash
-# マイグレーション適用（自動化）
-make migrate
+# 新規変更を作る
+export SUPABASE_DB_PASSWORD='your_password'
+make db-new
 
-# Workers再デプロイ
-cd apps/workers && npx wrangler deploy --env development
+# リモートに適用
+make db-apply
+
+# 整合性確認
+make db-check
+
+# 不一致を修正
+make db-sync
 
 # Docker再起動
 docker restart casto
 ```
+
+> 詳細は [DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md) を参照
 
 ## 📖 詳細ドキュメント
 
 ### **セットアップ**
 - [setup/LOCAL_DEVELOPMENT.md](./setup/LOCAL_DEVELOPMENT.md) - ローカル環境
 - [setup/SUPABASE_AUTH_SETUP.md](./setup/SUPABASE_AUTH_SETUP.md) - 認証設定
-- [SUPABASE_CONFIGURATION.md](./SUPABASE_CONFIGURATION.md) - Supabase設定管理 ⭐ **必読**
 
 ### **技術仕様**
 - [technical/SESSION_MANAGEMENT.md](./technical/SESSION_MANAGEMENT.md) - セッション管理

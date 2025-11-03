@@ -1,16 +1,22 @@
 # casto Makefile
 # 全ての操作をコマンド一発で実行できます
 
-.PHONY: help setup-supabase migrate deploy-workers deploy-web test lint
+.PHONY: help setup-supabase migrate deploy-workers deploy-web test lint db-new db-apply db-check db-sync
 
 # デフォルトターゲット
 help:
 	@echo "🚀 casto コマンド一覧"
 	@echo "================================"
 	@echo ""
+	@echo "データベース:"
+	@echo "  make db-new            - 新規マイグレーション生成（自動diff）"
+	@echo "  make db-apply          - マイグレーション適用"
+	@echo "  make db-check          - 整合性チェック（Local/Remote）"
+	@echo "  make db-sync           - 不一致を自動修正（Remoteが正）"
+	@echo "  make migrate           - マイグレーション適用（互換性のため残存）"
+	@echo ""
 	@echo "セットアップ:"
 	@echo "  make setup-supabase    - Supabase DB初期化"
-	@echo "  make migrate           - マイグレーション適用"
 	@echo "  make reset-db          - DB完全リセット"
 	@echo "  make generate-schema   - スキーマ生成（型定義・ドキュメント）"
 	@echo ""
@@ -38,10 +44,54 @@ setup-supabase:
 	@echo "🚀 Supabase DB初期化..."
 	@node scripts/db-cleanup.js
 
-# マイグレーション適用のみ（完全自動）
-migrate:
-	@echo "📊 マイグレーション適用..."
-	@./scripts/migrate-db.sh
+# ===== データベース管理（新方式） =====
+
+# 新規マイグレーション生成（自動diff）
+db-new:
+	@echo "🔍 Generating migration from remote diff..."
+	@if [ -z "$$SUPABASE_DB_PASSWORD" ]; then \
+		echo "❌ Error: SUPABASE_DB_PASSWORD is not set"; \
+		echo "Run: export SUPABASE_DB_PASSWORD='your_password'"; \
+		exit 1; \
+	fi
+	@SUPABASE_DB_PASSWORD=$$SUPABASE_DB_PASSWORD supabase db diff --linked --file supabase/migrations/$$(date +%Y%m%d%H%M%S)_auto_generated.sql
+	@echo "✅ Migration file created. Please review and rename it."
+
+# リモートに適用
+db-apply:
+	@echo "🚀 Applying migrations to remote..."
+	@if [ -z "$$SUPABASE_DB_PASSWORD" ]; then \
+		echo "❌ Error: SUPABASE_DB_PASSWORD is not set"; \
+		echo "Run: export SUPABASE_DB_PASSWORD='your_password'"; \
+		exit 1; \
+	fi
+	@SUPABASE_DB_PASSWORD=$$SUPABASE_DB_PASSWORD supabase db push --include-all
+	@echo "✅ Migrations applied."
+
+# 整合性チェック
+db-check:
+	@echo "🔍 Checking local/remote migration consistency..."
+	@if [ -z "$$SUPABASE_DB_PASSWORD" ]; then \
+		echo "❌ Error: SUPABASE_DB_PASSWORD is not set"; \
+		echo "Run: export SUPABASE_DB_PASSWORD='your_password'"; \
+		exit 1; \
+	fi
+	@SUPABASE_DB_PASSWORD=$$SUPABASE_DB_PASSWORD supabase migration list --linked
+
+# 自動同期（不一致を修正）
+db-sync:
+	@echo "🔄 Syncing local with remote (remote is source of truth)..."
+	@if [ -z "$$SUPABASE_DB_PASSWORD" ]; then \
+		echo "❌ Error: SUPABASE_DB_PASSWORD is not set"; \
+		echo "Run: export SUPABASE_DB_PASSWORD='your_password'"; \
+		exit 1; \
+	fi
+	@SUPABASE_DB_PASSWORD=$$SUPABASE_DB_PASSWORD supabase db pull --linked || true
+	@echo "✅ Sync complete. Run 'make db-check' to verify."
+
+# マイグレーション適用のみ（完全自動・互換性のため残存）
+migrate: db-apply
+	@echo "ℹ️  Note: 'make migrate' is deprecated. Use 'make db-apply' instead."
 
 # DB完全リセット＆マイグレーション
 reset-db:

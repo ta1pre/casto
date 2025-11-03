@@ -128,10 +128,16 @@ routes = [
 - Cloudflare固有機能（R2、KV等）はローカルで完全再現不可
 - デプロイ環境での動作確認が確実
 
-#### Workers APIの更新
+#### Workers APIの更新（CI/CD経由）
+
+手動デプロイは禁止。コード変更後はブランチにプッシュするとGitHub Actionsが自動でデプロイします。詳細は [../DEPLOYMENT_POLICY.md](../DEPLOYMENT_POLICY.md) を参照。
+
 ```bash
-cd apps/workers
-npx wrangler deploy --env development
+# 開発環境（development）
+git add -A && git commit -m "feat: update workers" && git push origin develop
+
+# 本番環境（production）
+git checkout main && git merge develop && git push origin main
 ```
 
 ## 🧰 よく使うコマンド

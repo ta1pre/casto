@@ -22,18 +22,19 @@
    npm run type-check
    ```
 
-3. **デプロイ（development環境）**
+3. **デプロイ（development環境：CI/CD）**
+   手動デプロイは禁止。ブランチにプッシュするとGitHub Actionsが自動でデプロイします。
    ```bash
-   npm run deploy:dev
+   git add -A && git commit -m "feat: workers update" && git push origin develop
    ```
 
 4. **動作確認**
    - `https://casto.sb2024.xyz/api/v1/*` で確認
-   - `npm run tail:dev` でログ監視
+   - GitHub Actions / Cloudflare Dashboard でログ監視
 
-5. **本番デプロイ**
+5. **本番デプロイ（CI/CD）**
    ```bash
-   npm run deploy:prod
+   git checkout main && git merge develop && git push origin main
    ```
 
 ## データベース接続
@@ -110,6 +111,8 @@ ALLOWED_ORIGINS
 2. ❌ フロントエンドからSupabaseへ直接接続
 3. ❌ `SUPABASE_SERVICE_ROLE_KEY` をフロントエンドに配置
 4. ❌ `.dev.vars` を本番環境変数として使用
+
+> 併せて [CRITICAL_RULES.md](./CRITICAL_RULES.md) の「localhost禁止」「Docker必須」も遵守すること。
 
 ## CI/CD
 

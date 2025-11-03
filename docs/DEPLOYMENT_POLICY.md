@@ -145,3 +145,13 @@ wrangler deployments list --name casto-workers-dev
 - ✅ **GitHub Actionsのログを確認**
 
 **[SF][CA][DRY] - シンプル、クリーンアーキテクチャ、重複排除**
+
+---
+
+## 適用範囲について（重要）
+
+- 本ポリシーは、主に**Cloudflare Workers**および**フロントエンド（Web）**のデプロイに適用されます。
+- **Supabase（DB/設定）の反映は本ポリシーの対象外**です。以下のガイドに従ってください：
+  - データベース・設定管理: [DATABASE_MANAGEMENT.md](./DATABASE_MANAGEMENT.md)
+
+※ 現状、Supabaseについては「マイグレーション適用」および「config push」により反映します（WorkersのCI/CDデプロイとは別経路）。

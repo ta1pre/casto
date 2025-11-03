@@ -1,5 +1,7 @@
 # Supabase 設定管理ガイド
 
+> 本ガイドはSupabase（DB/認証設定）の反映手順です。**Cloudflare Workersのデプロイ経路とは独立**しており、WorkersのCI/CDとは別に以下の手順で反映します。
+
 ## ディレクトリ構成
 
 ### `supabase/` - プロジェクト設定（Git管理対象）
@@ -48,6 +50,9 @@ git commit -m "chore: update supabase config"
 ## 設定変更フロー
 
 ### 1. Auth設定の変更
+```bash
+export SUPABASE_DB_PASSWORD='xSNOAfHLgdqCOfyM'
+```
 
 ```bash
 # 1. supabase/config.toml を編集
