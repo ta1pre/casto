@@ -86,6 +86,10 @@ export default function NewAuditionPage() {
         const data = await response.json()
         setGenres(data.genres || [])
       }
+    } catch (error) {
+      console.error('Failed to fetch genres:', error)
+    }
+  }
 
   const handleEventDateChange = (index: number, value: string) => {
     setFormData((prev) => {
@@ -190,9 +194,15 @@ export default function NewAuditionPage() {
   const toggleGenre = (genreId: string) => {
     setFormData((prev) => {
       const isSelected = prev.genreIds.includes(genreId)
+      const nextIds = isSelected
         ? prev.genreIds.filter((id) => id !== genreId)
-        : [...prev.genreIds, genreId],
-    }))
+        : [...prev.genreIds, genreId]
+
+      return {
+        ...prev,
+        genreIds: nextIds,
+      }
+    })
   }
 
   return (
