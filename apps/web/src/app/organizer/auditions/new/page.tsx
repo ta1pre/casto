@@ -43,14 +43,39 @@ export default function NewAuditionPage() {
     const tomorrow = new Date(now)
     tomorrow.setDate(tomorrow.getDate() + 1)
     const nextMonth = new Date(now)
-    nextMonth.setMonth(nextMonth.getMonth() + 1)
+    const nextMonthISO = nextMonth.toISOString().slice(0, 16)
 
     setFormData((prev) => ({
       ...prev,
       applicationStartDate: now.toISOString().slice(0, 16),
-      applicationEndDate: nextMonth.toISOString().slice(0, 16),
+      applicationEndDate: nextMonthISO,
+      eventDates: prev.eventDates.length > 0 ? prev.eventDates : [''],
     }))
   }, [])
+
+  useEffect(() => {
+    if (formData.projectType !== 'audition' && formData.genreIds.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        genreIds: [],
+      }))
+    }
+  }, [formData.projectType, formData.genreIds.length])
+
+  useEffect(() => {
+    if (formData.projectType === 'extra' && formData.eventDates.length === 0) {
+      setFormData((prev) => ({
+        ...prev,
+        eventDates: [''],
+      }))
+    }
+    if (formData.projectType !== 'extra' && formData.eventDates.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        eventDates: [],
+      }))
+    }
+  }, [formData.projectType, formData.eventDates.length])
 
   const fetchGenres = async () => {
     try {
@@ -61,9 +86,33 @@ export default function NewAuditionPage() {
         const data = await response.json()
         setGenres(data.genres || [])
       }
-    } catch (error) {
-      console.error('Failed to fetch genres:', error)
-    }
+
+  const handleEventDateChange = (index: number, value: string) => {
+    setFormData((prev) => {
+      const updated = [...prev.eventDates]
+      updated[index] = value
+      return {
+        ...prev,
+        eventDates: updated,
+      }
+    })
+  }
+
+  const addEventDate = () => {
+    setFormData((prev) => ({
+      ...prev,
+      eventDates: [...prev.eventDates, ''],
+    }))
+  }
+
+  const removeEventDate = (index: number) => {
+    setFormData((prev) => {
+      const updated = prev.eventDates.filter((_, i) => i !== index)
+      return {
+        ...prev,
+        eventDates: updated.length > 0 ? updated : [''],
+      }
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,7 +148,10 @@ export default function NewAuditionPage() {
         applicationEndDate: new Date(formData.applicationEndDate).toISOString(),
         maxApplicants: formData.maxApplicants ? parseInt(formData.maxApplicants) : undefined,
         projectType: formData.projectType,
-        genreIds: formData.genreIds.length > 0 ? formData.genreIds : undefined,
+        genreIds:
+          formData.projectType === 'audition' && formData.genreIds.length > 0
+            ? formData.genreIds
+            : undefined,
         extraDetails,
       }
 
@@ -136,9 +188,8 @@ export default function NewAuditionPage() {
   }
 
   const toggleGenre = (genreId: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      genreIds: prev.genreIds.includes(genreId)
+    setFormData((prev) => {
+      const isSelected = prev.genreIds.includes(genreId)
         ? prev.genreIds.filter((id) => id !== genreId)
         : [...prev.genreIds, genreId],
     }))
