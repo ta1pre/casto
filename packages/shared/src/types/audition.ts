@@ -16,12 +16,32 @@ export type AuditionStatus = 'draft' | 'published' | 'closed' | 'cancelled'
 /**
  * プロジェクトタイプ
  */
-export type ProjectType = 'audition' | 'job'
+export type ProjectType = 'audition' | 'job' | 'extra'
 
 /**
  * 審査方式（Phase 3Aではmanualのみ）
  */
 export type EvaluationMode = 'manual' | 'score_threshold' | 'top_n' | 'hybrid'
+
+/**
+ * エキストラ募集の拡張データ
+ */
+export interface ExtraDetails {
+  meetingPlace?: string // 集合場所
+  eventDates?: string[] // 開催日程（ISO 8601形式）
+  expectedHeadcount?: number // 想定人数
+  notes?: string // 備考
+}
+
+/**
+ * 求人の拡張データ
+ */
+export interface JobDetails {
+  workLocation?: string // 勤務地
+  employmentType?: string // 雇用形態
+  salary?: string // 給与
+  notes?: string // 備考
+}
 
 /**
  * auditionsテーブルの行データ（Supabaseから取得）
@@ -43,6 +63,7 @@ export interface SupabaseAuditionRow {
   status: AuditionStatus
   project_type: ProjectType
   evaluation_mode: EvaluationMode
+  extra_details: Record<string, unknown> | null
   created_at: string
   updated_at: string
 }
@@ -67,6 +88,7 @@ export interface Audition {
   status: AuditionStatus
   projectType: ProjectType
   evaluationMode: EvaluationMode
+  extraDetails?: ExtraDetails | JobDetails | Record<string, unknown>
   genres?: AuditionGenre[]
   area?: AuditionArea
   steps?: AuditionStep[]
@@ -98,6 +120,7 @@ export interface CreateAuditionRequest {
   applicationEndDate: string
   maxApplicants?: number
   projectType: ProjectType
+  extraDetails?: ExtraDetails | JobDetails | Record<string, unknown>
   genreIds?: string[]
   areaId?: string
 }
@@ -116,6 +139,7 @@ export interface UpdateAuditionRequest {
   applicationEndDate?: string
   maxApplicants?: number
   status?: AuditionStatus
+  extraDetails?: ExtraDetails | JobDetails | Record<string, unknown>
   genreIds?: string[]
   areaId?: string
 }

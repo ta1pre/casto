@@ -6,6 +6,42 @@
 import { z } from 'zod'
 
 /**
+ * エキストラ募集の拡張データスキーマ
+ */
+export const extraDetailsSchema = z.object({
+  meetingPlace: z.string()
+    .max(200, { message: '集合場所は200文字以内で入力してください' })
+    .optional(),
+  eventDates: z.array(z.string().datetime({ message: '有効な日時形式で入力してください' }))
+    .optional(),
+  expectedHeadcount: z.number()
+    .int({ message: '整数で入力してください' })
+    .positive({ message: '1以上の値を入力してください' })
+    .optional(),
+  notes: z.string()
+    .max(1000, { message: '備考は1000文字以内で入力してください' })
+    .optional(),
+}).optional()
+
+/**
+ * 求人の拡張データスキーマ
+ */
+export const jobDetailsSchema = z.object({
+  workLocation: z.string()
+    .max(200, { message: '勤務地は200文字以内で入力してください' })
+    .optional(),
+  employmentType: z.string()
+    .max(100, { message: '雇用形態は100文字以内で入力してください' })
+    .optional(),
+  salary: z.string()
+    .max(200, { message: '給与は200文字以内で入力してください' })
+    .optional(),
+  notes: z.string()
+    .max(1000, { message: '備考は1000文字以内で入力してください' })
+    .optional(),
+}).optional()
+
+/**
  * オーディション作成スキーマ
  */
 export const createAuditionSchema = z.object({
@@ -43,9 +79,11 @@ export const createAuditionSchema = z.object({
     .positive({ message: '1以上の値を入力してください' })
     .optional(),
   
-  projectType: z.enum(['audition', 'job'], {
-    errorMap: () => ({ message: 'プロジェクトタイプは"audition"または"job"を選択してください' })
+  projectType: z.enum(['audition', 'job', 'extra'], {
+    errorMap: () => ({ message: 'プロジェクトタイプは"audition"、"job"、または"extra"を選択してください' })
   }),
+  
+  extraDetails: z.union([extraDetailsSchema, jobDetailsSchema, z.record(z.unknown())]).optional(),
   
   genreIds: z.array(z.string().uuid({ message: '有効なジャンルIDを指定してください' }))
     .max(3, { message: 'ジャンルは最大3件まで選択可能です' })
@@ -112,6 +150,8 @@ export const updateAuditionSchema = z.object({
   
   areaId: z.string().uuid({ message: '有効なエリアIDを指定してください' })
     .optional(),
+  
+  extraDetails: z.union([extraDetailsSchema, jobDetailsSchema, z.record(z.unknown())]).optional(),
 }).refine(
   (data) => {
     if (data.applicationStartDate && data.applicationEndDate) {

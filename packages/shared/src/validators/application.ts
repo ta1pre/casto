@@ -6,6 +6,17 @@
 import { z } from 'zod'
 
 /**
+ * エキストラ応募の拡張データスキーマ
+ */
+export const extraApplicationDataSchema = z.object({
+  availableDates: z.array(z.string().datetime({ message: '有効な日時形式で入力してください' }))
+    .optional(),
+  notes: z.string()
+    .max(500, { message: '備考は500文字以内で入力してください' })
+    .optional(),
+}).optional()
+
+/**
  * 応募作成スキーマ
  */
 export const submitApplicationSchema = z.object({
@@ -20,6 +31,8 @@ export const submitApplicationSchema = z.object({
   )
     .max(5, { message: 'URLは最大5件まで追加可能です' })
     .optional(),
+  
+  extraApplicationData: z.union([extraApplicationDataSchema, z.record(z.unknown())]).optional(),
 })
 
 /**

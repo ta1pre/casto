@@ -14,6 +14,14 @@ export type ApplicationStatus =
   | 'withdrawn'
 
 /**
+ * エキストラ応募の拡張データ
+ */
+export interface ExtraApplicationData {
+  availableDates?: string[] // 出演可能日程（ISO 8601形式）
+  notes?: string // 備考
+}
+
+/**
  * applicationsテーブルの行データ（Supabaseから取得）
  */
 export interface SupabaseApplicationRow {
@@ -23,6 +31,7 @@ export interface SupabaseApplicationRow {
   applicant_profile: Record<string, unknown> // JSONB
   additional_message: string | null
   additional_urls: string[]
+  extra_application_data: Record<string, unknown> | null // JSONB
   status: ApplicationStatus
   submitted_at: string
   reviewed_at: string | null
@@ -40,6 +49,7 @@ export interface Application {
   applicantProfile: ApplicantProfileSnapshot
   additionalMessage?: string
   additionalUrls?: string[]
+  extraApplicationData?: ExtraApplicationData | Record<string, unknown>
   status: ApplicationStatus
   submittedAt: string
   reviewedAt?: string
@@ -90,6 +100,7 @@ export interface CreateApplicationRequest {
   auditionId: string
   additionalMessage?: string
   additionalUrls?: string[]
+  extraApplicationData?: ExtraApplicationData | Record<string, unknown>
   liffAccessToken?: string  // LINEサービスメッセージ送信用
 }
 

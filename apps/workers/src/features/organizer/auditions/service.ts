@@ -39,6 +39,7 @@ function toAudition(row: SupabaseAuditionRow): Audition {
     status: row.status,
     projectType: row.project_type,
     evaluationMode: row.evaluation_mode,
+    extraDetails: row.extra_details || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -194,6 +195,7 @@ export async function createAudition(
       application_end_date: auditionData.applicationEndDate,
       max_applicants: auditionData.maxApplicants || null,
       project_type: auditionData.projectType,
+      extra_details: auditionData.extraDetails || null,
     })
     .select()
     .single()
@@ -265,6 +267,7 @@ export async function updateAudition(
   if (auditionData.maxApplicants !== undefined)
     updateData.max_applicants = auditionData.maxApplicants
   if (auditionData.status !== undefined) updateData.status = auditionData.status
+  if (auditionData.extraDetails !== undefined) updateData.extra_details = auditionData.extraDetails || null
 
   // オーディション更新
   const { data: updatedAudition, error: auditionError } = await client

@@ -23,8 +23,16 @@ export default function NewAuditionPage() {
     applicationStartDate: '',
     applicationEndDate: '',
     maxApplicants: '',
-    projectType: 'audition' as 'audition' | 'job',
+    projectType: 'audition' as 'audition' | 'job' | 'extra',
     genreIds: [] as string[],
+    // エキストラ専用フィールド
+    meetingPlace: '',
+    eventDates: [] as string[],
+    expectedHeadcount: '',
+    // 求人専用フィールド
+    workLocation: '',
+    employmentType: '',
+    salary: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -64,15 +72,35 @@ export default function NewAuditionPage() {
     setLoading(true)
 
     try {
+      // extraDetailsを種別に応じて構築
+      let extraDetails: any = undefined
+      if (formData.projectType === 'extra') {
+        extraDetails = {
+          meetingPlace: formData.meetingPlace || undefined,
+          eventDates: formData.eventDates.length > 0 ? formData.eventDates : undefined,
+          expectedHeadcount: formData.expectedHeadcount ? parseInt(formData.expectedHeadcount) : undefined,
+        }
+      } else if (formData.projectType === 'job') {
+        extraDetails = {
+          workLocation: formData.workLocation || undefined,
+          employmentType: formData.employmentType || undefined,
+          salary: formData.salary || undefined,
+        }
+      }
+
       const payload = {
-        ...formData,
-        // datetime-local形式をISO 8601形式に変換
+        title: formData.title,
+        description: formData.description || undefined,
+        requirements: formData.requirements || undefined,
+        shortDescription: formData.shortDescription || undefined,
+        coverImageUrl: formData.coverImageUrl || undefined,
+        coverImageAlt: formData.coverImageAlt || undefined,
         applicationStartDate: new Date(formData.applicationStartDate).toISOString(),
         applicationEndDate: new Date(formData.applicationEndDate).toISOString(),
         maxApplicants: formData.maxApplicants ? parseInt(formData.maxApplicants) : undefined,
-        coverImageUrl: formData.coverImageUrl || undefined,
-        coverImageAlt: formData.coverImageAlt || undefined,
-        shortDescription: formData.shortDescription || undefined,
+        projectType: formData.projectType,
+        genreIds: formData.genreIds.length > 0 ? formData.genreIds : undefined,
+        extraDetails,
       }
 
       const response = await fetch('/api/v1/organizer/auditions', {
@@ -159,11 +187,23 @@ export default function NewAuditionPage() {
                     value="job"
                     checked={formData.projectType === 'job'}
                     onChange={(e) =>
-                      setFormData({ ...formData, projectType: e.target.value as 'audition' | 'job' })
+                      setFormData({ ...formData, projectType: e.target.value as 'audition' | 'job' | 'extra' })
                     }
                     className="mr-2"
                   />
                   求人
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="extra"
+                    checked={formData.projectType === 'extra'}
+                    onChange={(e) =>
+                      setFormData({ ...formData, projectType: e.target.value as 'audition' | 'job' | 'extra' })
+                    }
+                    className="mr-2"
+                  />
+                  エキストラ募集
                 </label>
               </div>
             </div>
@@ -226,27 +266,116 @@ export default function NewAuditionPage() {
           </div>
         </div>
 
-        {/* ジャンル */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">ジャンル（最大3つ）</h2>
-          <div className="flex flex-wrap gap-2">
-            {genres.map((genre) => (
-              <button
-                key={genre.id}
-                type="button"
-                onClick={() => toggleGenre(genre.id)}
-                className={`px-4 py-2 rounded-lg border transition-colors ${
-                  formData.genreIds.includes(genre.id)
-                    ? 'bg-gray-900 text-white border-gray-900'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-900'
-                }`}
-                disabled={!formData.genreIds.includes(genre.id) && formData.genreIds.length >= 3}
-              >
-                {genre.displayName}
-              </button>
-            ))}
+        {/* ジャンル（エキストラ以外） */}
+        {formData.projectType !== 'extra' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">ジャンル（最大3つ）</h2>
+            <div className="flex flex-wrap gap-2">
+              {genres.map((genre) => (
+                <button
+                  key={genre.id}
+                  type="button"
+                  onClick={() => toggleGenre(genre.id)}
+                  className={`px-4 py-2 rounded-lg border transition-colors ${
+                    formData.genreIds.includes(genre.id)
+                      ? 'bg-gray-900 text-white border-gray-900'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-gray-900'
+                  }`}
+                  disabled={!formData.genreIds.includes(genre.id) && formData.genreIds.length >= 3}
+                >
+                  {genre.displayName}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* エキストラ募集専用項目 */}
+        {formData.projectType === 'extra' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">エキストラ募集情報</h2>
+            <div className="space-y-4">
+              {/* 集合場所 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  集合場所
+                </label>
+                <input
+                  type="text"
+                  value={formData.meetingPlace}
+                  onChange={(e) => setFormData({ ...formData, meetingPlace: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  placeholder="例: 渋谷スタジオ"
+                />
+              </div>
+
+              {/* 想定人数 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  想定人数
+                </label>
+                <input
+                  type="number"
+                  value={formData.expectedHeadcount}
+                  onChange={(e) => setFormData({ ...formData, expectedHeadcount: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  placeholder="例: 20"
+                  min="1"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 求人専用項目 */}
+        {formData.projectType === 'job' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">求人情報</h2>
+            <div className="space-y-4">
+              {/* 勤務地 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  勤務地
+                </label>
+                <input
+                  type="text"
+                  value={formData.workLocation}
+                  onChange={(e) => setFormData({ ...formData, workLocation: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  placeholder="例: 東京都渋谷区"
+                />
+              </div>
+
+              {/* 雇用形態 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  雇用形態
+                </label>
+                <input
+                  type="text"
+                  value={formData.employmentType}
+                  onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  placeholder="例: 正社員、契約社員、アルバイト"
+                />
+              </div>
+
+              {/* 給与 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  給与
+                </label>
+                <input
+                  type="text"
+                  value={formData.salary}
+                  onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  placeholder="例: 月給25万円〜"
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 募集期間・定員 */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
