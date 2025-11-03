@@ -99,7 +99,7 @@ export async function createPlan(
     price_jpy: number
     stripe_product_id?: string
     stripe_price_id?: string
-    discount_rate?: number
+    bonus_points?: number
     display_order?: number
   }
 ): Promise<PointsPlan> {

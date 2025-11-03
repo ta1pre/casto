@@ -106,6 +106,10 @@ function PlanRow({ plan, onEdit, onRefetch }: PlanRowProps) {
   const { updatePlan, loading: updating } = useUpdatePointsPlan()
   const { deletePlan, loading: deleting } = useDeletePointsPlan()
 
+  const bonusPoints = plan.bonus_points ?? 0
+  const totalPoints = plan.points + bonusPoints
+  const pricePerPoint = totalPoints > 0 ? plan.price_jpy / totalPoints : 0
+
   const handleToggleActive = async () => {
     const success = await updatePlan(plan.id, { is_active: !plan.is_active })
     if (success) onRefetch()
@@ -130,17 +134,29 @@ function PlanRow({ plan, onEdit, onRefetch }: PlanRowProps) {
             }`}>
               {plan.is_active ? '有効' : '無効'}
             </span>
-            {plan.discount_rate && plan.discount_rate > 0 && (
-              <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
-                {plan.discount_rate}% OFF
+            {plan.bonus_points && plan.bonus_points > 0 && (
+              <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                +{plan.bonus_points} pt おまけ
               </span>
             )}
           </div>
           <div className="flex items-center space-x-4 text-sm text-gray-600">
-            <span>{plan.points.toLocaleString()} pt</span>
+            <span>
+              {plan.points.toLocaleString()} pt
+              {bonusPoints > 0 && (
+                <span className="text-green-600 font-semibold ml-1">
+                  (+{bonusPoints.toLocaleString()} pt)
+                </span>
+              )}
+            </span>
+            {bonusPoints > 0 && (
+              <span className="text-green-700 font-semibold">
+                = 合計 {totalPoints.toLocaleString()} pt
+              </span>
+            )}
             <span>¥{plan.price_jpy.toLocaleString()}</span>
             <span className="text-blue-600">
-              1ptあたり ¥{(plan.price_jpy / plan.points).toFixed(2)}
+              1ptあたり ¥{pricePerPoint.toFixed(2)}
             </span>
             <span>表示順: {plan.display_order}</span>
           </div>
@@ -186,7 +202,7 @@ function PlanFormModal({ plan, onClose, onSuccess }: PlanFormModalProps) {
   const [name, setName] = useState(plan?.name || '')
   const [points, setPoints] = useState(plan?.points.toString() || '')
   const [priceJpy, setPriceJpy] = useState(plan?.price_jpy.toString() || '')
-  const [discountRate, setDiscountRate] = useState(plan?.discount_rate?.toString() || '')
+  const [bonusPoints, setBonusPoints] = useState(plan?.bonus_points?.toString() || '0')
   const [displayOrder, setDisplayOrder] = useState(plan?.display_order?.toString() || '0')
 
   const loading = creating || updating
@@ -198,7 +214,7 @@ function PlanFormModal({ plan, onClose, onSuccess }: PlanFormModalProps) {
       name,
       points: parseInt(points, 10),
       price_jpy: parseInt(priceJpy, 10),
-      discount_rate: discountRate ? parseFloat(discountRate) : undefined,
+      bonus_points: bonusPoints ? parseInt(bonusPoints, 10) : 0,
       display_order: parseInt(displayOrder, 10),
     }
 
@@ -252,13 +268,14 @@ function PlanFormModal({ plan, onClose, onSuccess }: PlanFormModalProps) {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">割引率（%）</label>
+              <label className="block text-sm font-medium mb-1">おまけポイント（任意）</label>
               <input
                 type="number"
-                value={discountRate}
-                onChange={(e) => setDiscountRate(e.target.value)}
-                step="0.1"
+                value={bonusPoints}
+                onChange={(e) => setBonusPoints(e.target.value)}
+                min="0"
                 className="w-full border rounded px-3 py-2"
+                placeholder="0"
               />
             </div>
             <div>

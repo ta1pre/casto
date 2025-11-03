@@ -3,7 +3,7 @@
  * 
  * 設計原則: [SF][UX]
  * - プラン一覧表示
- * - 割引率の強調
+ * - おまけポイントの強調
  * - Stripe Checkout連携（Phase 3で実装予定）
  */
 
@@ -89,10 +89,10 @@ export default function PointsPurchasePage() {
                   </div>
                 )}
 
-                {/* 割引率バッジ */}
-                {plan.discount_rate && plan.discount_rate > 0 && (
-                  <div className="absolute top-4 left-0 bg-red-500 text-white px-3 py-1 text-xs font-bold rounded-r-lg">
-                    {plan.discount_rate}% OFF
+                {/* おまけポイントバッジ */}
+                {plan.bonus_points && plan.bonus_points > 0 && (
+                  <div className="absolute top-4 left-0 bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-1 text-xs font-bold rounded-r-lg">
+                    +{plan.bonus_points} pt おまけ
                   </div>
                 )}
 
@@ -119,10 +119,13 @@ export default function PointsPurchasePage() {
                   </div>
 
                   {/* 特典（ボーナスポイント等） */}
-                  {plan.discount_rate && plan.discount_rate > 0 && (
-                    <div className="mb-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-sm text-yellow-800">
-                        🎁 通常より {plan.discount_rate}% お得！
+                  {plan.bonus_points && plan.bonus_points > 0 && (
+                    <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <p className="text-sm text-green-800 font-semibold">
+                        🎁 おまけポイント +{plan.bonus_points.toLocaleString()} pt
+                      </p>
+                      <p className="text-xs text-green-700 mt-1">
+                        合計 {(plan.points + plan.bonus_points).toLocaleString()} pt が付与されます
                       </p>
                     </div>
                   )}

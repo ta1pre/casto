@@ -69,11 +69,10 @@ export const createPointsPlanSchema = z.object({
     .number()
     .int('価格は整数である必要があります')
     .positive('価格は正の数である必要があります'),
-  discount_rate: z
+  bonus_points: z
     .number()
-    .int('割引率は整数である必要があります')
-    .min(0, '割引率は0以上である必要があります')
-    .max(100, '割引率は100以下である必要があります')
+    .int('おまけポイントは整数である必要があります')
+    .min(0, 'おまけポイントは0以上である必要があります')
     .optional()
     .default(0),
   display_order: z

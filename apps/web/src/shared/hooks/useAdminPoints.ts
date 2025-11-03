@@ -184,7 +184,7 @@ export function useCreatePointsPlan() {
       name: string
       points: number
       price_jpy: number
-      discount_rate?: number
+      bonus_points?: number
       display_order?: number
     }): Promise<PointsPlan | null> => {
       try {

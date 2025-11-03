@@ -70,6 +70,9 @@
   - [ ] インデックス作成
   - [ ] RLSポリシー設定
   - [ ] `system_settings` 初期データ（default_viewing_point_cost=100）
+- [ ] `points_plans` テーブル更新
+  - [ ] `bonus_points` カラム追加（デフォルト0、任意のおまけポイント）
+  - [ ] `discount_rate` カラム削除
 - [ ] マイグレーション適用テスト（ローカル）
 - [ ] マイグレーション適用（リモート）
 
@@ -115,6 +118,7 @@
   - [ ] POST `/api/v1/points/purchase`
   - [ ] POST `/api/v1/points/check-viewing`
   - [ ] POST `/api/v1/points/consume-viewing`
+- [ ] `apps/workers/src/features/points` 配下の型/レスポンスに `bonus_points` を反映
 
 ### 2.3 Webhook（/api/v1/webhook/stripe）
 - [ ] `apps/workers/src/features/webhook/stripe.routes.ts` 実装
@@ -147,7 +151,8 @@
   - [ ] DELETE `/api/v1/admin/points/plans/:id`
   - [ ] PATCH `/api/v1/admin/points/settings`
   - [ ] GET `/api/v1/admin/points/genre-costs` - ジャンル別単価一覧
-  - [ ] PATCH `/api/v1/admin/points/genre-costs/:id` - ジャンル別単価更新
+  - [ ] PATCH `/api/v1/admin/points/genre_costs/:id` - ジャンル別単価更新
+- [ ] Admin向けポイントプランAPIで `bonus_points` を取り扱う
 
 ---
 
@@ -180,6 +185,7 @@
   - [ ] `PlanSelector.tsx`
   - [ ] `PlanCard.tsx`
   - [ ] `TransactionList.tsx`
+- [ ] プラン表示/選択UIに「おまけポイント（任意）」表記と入力欄を追加
 
 ### 3.3 応募者閲覧課金UI
 - [ ] 応募者詳細ページ修正
@@ -209,6 +215,7 @@
   - [ ] `PlanEditor.tsx`
   - [ ] `DefaultCostSettings.tsx`
   - [ ] `GenreCostEditor.tsx` - ジャンル別単価編集テーブル
+- [ ] Adminプラン管理UIにおまけポイント入力欄を組み込む
 
 ### 3.5 ナビゲーション統合
 - [ ] Admin サイドバーに「ポイント管理」メニュー追加

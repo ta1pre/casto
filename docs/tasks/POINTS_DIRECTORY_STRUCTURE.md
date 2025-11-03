@@ -272,7 +272,7 @@ export interface PointsPlan {
   price_jpy: number
   stripe_product_id?: string
   stripe_price_id?: string
-  discount_rate: number
+  bonus_points: number
   is_active: boolean
   display_order: number
   created_at: string
