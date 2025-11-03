@@ -14,6 +14,9 @@ export const extraDetailsSchema = z.object({
     .optional(),
   eventDates: z.array(z.string().datetime({ message: '有効な日時形式で入力してください' }))
     .optional(),
+  duration: z.string()
+    .max(100, { message: '所要時間は100文字以内で入力してください' })
+    .optional(),
   expectedHeadcount: z.number()
     .int({ message: '整数で入力してください' })
     .positive({ message: '1以上の値を入力してください' })
