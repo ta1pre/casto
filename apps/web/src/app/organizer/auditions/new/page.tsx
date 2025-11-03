@@ -281,7 +281,7 @@ export default function NewAuditionPage() {
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                placeholder="例: 新人アイドルオーディション2025"
+                placeholder="募集タイトルを入力して下さい。"
                 required
               />
               {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
@@ -311,7 +311,7 @@ export default function NewAuditionPage() {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={6}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                placeholder="オーディションの詳細を入力してください"
+                placeholder="詳しい内容を入力してください"
               />
             </div>
 
@@ -390,7 +390,7 @@ export default function NewAuditionPage() {
               {/* 実施日時 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  実施日時
+                  実施日時(集合時間)
                 </label>
                 <div className="space-y-2">
                   {formData.eventDates.map((date, index) => (

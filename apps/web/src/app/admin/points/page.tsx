@@ -8,17 +8,21 @@
 
 import { useState } from 'react'
 import { useAdminPointsAccounts, useGrantPoints } from '@/shared/hooks/useAdminPoints'
+import { useAuditionTypes, useUpdateAuditionType } from '@/shared/hooks/useAuditionTypes'
 import { formatDateTime } from '@/shared/lib/date'
 import Link from 'next/link'
+import type { AuditionType } from '@casto/shared'
 
 export default function AdminPointsPage() {
   const [page, setPage] = useState(0)
   const limit = 20
   const { accounts, total, loading, error, refetch } = useAdminPointsAccounts(limit, page * limit)
   const { grantPoints, loading: granting } = useGrantPoints()
+  const { types, loading: typesLoading, refetch: refetchTypes } = useAuditionTypes()
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [showGrantModal, setShowGrantModal] = useState(false)
+  const [editingType, setEditingType] = useState<AuditionType | null>(null)
 
   const totalPages = Math.ceil(total / limit)
 
@@ -65,6 +69,58 @@ export default function AdminPointsPage() {
             設定
           </Link>
         </div>
+      </div>
+
+      {/* オーディション種別設定 */}
+      <div className="bg-white rounded-lg shadow mb-8">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold">オーディション種別設定</h2>
+          <p className="text-sm text-gray-600 mt-1">各種別の基本ポイントを設定します</p>
+        </div>
+        {typesLoading ? (
+          <div className="p-6 space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 bg-gray-100 rounded animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {types.map((type) => (
+              <div key={type.id} className="px-6 py-4 hover:bg-gray-50 flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3">
+                    <h3 className="text-lg font-medium">{type.displayName}</h3>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      type.isActive
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {type.isActive ? '有効' : '無効'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">{type.description}</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    種別コード: <span className="font-mono">{type.typeCode}</span>
+                  </p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-blue-600">
+                      {type.basePoints.toLocaleString()} pt
+                    </p>
+                    <p className="text-xs text-gray-500">基本ポイント</p>
+                  </div>
+                  <button
+                    onClick={() => setEditingType(type)}
+                    className="px-4 py-2 text-sm text-blue-600 hover:text-blue-700 border border-blue-300 rounded-lg hover:bg-blue-50"
+                  >
+                    編集
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* アカウント一覧 */}
@@ -188,6 +244,18 @@ export default function AdminPointsPage() {
           loading={granting}
         />
       )}
+
+      {/* 種別編集モーダル */}
+      {editingType && (
+        <AuditionTypeEditModal
+          type={editingType}
+          onClose={() => setEditingType(null)}
+          onSuccess={() => {
+            setEditingType(null)
+            refetchTypes()
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -265,6 +333,141 @@ function GrantModal({ onClose, onGrant, loading }: GrantModalProps) {
               className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
             >
               {loading ? '処理中...' : '実行'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+interface AuditionTypeEditModalProps {
+  type: AuditionType
+  onClose: () => void
+  onSuccess: () => void
+}
+
+function AuditionTypeEditModal({ type, onClose, onSuccess }: AuditionTypeEditModalProps) {
+  const { updateType, loading } = useUpdateAuditionType()
+  const [displayName, setDisplayName] = useState(type.displayName)
+  const [description, setDescription] = useState(type.description || '')
+  const [basePoints, setBasePoints] = useState(type.basePoints.toString())
+  const [isActive, setIsActive] = useState(type.isActive)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const points = parseInt(basePoints, 10)
+    if (isNaN(points) || points < 0) {
+      alert('正しいポイント数を入力してください（0以上）')
+      return
+    }
+
+    const success = await updateType(type.id, {
+      displayName,
+      description: description || undefined,
+      basePoints: points,
+      isActive,
+    })
+
+    if (success) {
+      onSuccess()
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h2 className="text-xl font-bold mb-4">種別設定の編集</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              種別コード
+            </label>
+            <input
+              type="text"
+              value={type.typeCode}
+              disabled
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 text-gray-600"
+            />
+            <p className="text-xs text-gray-500 mt-1">変更できません</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              表示名 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              required
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              説明
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              基本ポイント <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              value={basePoints}
+              onChange={(e) => setBasePoints(e.target.value)}
+              required
+              min="0"
+              step="100"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              disabled={loading}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              この種別のオーディション作成時に消費されるポイント
+            </p>
+          </div>
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="isActive"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+              className="mr-2"
+              disabled={loading}
+            />
+            <label htmlFor="isActive" className="text-sm font-medium">
+              有効化
+            </label>
+          </div>
+
+          <div className="flex space-x-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+            >
+              キャンセル
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            >
+              {loading ? '更新中...' : '更新'}
             </button>
           </div>
         </form>

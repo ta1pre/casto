@@ -320,7 +320,7 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                placeholder="例: 新人アイドルオーディション2025"
+                placeholder="募集タイトルを入力して下さい。" 
                 required
               />
               {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
@@ -350,7 +350,7 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={6}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                placeholder="オーディションの詳細を入力してください"
+                placeholder="詳しい説明を入力してください"
               />
             </div>
 
