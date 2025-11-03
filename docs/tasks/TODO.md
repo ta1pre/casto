@@ -8,14 +8,14 @@
 ## 2. 現状整理（2025-11-03 時点）
 
 ### 2.1 データモデル
-- `auditions` テーブル: 募集期間・定員・説明文・プロジェクト種別などの基本情報を保持。現状の `project_type` 値は `audition` と `job` のみ @packages/shared/src/types/audition.ts#19-121
-- `audition_genres` テーブルでジャンル紐付け済み（最大3件 UI で選択） @apps/web/src/app/organizer/auditions/new/page.tsx#229-248
+- `auditions` テーブル: 募集期間・定員・説明文・プロジェクト種別などの基本情報を保持。`project_type` は `audition` / `job` / `extra` をサポートし、`extra_details JSONB` で種別固有データを格納する @supabase/migrations/20251103210000_add_extra_recruitment_support.sql#8-134 @packages/shared/src/types/audition.ts#19-124
+- `audition_genres` テーブルでジャンル紐付け済み（最大3件 UI で選択） @apps/web/src/app/organizer/auditions/new/page.tsx#253-307
 - 地域情報 (`audition_areas`) は別テーブルで管理済みだが、フォームからの入力導線は未整備 @packages/shared/src/types/auditionArea.ts#6-33
 
 ### 2.2 画面/UI
-- 新規作成フォームはタイトル・説明・応募条件・募集期間・定員など最小構成。種別による追加項目やバリデーションの切り替えなし @apps/web/src/app/organizer/auditions/new/page.tsx#133-303
-- 既存の `projectType` ラジオボタンは「オーディション」「求人」のみ表示 @apps/web/src/app/organizer/auditions/new/page.tsx#137-168
-- 主催者ごとに任意フィールドを運用しているが、情報の統一性が低い
+- 新規作成フォームは種別ごとに入力セクションを切り替え、エキストラ募集専用項目（実施日時、所要時間、集合場所、想定人数など）を追加済み @apps/web/src/app/organizer/auditions/new/page.tsx#133-416
+- `projectType` ラジオボタンは「オーディション」「求人」「エキストラ募集」を表示し、選択に応じて必須項目とバリデーションを制御 @apps/web/src/app/organizer/auditions/new/page.tsx#138-200 @packages/shared/src/validators/audition.ts#96-152
+- 主催者向けの入力ガイド（テンプレート表示など）は未着手
 
 ### 2.3 種別ごとの要求イメージ
 
@@ -25,22 +25,32 @@
 | 求人 | 長期雇用・スタッフ募集 | 勤務地、勤務形態、報酬区分、応募期間 | 勤務時間、休日、福利厚生 | 募集フォームに勤務地系フィールドが不足 |
 | エキストラ募集 | 短期・大量動員（例: 撮影エキストラ） | 募集エリア、集合場所、開催日程（複数可）、集合時間、想定人数 | 役柄メモ、衣装支給有無、交通費、備考 | `docs/memo/エキストラ募集` を参照した簡易プロフィール運用 |
 
+### 2.4 無料閲覧数設定（新仕様）
+- 種別ごとに「最初のN人まで無料閲覧」枠を設定し、超過分は既存の閲覧課金ルールを適用する [SF][CA]
+- マスタテーブル `audition_types` に `free_view_count INTEGER NOT NULL DEFAULT 0` を追加し、0の場合は従来どおり全件課金 
+- 初期値案（管理画面から変更可能）
+  - オーディション: 5人
+  - 求人: 10人
+  - エキストラ募集: 50人
+- 主催者の応募者閲覧数をWorkersでカウントし、閲覧APIで無料枠判定→課金有無を決定する @apps/workers/src/features/points/
+
+
 ## 3. TODO一覧（フェーズ別）
 
 ### Phase 0: 現状理解と設計確定
-- [ ] 種別拡張の影響範囲調査（API、Supabase型、Zodスキーマ、UI）
-- [ ] `docs/memo/エキストラ募集` を整理して共通仕様に落とし込む（用語統一・入力ルール定義）
+- [x] 種別拡張の影響範囲調査（API、Supabase型、Zodスキーマ、UI）
+- [x] `docs/memo/エキストラ募集` を整理して共通仕様に落とし込む（用語統一・入力ルール定義） @docs/tasks/EXTRA_RECRUITMENT_DECISION_SHEET.md#1-272 @docs/memo/エキストラ募集#1-46
 
 ### Phase 1: データモデル対応（[SF][REH])
-- [ ] `auditions.project_type` に `extra`（エキストラ募集）を追加し、Enum制約・型定義・APIレスポンスを更新
-- [ ] エキストラ募集で必要となるカラム設計（例: `event_dates`, `meeting_place`, `expected_headcount`）。JSONBで柔軟な拡張を許容するか検討
-- [ ] 既存データ移行計画を策定（`project_type='job'` 等への影響確認）
+- [x] `auditions.project_type` に `extra`（エキストラ募集）を追加し、Enum制約・型定義・APIレスポンスを更新
+- [x] エキストラ募集で必要となるカラム設計（例: `event_dates`, `meeting_place`, `expected_headcount`）。JSONBで柔軟な拡張を許容するか検討
+- [x] 既存データ移行計画を策定（`project_type='job'` 等への影響確認） @supabase/migrations/20251103210000_add_extra_recruitment_support.sql#8-134
 
 ### Phase 2: フロントエンド実装（フォーム拡張）
-- [ ] 種別ラジオに「エキストラ募集」を追加し、選択時に追加セクションを表示
-- [ ] 種別ごとの入力セクション（求人: 勤務地/雇用条件、エキストラ: 集合情報/日程）を動的に切り替え
-- [ ] Zodバリデーションを種別別に適用（必須項目の差異を整理）
-- [ ] UIガイド（入力例・テンプレート）を表示して主催者の迷いを減らす
+- [x] 種別ラジオに「エキストラ募集」を追加し、選択時に追加セクションを表示
+- [x] 種別ごとの入力セクション（求人: 勤務地/雇用条件、エキストラ: 集合情報/日程）を動的に切り替え
+- [x] Zodバリデーションを種別別に適用（必須項目の差異を整理）
+- [x] UIガイド（入力例・テンプレート）を表示して主催者の迷いを減らす @apps/web/src/app/organizer/auditions/new/page.tsx#133-416
 
 ### Phase 3: 応募者UX・審査フロー調整
 - [ ] 応募フォームの表示内容を種別に応じて最適化（例: エキストラは簡易プロフィール入力のみ）
@@ -61,4 +71,4 @@
 
 ---
 
-更新日: 2025-11-03
+更新日: 2025-11-04

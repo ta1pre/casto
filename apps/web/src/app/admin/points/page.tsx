@@ -102,6 +102,9 @@ export default function AdminPointsPage() {
                   <p className="text-sm text-gray-500 mt-1">
                     種別コード: <span className="font-mono">{type.typeCode}</span>
                   </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    無料閲覧枠: {type.freeViewCount.toLocaleString()} 人
+                  </p>
                 </div>
                 <div className="flex items-center space-x-4">
                   <div className="text-right">
@@ -352,6 +355,7 @@ function AuditionTypeEditModal({ type, onClose, onSuccess }: AuditionTypeEditMod
   const [displayName, setDisplayName] = useState(type.displayName)
   const [description, setDescription] = useState(type.description || '')
   const [basePoints, setBasePoints] = useState(type.basePoints.toString())
+  const [freeViewCount, setFreeViewCount] = useState(type.freeViewCount.toString())
   const [isActive, setIsActive] = useState(type.isActive)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -363,10 +367,17 @@ function AuditionTypeEditModal({ type, onClose, onSuccess }: AuditionTypeEditMod
       return
     }
 
+    const freeQuota = parseInt(freeViewCount, 10)
+    if (isNaN(freeQuota) || freeQuota < 0) {
+      alert('無料閲覧枠には0以上の整数を入力してください')
+      return
+    }
+
     const success = await updateType(type.id, {
       displayName,
       description: description || undefined,
       basePoints: points,
+      freeViewCount: freeQuota,
       isActive,
     })
 
@@ -436,6 +447,24 @@ function AuditionTypeEditModal({ type, onClose, onSuccess }: AuditionTypeEditMod
             />
             <p className="text-xs text-gray-500 mt-1">
               この種別のオーディション作成時に消費されるポイント
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              無料閲覧枠 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              value={freeViewCount}
+              onChange={(e) => setFreeViewCount(e.target.value)}
+              required
+              min="0"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              disabled={loading}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              最初の N 人まで無料で応募者プロフィールを閲覧できます（0 = 無料枠なし）
             </p>
           </div>
 

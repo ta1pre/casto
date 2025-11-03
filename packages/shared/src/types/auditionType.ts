@@ -15,6 +15,7 @@ export interface SupabaseAuditionTypeRow {
   description: string | null
   base_points: number
   is_active: boolean
+  free_view_count: number
   created_at: string
   updated_at: string
 }
@@ -28,6 +29,7 @@ export interface AuditionType {
   displayName: string
   description?: string
   basePoints: number
+  freeViewCount: number
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -47,5 +49,6 @@ export interface UpdateAuditionTypeRequest {
   displayName?: string
   description?: string
   basePoints?: number
+  freeViewCount?: number
   isActive?: boolean
 }
