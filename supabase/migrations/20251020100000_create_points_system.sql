@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS public.points_plans (
     price_jpy INTEGER NOT NULL,
     stripe_product_id VARCHAR(255),
     stripe_price_id VARCHAR(255),
-    discount_rate INTEGER NOT NULL DEFAULT 0,
+    bonus_points INTEGER NOT NULL DEFAULT 0,
     is_active BOOLEAN NOT NULL DEFAULT true,
     display_order INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
