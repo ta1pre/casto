@@ -73,7 +73,7 @@ export default function NewAuditionPage() {
 
     try {
       // extraDetailsを種別に応じて構築
-      let extraDetails: any = undefined
+      let extraDetails: Record<string, unknown> | undefined = undefined
       if (formData.projectType === 'extra') {
         extraDetails = {
           meetingPlace: formData.meetingPlace || undefined,
