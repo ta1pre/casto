@@ -21,6 +21,7 @@ function toAuditionType(row: SupabaseAuditionTypeRow): AuditionType {
     displayName: row.display_name,
     description: row.description ?? undefined,
     basePoints: row.base_points,
+    viewingPointCost: row.viewing_point_cost ?? undefined,
     freeViewCount: row.free_view_count,
     isActive: row.is_active,
     createdAt: row.created_at,
@@ -86,6 +87,10 @@ export async function updateAuditionType(
 
   if (typeof updates.freeViewCount === 'number') {
     payload.free_view_count = updates.freeViewCount
+  }
+
+  if (updates.viewingPointCost !== undefined) {
+    payload.viewing_point_cost = updates.viewingPointCost
   }
 
   const { data, error } = await supabase

@@ -355,6 +355,7 @@ function AuditionTypeEditModal({ type, onClose, onSuccess }: AuditionTypeEditMod
   const [displayName, setDisplayName] = useState(type.displayName)
   const [description, setDescription] = useState(type.description || '')
   const [basePoints, setBasePoints] = useState(type.basePoints.toString())
+  const [viewingPointCost, setViewingPointCost] = useState(type.viewingPointCost?.toString() || '')
   const [freeViewCount, setFreeViewCount] = useState(type.freeViewCount.toString())
   const [isActive, setIsActive] = useState(type.isActive)
 
@@ -373,10 +374,20 @@ function AuditionTypeEditModal({ type, onClose, onSuccess }: AuditionTypeEditMod
       return
     }
 
+    let viewingCost: number | null = null
+    if (viewingPointCost.trim() !== '') {
+      viewingCost = parseInt(viewingPointCost, 10)
+      if (isNaN(viewingCost) || viewingCost < 0) {
+        alert('閲覧単価には0以上の整数を入力してください')
+        return
+      }
+    }
+
     const success = await updateType(type.id, {
       displayName,
       description: description || undefined,
       basePoints: points,
+      viewingPointCost: viewingCost,
       freeViewCount: freeQuota,
       isActive,
     })
@@ -447,6 +458,24 @@ function AuditionTypeEditModal({ type, onClose, onSuccess }: AuditionTypeEditMod
             />
             <p className="text-xs text-gray-500 mt-1">
               この種別のオーディション作成時に消費されるポイント
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              閲覧単価
+            </label>
+            <input
+              type="number"
+              value={viewingPointCost}
+              onChange={(e) => setViewingPointCost(e.target.value)}
+              placeholder="ジャンル/デフォルトを使用"
+              min="0"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
+              disabled={loading}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              この種別のデフォルト閲覧単価（pt/人）。空欄の場合はジャンル/デフォルト設定を使用
             </p>
           </div>
 

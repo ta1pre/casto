@@ -34,6 +34,13 @@
   - エキストラ募集: 50人
 - 主催者の応募者閲覧数をWorkersでカウントし、閲覧APIで無料枠判定→課金有無を決定する @apps/workers/src/features/points/
 
+### 2.5 種別別閲覧単価設定（新仕様）
+- 閲覧単価の優先順位を「オーディション個別 > 種別 > ジャンル > デフォルト」に統一し、種別設定が第二優先となるよう拡張する [SF][CA]
+- `audition_types` に `viewing_point_cost INTEGER` を追加し、`NULL` の場合はジャンル/デフォルトへフォールバックする
+- 管理画面 `/admin/points` の「種別設定の編集」モーダルから閲覧単価（pt/人）を入力可能にする（0以上の整数、空欄でNULL） @apps/web/src/app/admin/points/page.tsx
+- Workersの閲覧判定ロジックで `audition.free_viewing_quota -> audition.type_viewing_point_cost -> genre.viewing_point_cost -> default` の順に適用する @apps/workers/src/features/points/service.ts
+- ドキュメント `/admin/points/settings` 画面の説明文を更新し、種別優先を明記する @apps/web/src/app/admin/points/settings/page.tsx
+
 
 ## 3. TODO一覧（フェーズ別）
 
@@ -45,12 +52,14 @@
 - [x] `auditions.project_type` に `extra`（エキストラ募集）を追加し、Enum制約・型定義・APIレスポンスを更新
 - [x] エキストラ募集で必要となるカラム設計（例: `event_dates`, `meeting_place`, `expected_headcount`）。JSONBで柔軟な拡張を許容するか検討
 - [x] 既存データ移行計画を策定（`project_type='job'` 等への影響確認） @supabase/migrations/20251103210000_add_extra_recruitment_support.sql#8-134
+- [ ] `audition_types` に閲覧単価カラムを追加し、初期値と移行方針を策定
 
 ### Phase 2: フロントエンド実装（フォーム拡張）
 - [x] 種別ラジオに「エキストラ募集」を追加し、選択時に追加セクションを表示
 - [x] 種別ごとの入力セクション（求人: 勤務地/雇用条件、エキストラ: 集合情報/日程）を動的に切り替え
 - [x] Zodバリデーションを種別別に適用（必須項目の差異を整理）
 - [x] UIガイド（入力例・テンプレート）を表示して主催者の迷いを減らす @apps/web/src/app/organizer/auditions/new/page.tsx#133-416
+- [ ] 「種別設定の編集」モーダルで閲覧単価を編集できるようにする
 
 ### Phase 3: 応募者UX・審査フロー調整
 - [ ] 応募フォームの表示内容を種別に応じて最適化（例: エキストラは簡易プロフィール入力のみ）

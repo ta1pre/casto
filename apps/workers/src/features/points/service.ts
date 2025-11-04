@@ -195,16 +195,22 @@ async function getAuditionWithGenre(
     return null
   }
 
-  // 種別マスタから無料閲覧枠を取得
+  // 種別マスタから無料閲覧枠と閲覧単価を取得
   let typeFreeViewCount: number | null = null
+  let typeViewingPointCost: number | null = null
   const { data: typeRow } = await supabase
     .from('audition_types')
-    .select('free_view_count')
+    .select('free_view_count, viewing_point_cost')
     .eq('type_code', audition.project_type)
     .single()
 
-  if (typeRow && typeof typeRow.free_view_count === 'number') {
-    typeFreeViewCount = typeRow.free_view_count
+  if (typeRow) {
+    if (typeof typeRow.free_view_count === 'number') {
+      typeFreeViewCount = typeRow.free_view_count
+    }
+    if (typeof typeRow.viewing_point_cost === 'number') {
+      typeViewingPointCost = typeRow.viewing_point_cost
+    }
   }
 
   // ジャンル情報を整形
@@ -218,6 +224,7 @@ async function getAuditionWithGenre(
     viewing_point_cost: audition.viewing_point_cost,
     free_viewing_quota: audition.free_viewing_quota,
     project_type: audition.project_type,
+    type_viewing_point_cost: typeViewingPointCost,
     type_free_view_count: typeFreeViewCount,
     max_viewing_points: audition.max_viewing_points,
     unlimited_viewing: audition.unlimited_viewing,
@@ -326,16 +333,21 @@ export async function checkViewingEligibility(
     }
   }
 
-  // 5. 閲覧単価を決定（優先順位: 案件 > ジャンル > デフォルト）
+  // 5. 閲覧単価を決定（優先順位: 案件個別 > 種別 > ジャンル > デフォルト）
   let pointCost = audition.viewing_point_cost // 案件ごと設定
 
   if (pointCost === null || pointCost === undefined) {
-    // ジャンル設定を取得
-    pointCost = audition.genre?.viewing_point_cost ?? null
+    // 種別設定を取得
+    pointCost = audition.type_viewing_point_cost ?? null
 
     if (pointCost === null || pointCost === undefined) {
-      // デフォルト設定を使用
-      pointCost = await getDefaultViewingCost(supabase)
+      // ジャンル設定を取得
+      pointCost = audition.genre?.viewing_point_cost ?? null
+
+      if (pointCost === null || pointCost === undefined) {
+        // デフォルト設定を使用
+        pointCost = await getDefaultViewingCost(supabase)
+      }
     }
   }
 

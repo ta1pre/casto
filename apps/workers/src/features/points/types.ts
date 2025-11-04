@@ -56,6 +56,7 @@ export interface AuditionWithGenre {
   viewing_point_cost: number | null
   free_viewing_quota: number | null
   project_type: 'audition' | 'job' | 'extra'
+  type_viewing_point_cost: number | null
   type_free_view_count: number | null
   max_viewing_points: number | null
   unlimited_viewing: boolean

@@ -146,9 +146,13 @@ export default function AdminPointsSettingsPage() {
         <h3 className="font-semibold text-blue-900 mb-2">💡 閲覧単価の適用優先順位</h3>
         <ol className="space-y-1 text-sm text-blue-800">
           <li>1. オーディションごとの個別設定（最優先）</li>
-          <li>2. ジャンル別設定</li>
-          <li>3. デフォルト設定（フォールバック）</li>
+          <li>2. 種別設定（オーディション / 求人 / エキストラ募集）</li>
+          <li>3. ジャンル別設定</li>
+          <li>4. デフォルト設定（フォールバック）</li>
         </ol>
+        <p className="text-xs text-blue-700 mt-2">
+          種別設定は「ポイント管理」画面の「種別設定の編集」から変更できます。
+        </p>
       </div>
     </div>
   )
