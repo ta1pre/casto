@@ -262,6 +262,34 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
     }))
   }
 
+  const handleEventDateChange = (index: number, value: string) => {
+    setFormData((prev) => {
+      const updated = [...prev.eventDates]
+      updated[index] = value
+      return {
+        ...prev,
+        eventDates: updated,
+      }
+    })
+  }
+
+  const addEventDate = () => {
+    setFormData((prev) => ({
+      ...prev,
+      eventDates: [...prev.eventDates, ''],
+    }))
+  }
+
+  const removeEventDate = (index: number) => {
+    setFormData((prev) => {
+      const updated = prev.eventDates.filter((_, i) => i !== index)
+      return {
+        ...prev,
+        eventDates: updated.length > 0 ? updated : [''],
+      }
+    })
+  }
+
   const handleMainVisualUpload = async (file: File) => {
     setMediaUploading(true)
     try {
