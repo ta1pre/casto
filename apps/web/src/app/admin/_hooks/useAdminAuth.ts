@@ -44,8 +44,8 @@ export function useAdminAuth() {
   }
 
   const logout = () => {
-    // クッキーをクリア（簡易版）
-    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+    // クッキーをクリア（正しいクッキー名で）
+    document.cookie = 'casto_auth=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
     router.push('/admin/login')
   }
 
