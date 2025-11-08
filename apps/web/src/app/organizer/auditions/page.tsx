@@ -156,7 +156,11 @@ export default function AuditionsPage() {
                     <h3 className="text-lg font-semibold text-gray-900">{audition.title}</h3>
                     {getStatusBadge(audition.status)}
                     <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                      {audition.projectType === 'audition' ? 'オーディション' : '求人'}
+                      {audition.projectType === 'audition'
+                        ? 'オーディション'
+                        : audition.projectType === 'job'
+                        ? '求人'
+                        : 'エキストラ募集'}
                     </span>
                   </div>
                   {audition.shortDescription && (

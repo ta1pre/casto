@@ -7,14 +7,16 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import type { AuditionGenre } from '@casto/shared'
+import type { AuditionGenre, AuditionArea, AuditionStatus } from '@casto/shared'
 import type { MediaType } from '@casto/shared/types/media'
 import { MediaUploader } from '@/shared/components/MediaUploader'
 import { resolveApiUrl } from '@/shared/lib/api'
+import { AuditionStepsSection } from '../[id]/edit/_components/AuditionStepsSection'
 
 export default function NewAuditionPage() {
   const router = useRouter()
   const [genres, setGenres] = useState<AuditionGenre[]>([])
+  const [areas, setAreas] = useState<AuditionArea[]>([])
   const [loading, setLoading] = useState(false)
   const [mediaUploading, setMediaUploading] = useState(false)
   const [mainVisualFile, setMainVisualFile] = useState<File | null>(null)
@@ -43,11 +45,15 @@ export default function NewAuditionPage() {
     workLocation: '',
     employmentType: '',
     salary: '',
+    areaId: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [createdAudition, setCreatedAudition] = useState<{ id: string; status: AuditionStatus }>({ id: '', status: 'draft' })
+  const [creationNotice, setCreationNotice] = useState<string | null>(null)
 
   useEffect(() => {
     fetchGenres()
+    fetchAreas()
     // デフォルトの日時を設定
     const now = new Date()
     const tomorrow = new Date(now)
@@ -107,6 +113,20 @@ export default function NewAuditionPage() {
       }
     } catch (error) {
       console.error('Failed to fetch genres:', error)
+    }
+  }
+
+  const fetchAreas = async () => {
+    try {
+      const response = await fetch('/api/v1/organizer/areas', {
+        credentials: 'include',
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setAreas(data.areas || [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch areas:', error)
     }
   }
 
@@ -201,6 +221,7 @@ export default function NewAuditionPage() {
             ? formData.genreIds
             : undefined,
         extraDetails,
+        areaId: formData.areaId || undefined,
       }
 
       const response = await fetch('/api/v1/organizer/auditions', {
@@ -228,9 +249,12 @@ export default function NewAuditionPage() {
         return
       }
 
-      const auditionId = data.audition.id
+      const auditionId = data.audition.id as string
+      const auditionStatus = (data.audition.status || 'draft') as AuditionStatus
+      setCreatedAudition({ id: auditionId, status: auditionStatus })
 
       // Step 2: メインビジュアルアップロード（ファイルがある場合のみ） [REH]
+      let uploadSucceeded = true
       if (mainVisualFile) {
         setMediaUploading(true)
         try {
@@ -247,33 +271,33 @@ export default function NewAuditionPage() {
           )
 
           if (!uploadResponse.ok) {
-            // アップロード失敗でもオーディションは作成済み
             console.error('メインビジュアルのアップロードに失敗しました')
+            uploadSucceeded = false
+            const errorData = await uploadResponse.json()
             setErrors({
-              general: 'オーディションは作成されましたが、メインビジュアルのアップロードに失敗しました。編集画面から再度設定してください。'
+              general:
+                errorData?.error ||
+                'オーディションは作成されましたが、メインビジュアルのアップロードに失敗しました。編集画面から再度設定してください。',
             })
-            // 3秒後に詳細画面へ遷移
-            setTimeout(() => {
-              router.push(`/organizer/auditions/${auditionId}`)
-            }, 3000)
-            return
+          } else {
+            const uploaded = await uploadResponse.json()
+            setMainVisualPreview({ url: uploaded.url, type: uploaded.mediaType })
           }
         } catch (uploadError) {
           console.error('メインビジュアルアップロードエラー:', uploadError)
+          uploadSucceeded = false
           setErrors({
-            general: 'オーディションは作成されましたが、メインビジュアルのアップロードに失敗しました。編集画面から再度設定してください。'
+            general:
+              'オーディションは作成されましたが、メインビジュアルのアップロードに失敗しました。編集画面から再度設定してください。',
           })
-          setTimeout(() => {
-            router.push(`/organizer/auditions/${auditionId}`)
-          }, 3000)
-          return
         } finally {
           setMediaUploading(false)
         }
       }
 
-      // Step 3: 成功時の遷移
-      router.push(`/organizer/auditions/${auditionId}`)
+      if (uploadSucceeded) {
+        setCreationNotice('下書きとして作成しました。続けて募集フロー（選考ステップ）を設定できます。')
+      }
     } catch (error) {
       console.error('Failed to create audition:', error)
       setErrors({ general: 'ネットワークエラーが発生しました' })
@@ -294,6 +318,13 @@ export default function NewAuditionPage() {
         genreIds: nextIds,
       }
     })
+  }
+
+  const selectArea = (areaId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      areaId,
+    }))
   }
 
   return (
@@ -542,55 +573,36 @@ export default function NewAuditionPage() {
           </div>
         )}
 
-        {/* 求人専用項目 */}
-        {formData.projectType === 'job' && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">求人情報</h2>
-            <div className="space-y-4">
-              {/* 勤務地 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  勤務地
+        {/* 募集エリア */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">募集エリア</h2>
+          {areas.length === 0 ? (
+            <p className="text-sm text-gray-500">エリア情報を読み込み中です...</p>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              {areas.map((area) => (
+                <label
+                  key={area.id}
+                  className={`px-3 py-2 rounded-lg border text-sm transition-colors cursor-pointer ${
+                    formData.areaId === area.id
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="areaId"
+                    value={area.id}
+                    checked={formData.areaId === area.id}
+                    onChange={() => selectArea(area.id)}
+                    className="sr-only"
+                  />
+                  {area.name}
                 </label>
-                <input
-                  type="text"
-                  value={formData.workLocation}
-                  onChange={(e) => setFormData({ ...formData, workLocation: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                  placeholder="例: 東京都渋谷区"
-                />
-              </div>
-
-              {/* 雇用形態 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  雇用形態
-                </label>
-                <input
-                  type="text"
-                  value={formData.employmentType}
-                  onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                  placeholder="例: 正社員、契約社員、アルバイト"
-                />
-              </div>
-
-              {/* 給与 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  給与
-                </label>
-                <input
-                  type="text"
-                  value={formData.salary}
-                  onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                  placeholder="例: 月給25万円〜"
-                />
-              </div>
+              ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* 募集期間・定員 */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -645,6 +657,43 @@ export default function NewAuditionPage() {
           </div>
         </div>
 
+        {/* 求人情報（任意） */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">求人情報（任意）</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">勤務地</label>
+              <input
+                type="text"
+                value={formData.workLocation}
+                onChange={(e) => setFormData({ ...formData, workLocation: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                placeholder="例: 東京都渋谷区"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">雇用形態</label>
+              <input
+                type="text"
+                value={formData.employmentType}
+                onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                placeholder="例: 正社員、契約社員、アルバイト"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">給与</label>
+              <input
+                type="text"
+                value={formData.salary}
+                onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                placeholder="例: 月給25万円〜"
+              />
+            </div>
+          </div>
+        </div>
+
         {/* アクションボタン */}
         <div className="flex items-center justify-end gap-4">
           <button
@@ -658,12 +707,43 @@ export default function NewAuditionPage() {
           <button
             type="submit"
             className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-400"
-            disabled={loading}
+            disabled={loading || !!createdAudition.id}
           >
-            {loading ? '作成中...' : '下書きとして作成'}
+            {createdAudition.id ? '作成済み' : loading ? '作成中...' : '下書きとして作成'}
           </button>
         </div>
       </form>
+
+      {createdAudition.id && (
+        <div className="mt-8 space-y-6">
+          {creationNotice && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-900 px-4 py-3 rounded-lg">
+              <p className="font-medium">{creationNotice}</p>
+              <div className="mt-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => router.push(`/organizer/auditions/${createdAudition.id}`)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  詳細画面を開く
+                </button>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/organizer/auditions/${createdAudition.id}/edit`)}
+                  className="px-4 py-2 border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-100"
+                >
+                  編集画面で続ける
+                </button>
+              </div>
+            </div>
+          )}
+
+          <AuditionStepsSection
+            auditionId={createdAudition.id}
+            isPublished={createdAudition.status === 'published'}
+          />
+        </div>
+      )}
     </div>
   )
 }
