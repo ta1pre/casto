@@ -147,6 +147,10 @@ export const updateAuditionSchema = z.object({
     errorMap: () => ({ message: 'ステータスが不正です' })
   }).optional(),
   
+  projectType: z.enum(['audition', 'job', 'extra'], {
+    errorMap: () => ({ message: 'プロジェクトタイプは"audition"、"job"、または"extra"を選択してください' })
+  }).optional(),
+  
   genreIds: z.array(z.string().uuid({ message: '有効なジャンルIDを指定してください' }))
     .max(3, { message: 'ジャンルは最大3件まで選択可能です' })
     .optional(),

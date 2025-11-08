@@ -31,9 +31,18 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
     applicationStartDate: '',
     applicationEndDate: '',
     maxApplicants: '',
-    projectType: 'audition' as 'audition' | 'job',
+    projectType: 'audition' as 'audition' | 'job' | 'extra',
     genreIds: [] as string[],
     areaId: '',
+    // エキストラ専用
+    meetingPlace: '',
+    eventDates: [] as string[],
+    duration: '',
+    expectedHeadcount: '',
+    // 求人専用
+    workLocation: '',
+    employmentType: '',
+    salary: '',
   })
   const [mainVisualUrl, setMainVisualUrl] = useState<string | null>(null)
   const [mainVisualType, setMainVisualType] = useState<MediaType | null>(null)
@@ -49,6 +58,24 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
     })
   }, [params])
 
+  useEffect(() => {
+    if (formData.projectType === 'extra' && formData.eventDates.length === 0) {
+      setFormData((prev) => ({
+        ...prev,
+        eventDates: [''],
+      }))
+    }
+    if (formData.projectType !== 'extra' && formData.eventDates.length > 0) {
+      setFormData((prev) => ({
+        ...prev,
+        eventDates: [],
+        meetingPlace: '',
+        duration: '',
+        expectedHeadcount: '',
+      }))
+    }
+  }, [formData.projectType, formData.eventDates.length])
+
   const fetchAudition = async (id: string) => {
     try {
       setLoading(true)
@@ -61,6 +88,23 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
         const aud = data.audition
         setAudition(aud)
         
+        const extraDetails = (aud.extraDetails ?? {}) as Record<string, unknown>
+        const projectType = (aud.projectType || 'audition') as 'audition' | 'job' | 'extra'
+
+        const meetingPlace = projectType === 'extra' ? (extraDetails.meetingPlace as string | undefined) ?? '' : ''
+        const rawEventDates = Array.isArray(extraDetails.eventDates)
+          ? (extraDetails.eventDates as string[])
+          : []
+        const eventDates = projectType === 'extra' ? rawEventDates : []
+        const duration = projectType === 'extra' ? (extraDetails.duration as string | undefined) ?? '' : ''
+        const expectedHeadcount = projectType === 'extra' && typeof extraDetails.expectedHeadcount !== 'undefined'
+          ? String(extraDetails.expectedHeadcount as number)
+          : ''
+
+        const workLocation = projectType === 'job' ? (extraDetails.workLocation as string | undefined) ?? '' : ''
+        const employmentType = projectType === 'job' ? (extraDetails.employmentType as string | undefined) ?? '' : ''
+        const salary = projectType === 'job' ? (extraDetails.salary as string | undefined) ?? '' : ''
+
         // フォームデータに変換
         setFormData({
           title: aud.title || '',
@@ -76,9 +120,16 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
             ? new Date(aud.applicationEndDate).toISOString().slice(0, 16)
             : '',
           maxApplicants: aud.maxApplicants ? String(aud.maxApplicants) : '',
-          projectType: aud.projectType || 'audition',
+          projectType,
           genreIds: aud.genres?.map((g: AuditionGenre) => g.id) || [],
           areaId: aud.area?.id || '',
+          meetingPlace,
+          eventDates: projectType === 'extra' ? (eventDates.length > 0 ? eventDates : ['']) : [],
+          duration,
+          expectedHeadcount,
+          workLocation,
+          employmentType,
+          salary,
         })
         setMainVisualUrl(aud.mainVisualUrl || null)
         setMainVisualType(aud.mainVisualType || null)
@@ -127,6 +178,22 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
     setSaving(true)
 
     try {
+      let extraDetails: Record<string, unknown> | undefined = undefined
+      if (formData.projectType === 'extra') {
+        extraDetails = {
+          meetingPlace: formData.meetingPlace || undefined,
+          eventDates: formData.eventDates.length > 0 ? formData.eventDates : undefined,
+          duration: formData.duration || undefined,
+          expectedHeadcount: formData.expectedHeadcount ? parseInt(formData.expectedHeadcount) : undefined,
+        }
+      } else if (formData.projectType === 'job') {
+        extraDetails = {
+          workLocation: formData.workLocation || undefined,
+          employmentType: formData.employmentType || undefined,
+          salary: formData.salary || undefined,
+        }
+      }
+
       const payload = {
         title: formData.title,
         description: formData.description,
@@ -137,8 +204,10 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
         applicationStartDate: new Date(formData.applicationStartDate).toISOString(),
         applicationEndDate: new Date(formData.applicationEndDate).toISOString(),
         maxApplicants: formData.maxApplicants ? parseInt(formData.maxApplicants) : undefined,
+        projectType: formData.projectType,
         genreIds: formData.genreIds,
         areaId: formData.areaId || undefined,
+        extraDetails,
       }
 
       console.log('🔍 [DEBUG] formData.areaId:', formData.areaId)
@@ -301,11 +370,23 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
                     value="job"
                     checked={formData.projectType === 'job'}
                     onChange={(e) =>
-                      setFormData({ ...formData, projectType: e.target.value as 'audition' | 'job' })
+                      setFormData({ ...formData, projectType: e.target.value as 'audition' | 'job' | 'extra' })
                     }
                     className="mr-2"
                   />
                   求人
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    value="extra"
+                    checked={formData.projectType === 'extra'}
+                    onChange={(e) =>
+                      setFormData({ ...formData, projectType: e.target.value as 'audition' | 'job' | 'extra' })
+                    }
+                    className="mr-2"
+                  />
+                  エキストラ募集
                 </label>
               </div>
             </div>
@@ -400,6 +481,80 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
             ))}
           </div>
         </div>
+
+        {/* エキストラ募集専用項目 */}
+        {formData.projectType === 'extra' && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">エキストラ募集情報</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">集合場所</label>
+                <input
+                  type="text"
+                  value={formData.meetingPlace}
+                  onChange={(e) => setFormData({ ...formData, meetingPlace: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  placeholder="例: 渋谷スタジオ"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">想定人数</label>
+                <input
+                  type="number"
+                  value={formData.expectedHeadcount}
+                  onChange={(e) => setFormData({ ...formData, expectedHeadcount: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  placeholder="例: 20"
+                  min="1"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">実施日時(集合時間)</label>
+                <div className="space-y-2">
+                  {formData.eventDates.map((date, index) => (
+                    <div key={index} className="flex gap-2">
+                      <input
+                        type="datetime-local"
+                        value={date}
+                        onChange={(e) => handleEventDateChange(index, e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                      />
+                      {formData.eventDates.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeEventDate(index)}
+                          className="px-3 py-2 text-red-600 hover:text-red-700 border border-red-300 rounded-lg hover:bg-red-50"
+                        >
+                          削除
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addEventDate}
+                    className="text-sm text-gray-600 hover:text-gray-900 underline"
+                  >
+                    + 日時を追加
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">所要時間</label>
+                <input
+                  type="text"
+                  value={formData.duration}
+                  onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  placeholder="例: 3時間、終日、2日間"
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 実施エリア */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

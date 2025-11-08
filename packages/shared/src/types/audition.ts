@@ -139,6 +139,7 @@ export interface UpdateAuditionRequest {
   applicationEndDate?: string
   maxApplicants?: number
   status?: AuditionStatus
+  projectType?: ProjectType
   extraDetails?: ExtraDetails | JobDetails | Record<string, unknown>
   genreIds?: string[]
   areaId?: string
