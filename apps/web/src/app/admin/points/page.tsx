@@ -75,7 +75,7 @@ export default function AdminPointsPage() {
       <div className="bg-white rounded-lg shadow mb-8">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold">オーディション種別設定</h2>
-          <p className="text-sm text-gray-600 mt-1">各種別の基本ポイントを設定します</p>
+          <p className="text-sm text-gray-600 mt-1">各種別の基本ポイントと閲覧単価を設定します</p>
         </div>
         {typesLoading ? (
           <div className="p-6 space-y-4">
@@ -106,12 +106,20 @@ export default function AdminPointsPage() {
                     無料閲覧枠: {type.freeViewCount.toLocaleString()} 人
                   </p>
                 </div>
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-6">
                   <div className="text-right">
                     <p className="text-2xl font-bold text-blue-600">
                       {type.basePoints.toLocaleString()} pt
                     </p>
                     <p className="text-xs text-gray-500">基本ポイント</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-blue-500">
+                      {type.viewingPointCost !== undefined && type.viewingPointCost !== null
+                        ? `${type.viewingPointCost.toLocaleString()} pt`
+                        : 'ジャンル/デフォルト'}
+                    </p>
+                    <p className="text-xs text-gray-500">閲覧単価</p>
                   </div>
                   <button
                     onClick={() => setEditingType(type)}
