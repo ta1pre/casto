@@ -29,15 +29,26 @@ export function useAdminAuth() {
       })
 
       if (!response.ok) {
-        throw new Error('Session not found')
+        const status = response.status
+        const errorMessage = status === 401 ? 'SessionExpired' : 'Session not found'
+        throw Object.assign(new Error(errorMessage), { status })
       }
 
       const data = await response.json()
       setUser(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Authentication failed')
-      // 認証エラーの場合はログインページへリダイレクト
-      router.push('/admin/login')
+      const status = (err as { status?: number }).status
+      const message = err instanceof Error ? err.message : 'Authentication failed'
+
+      if (status === 401) {
+        setError('セッションが切れました。再度ログインしてください。')
+        router.replace('/admin/login?reason=session-expired')
+        return
+      }
+
+      setError(message)
+      // その他の認証エラーの場合はログインページへリダイレクト
+      router.replace('/admin/login')
     } finally {
       setIsLoading(false)
     }
