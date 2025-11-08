@@ -9,6 +9,7 @@
 
 ### 2.1 データモデル
 - `auditions` テーブル: 募集期間・定員・説明文・プロジェクト種別などの基本情報を保持。`project_type` は `audition` / `job` / `extra` をサポートし、`extra_details JSONB` で種別固有データを格納する @supabase/migrations/20251103210000_add_extra_recruitment_support.sql#8-134 @packages/shared/src/types/audition.ts#19-124
+- `audition_types` テーブル: 種別マスタを管理し、`free_view_count`・`viewing_point_cost` を含む料金設定を保持する @supabase/migrations/20251103210000_add_extra_recruitment_support.sql#55-133 @supabase/migrations/20251104010000_add_free_view_count_to_audition_types.sql#4-16 @supabase/migrations/20251104090000_add_viewing_point_cost_to_audition_types.sql#4-10 @packages/shared/src/types/auditionType.ts#11-58
 - `audition_genres` テーブルでジャンル紐付け済み（最大3件 UI で選択） @apps/web/src/app/organizer/auditions/new/page.tsx#253-307
 - 地域情報 (`audition_areas`) は別テーブルで管理済みだが、フォームからの入力導線は未整備 @packages/shared/src/types/auditionArea.ts#6-33
 
@@ -27,19 +28,19 @@
 
 ### 2.4 無料閲覧数設定（新仕様）
 - 種別ごとに「最初のN人まで無料閲覧」枠を設定し、超過分は既存の閲覧課金ルールを適用する [SF][CA]
-- マスタテーブル `audition_types` に `free_view_count INTEGER NOT NULL DEFAULT 0` を追加し、0の場合は従来どおり全件課金 
-- 初期値案（管理画面から変更可能）
+- マスタテーブル `audition_types` に `free_view_count INTEGER NOT NULL DEFAULT 0` を追加済み。0の場合は従来どおり全件課金  @supabase/migrations/20251104010000_add_free_view_count_to_audition_types.sql#4-16
+- 初期値（管理画面から変更可能）
   - オーディション: 5人
   - 求人: 10人
   - エキストラ募集: 50人
-- 主催者の応募者閲覧数をWorkersでカウントし、閲覧APIで無料枠判定→課金有無を決定する @apps/workers/src/features/points/
+- 主催者の応募者閲覧数をWorkersでカウントし、閲覧APIで無料枠判定→課金有無を決定する @apps/workers/src/features/points/service.ts#277-374
 
 ### 2.5 種別別閲覧単価設定（新仕様）
 - 閲覧単価の優先順位を「オーディション個別 > 種別 > ジャンル > デフォルト」に統一し、種別設定が第二優先となるよう拡張する [SF][CA]
-- `audition_types` に `viewing_point_cost INTEGER` を追加し、`NULL` の場合はジャンル/デフォルトへフォールバックする
-- 管理画面 `/admin/points` の「種別設定の編集」モーダルから閲覧単価（pt/人）を入力可能にする（0以上の整数、空欄でNULL） @apps/web/src/app/admin/points/page.tsx
-- Workersの閲覧判定ロジックで `audition.free_viewing_quota -> audition.type_viewing_point_cost -> genre.viewing_point_cost -> default` の順に適用する @apps/workers/src/features/points/service.ts
-- ドキュメント `/admin/points/settings` 画面の説明文を更新し、種別優先を明記する @apps/web/src/app/admin/points/settings/page.tsx
+- `audition_types` に `viewing_point_cost INTEGER` を追加済み。`NULL` の場合はジャンル/デフォルトへフォールバックする @supabase/migrations/20251104090000_add_viewing_point_cost_to_audition_types.sql#4-10
+- 管理画面 `/admin/points` の「種別設定の編集」モーダルから閲覧単価（pt/人）と無料閲覧枠を入力可能にする（0以上の整数、空欄でNULL） @apps/web/src/app/admin/points/page.tsx#74-269
+- Workersの閲覧判定ロジックで `audition.free_viewing_quota -> audition.type_viewing_point_cost -> genre.viewing_point_cost -> default` の順に適用する @apps/workers/src/features/points/service.ts#336-374
+- ドキュメント `/admin/points/settings` 画面の説明文更新は未着手 @apps/web/src/app/admin/points/settings/page.tsx
 
 
 ## 3. TODO一覧（フェーズ別）
@@ -52,14 +53,14 @@
 - [x] `auditions.project_type` に `extra`（エキストラ募集）を追加し、Enum制約・型定義・APIレスポンスを更新
 - [x] エキストラ募集で必要となるカラム設計（例: `event_dates`, `meeting_place`, `expected_headcount`）。JSONBで柔軟な拡張を許容するか検討
 - [x] 既存データ移行計画を策定（`project_type='job'` 等への影響確認） @supabase/migrations/20251103210000_add_extra_recruitment_support.sql#8-134
-- [ ] `audition_types` に閲覧単価カラムを追加し、初期値と移行方針を策定
+- [x] `audition_types` に無料閲覧枠・閲覧単価カラムを追加し、初期値と移行方針を策定 @supabase/migrations/20251104010000_add_free_view_count_to_audition_types.sql#4-16 @supabase/migrations/20251104090000_add_viewing_point_cost_to_audition_types.sql#4-10
 
 ### Phase 2: フロントエンド実装（フォーム拡張）
 - [x] 種別ラジオに「エキストラ募集」を追加し、選択時に追加セクションを表示
 - [x] 種別ごとの入力セクション（求人: 勤務地/雇用条件、エキストラ: 集合情報/日程）を動的に切り替え
 - [x] Zodバリデーションを種別別に適用（必須項目の差異を整理）
 - [x] UIガイド（入力例・テンプレート）を表示して主催者の迷いを減らす @apps/web/src/app/organizer/auditions/new/page.tsx#133-416
-- [ ] 「種別設定の編集」モーダルで閲覧単価を編集できるようにする
+- [x] 「種別設定の編集」モーダルで閲覧単価や無料閲覧枠を編集できるようにする @apps/web/src/app/admin/points/page.tsx#74-269
 
 ### Phase 3: 応募者UX・審査フロー調整
 - [ ] 応募フォームの表示内容を種別に応じて最適化（例: エキストラは簡易プロフィール入力のみ）

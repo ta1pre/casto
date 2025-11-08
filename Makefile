@@ -10,10 +10,10 @@ help:
 	@echo ""
 	@echo "データベース:"
 	@echo "  make db-new            - 新規マイグレーション生成（自動diff）"
-	@echo "  make db-apply          - マイグレーション適用"
-	@echo "  make db-check          - 整合性チェック（Local/Remote）"
+	@echo "  make migrate           - マイグレーション適用 + 整合性チェック（推奨）"
+	@echo "  make db-check          - 整合性チェックのみ"
 	@echo "  make db-sync           - 不一致を自動修正（Remoteが正）"
-	@echo "  make migrate           - マイグレーション適用（互換性のため残存）"
+	@echo "  make db-apply          - マイグレーション適用のみ（非推奨）"
 	@echo ""
 	@echo "セットアップ:"
 	@echo "  make setup-supabase    - Supabase DB初期化"
@@ -89,9 +89,18 @@ db-sync:
 	@SUPABASE_DB_PASSWORD=$$SUPABASE_DB_PASSWORD supabase db pull --linked || true
 	@echo "✅ Sync complete. Run 'make db-check' to verify."
 
-# マイグレーション適用のみ（完全自動・互換性のため残存）
-migrate: db-apply
-	@echo "ℹ️  Note: 'make migrate' is deprecated. Use 'make db-apply' instead."
+# マイグレーション適用 + 整合性チェック（自動連続実行）
+migrate:
+	@echo "🚀 マイグレーション適用中..."
+	@if [ -z "$$SUPABASE_DB_PASSWORD" ]; then \
+		echo "❌ Error: SUPABASE_DB_PASSWORD is not set"; \
+		echo "Run: export SUPABASE_DB_PASSWORD='your_password'"; \
+		exit 1; \
+	fi
+	@SUPABASE_DB_PASSWORD=$$SUPABASE_DB_PASSWORD supabase db push --include-all && \
+	echo "✅ 適用完了。整合性チェック中..." && \
+	SUPABASE_DB_PASSWORD=$$SUPABASE_DB_PASSWORD supabase migration list --linked || \
+	(echo "❌ 整合性エラー検知！make db-sync を実行してください。" && exit 1)
 
 # DB完全リセット＆マイグレーション
 reset-db:

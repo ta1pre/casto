@@ -1,8 +1,16 @@
 # Supabase運用ガイド
 
-**シンプル・イズ・ベスト [SF][CA][DRY]**
+## 📋 目的
 
-このガイドは、Supabaseにおける「DBマイグレーション」と「設定（`supabase/config.toml`）」の運用を一元管理します。[TR]
+**ローカルとリモート間のマイグレーション整合性を常に保つこと**を最優先とし、人為的ミスを排除するためにワークフロー自動化とGit hookを活用します。[SF][REH][PEC]
+
+### なぜ整合性が必要か
+
+- リモート適用済みマイグレーションがローカルに存在しない → 他者の変更を上書きする危険
+- ローカル未適用マイグレーションがリモートに存在しない → `system_settings` テーブル欠落等の不整合が発生
+- 整合性チェックの実行漏れ → 問題の早期検知が不可能
+
+**→ すべてのマイグレーション操作で自動的に整合性チェックを実行し、不一致を即座に検知・修正する仕組みを構築します。**
 
 ---
 
@@ -10,8 +18,9 @@
 
 1. **リモート（Supabase）が唯一の正** – ローカルは常にリモートに従う。[PEC]
 2. **DB変更はマイグレーションで自動生成** – `supabase db diff` を使い手書き禁止。[SF]
-3. **操作はMakefile経由** – `make db-*` コマンドに集約し、ヒューマンエラーを削減。[DRY]
-4. **Workersデプロイとは独立** – Supabase操作（DB/設定）はCloudflare WorkersのCI/CD経路と別物。[CA]
+3. **操作はMakefile経由** – `make migrate` コマンドに集約し、ヒューマンエラーを削減。[DRY]
+4. **整合性チェックの自動実行** – `make migrate` は `db-apply → db-check` を連続実行し、スキップを許さない。[REH]
+5. **Git hookで強制チェック** – マイグレーションファイルをコミットする際、pre-commit hookが整合性を確認する。[PA]
 
 > 重要: ローカルDB（`supabase start` や `localhost:54321` 等）は使用しません。常にリモート（Supabase）を唯一のソース・オブ・トゥルースとし、操作はマイグレーションで行います。[PEC]
 
@@ -27,53 +36,140 @@ export SUPABASE_DB_PASSWORD='your_password'  # 例: xSNOAfHLgdqCOfyM
 
 > 一度設定すれば同じシェルで使い回せます。パスワードはSupabase Dashboardで管理。[SFT]
 
-### 1.2 コマンド（4つだけ）
+### 1.2 コマンド（2つだけ）
 
 ```bash
 # 新規変更を作る（自動diff）
 make db-new
 
-# リモートに適用
-make db-apply
-
-# 整合性確認
-make db-check
-
-# 不一致を修正（リモートが正）
-make db-sync
+# リモートに適用 + 整合性チェック（自動実行）
+make migrate    # db-apply → db-check を連続実行
 ```
 
-### 1.3 ワークフロー
+**補助コマンド（通常は不要）**
 
-1. **`make db-new`** で差分を自動生成
-   - ファイル名を意味のあるものに変更（例: `20251103123456_auto_generated.sql` → `20251103123456_add_user_avatar.sql`）
-   - SQLは必ずべき等（`CREATE ... IF NOT EXISTS` / `DROP ... IF EXISTS` 等）
-   - Seedデータも同じマイグレーションに含める
+```bash
+# 不一致を修正（リモートが正）
+make db-sync
 
-2. **変更をレビューしGitにコミット**
-   ```bash
-   git add supabase/migrations/*.sql
-   git commit -m "feat: add user avatar column"
-   ```
+# 整合性のみ確認（make migrate に含まれるため単独実行は不要）
+make db-check
+```
 
-3. **`make db-apply`** でSupabaseリモートへ反映
-   - べき等性を確保しているため、再実行しても安全
-   - WorkersのAPI更新は自動的にCI/CDで反映（手動デプロイ禁止）
+### 1.3 ワークフロー（厳格運用）
 
-4. **`make db-check`** でLocal/Remoteが一致することを確認
-   - Local/Remote列が完全一致すればOK ✅
-   - 不一致があれば `make db-sync` を実行
+#### ステップ1: マイグレーション生成
 
-5. **不一致は `make db-sync` → `make db-check` で解消**
-   - リモートを正としてローカルを自動修正
-   - 完了後に `make db-check` で確認
+```bash
+make db-new
+```
 
-6. **Workersの再デプロイはGitHub Actionsが自動実行**
-   ```bash
-   git push origin develop  # CI/CDが自動デプロイ
-   ```
+- ファイル名を意味のあるものに変更（例: `20251103123456_auto_generated.sql` → `20251103123456_add_user_avatar.sql`）
+- SQLは必ずべき等（`CREATE ... IF NOT EXISTS` / `DROP ... IF EXISTS` 等）を確認
+- Seedデータも同じマイグレーションに含める
 
-### 1.4 トラブルシューティング
+#### ステップ2: リモート適用 + 整合性チェック（自動）
+
+```bash
+make migrate
+```
+
+**このコマンドは以下を自動実行します：**
+
+1. `supabase db push --linked` でリモートへ適用
+2. 成功したら即座に `supabase migration list --linked` で整合性確認
+3. 不一致があれば**エラーで停止**し、ログを出力
+
+**重要**: `make db-apply` 単独での実行は禁止。必ず `make migrate` を使用すること。
+
+#### ステップ3: 不一致時の対応（必須）
+
+`make migrate` でエラーが出た場合：
+
+```bash
+make db-sync     # リモートを正としてローカルを修正
+make migrate     # 再度適用 + チェック
+```
+
+#### ステップ4: Git コミット
+
+```bash
+git add supabase/migrations/*.sql
+git commit -m "feat: add user avatar column"
+```
+
+**pre-commit hookが自動で整合性をチェックし、不一致があればコミットを拒否します。**
+
+#### ステップ5: Workers更新（自動）
+
+```bash
+git push origin develop  # CI/CDが自動デプロイ
+```
+
+### 1.4 自動化による厳格運用
+
+#### Makefile統合（必須実装）
+
+`Makefile` に以下を追加済み：
+
+```makefile
+# 既存
+db-new:
+	@supabase db diff --linked --file supabase/migrations/
+
+db-apply:
+	@supabase db push --linked
+
+db-check:
+	@supabase migration list --linked
+
+db-sync:
+	@supabase db pull --linked
+
+# 新規追加（必須）
+migrate:
+	@echo "🚀 マイグレーション適用中..."
+	@supabase db push --linked && \
+	echo "✅ 適用完了。整合性チェック中..." && \
+	supabase migration list --linked || \
+	(echo "❌ 整合性エラー検知！make db-sync を実行してください。" && exit 1)
+```
+
+#### Git pre-commit hook（必須実装）
+
+`.git/hooks/pre-commit` に以下を追加：
+
+```bash
+#!/bin/sh
+if git diff --cached --name-only | grep -q "supabase/migrations/"; then
+  echo "🔍 マイグレーションファイル変更検知。整合性チェック中..."
+  supabase migration list --linked || {
+    echo "❌ 整合性エラー！コミット前に make migrate を実行してください。"
+    exit 1
+  }
+  echo "✅ 整合性OK"
+fi
+```
+
+実行権限付与：
+
+```bash
+chmod +x .git/hooks/pre-commit
+```
+
+#### スキーマスナップショット（定期実行）
+
+マイグレーションが50件を超えたら、以下を実行してスナップショットを生成：
+
+```bash
+supabase db pull --schema public --linked --file supabase/schema_snapshot.sql
+git add supabase/schema_snapshot.sql
+git commit -m "chore: update schema snapshot"
+```
+
+**目的**: 過去の全マイグレーションを追わずに、最新スキーマを1ファイルで確認可能にする。
+
+### 1.5 トラブルシューティング
 
 | 症状 | 対応 |
 | ---- | ---- |
@@ -211,4 +307,4 @@ make db-apply
 
 ---
 
-**まとめ**: `make db-new` → `make db-apply` → `make db-check` と `supabase config push` の2本柱でSupabase全体の状態を保ちます。[SF][DRY]
+**まとめ**: `make db-new` → `make migrate`（自動チェック付き）と `supabase config push` の2本柱でSupabase全体の状態を保ちます。Git hookとMakefileによる自動化で、整合性チェックの実行漏れをゼロにします。[SF][DRY][REH]
