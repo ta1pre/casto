@@ -8,11 +8,20 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AuditionGenre } from '@casto/shared'
+import type { MediaType } from '@casto/shared/types/media'
+import { MediaUploader } from '@/shared/components/MediaUploader'
+import { resolveApiUrl } from '@/shared/lib/api'
 
 export default function NewAuditionPage() {
   const router = useRouter()
   const [genres, setGenres] = useState<AuditionGenre[]>([])
   const [loading, setLoading] = useState(false)
+  const [mediaUploading, setMediaUploading] = useState(false)
+  const [mainVisualFile, setMainVisualFile] = useState<File | null>(null)
+  const [mainVisualPreview, setMainVisualPreview] = useState<{
+    url: string
+    type: MediaType
+  } | null>(null)
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -78,6 +87,15 @@ export default function NewAuditionPage() {
     }
   }, [formData.projectType, formData.eventDates.length])
 
+  // メインビジュアルプレビューのクリーンアップ [PA]
+  useEffect(() => {
+    return () => {
+      if (mainVisualPreview?.url) {
+        URL.revokeObjectURL(mainVisualPreview.url)
+      }
+    }
+  }, [mainVisualPreview?.url])
+
   const fetchGenres = async () => {
     try {
       const response = await fetch('/api/v1/organizer/genres', {
@@ -118,6 +136,30 @@ export default function NewAuditionPage() {
         eventDates: updated.length > 0 ? updated : [''],
       }
     })
+  }
+
+  // メインビジュアル選択ハンドラ [SF]
+  const handleMainVisualSelect = async (file: File) => {
+    try {
+      // プレビュー用のObject URL生成
+      const objectUrl = URL.createObjectURL(file)
+      const mediaType: MediaType = file.type.startsWith('video/') ? 'video' : 'image'
+      
+      setMainVisualFile(file)
+      setMainVisualPreview({ url: objectUrl, type: mediaType })
+    } catch (error) {
+      console.error('ファイル選択エラー:', error)
+      setErrors({ ...errors, mainVisual: 'ファイルの選択に失敗しました' })
+    }
+  }
+
+  // メインビジュアル削除ハンドラ [SF]
+  const handleMainVisualRemove = async () => {
+    if (mainVisualPreview?.url) {
+      URL.revokeObjectURL(mainVisualPreview.url)
+    }
+    setMainVisualFile(null)
+    setMainVisualPreview(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -172,9 +214,8 @@ export default function NewAuditionPage() {
 
       const data = await response.json()
 
-      if (response.ok) {
-        router.push(`/organizer/auditions/${data.audition.id}`)
-      } else {
+      if (!response.ok) {
+        // オーディション作成失敗時のエラーハンドリング
         if (data.errors) {
           const errorMap: Record<string, string> = {}
           data.errors.forEach((err: { path?: string[]; message: string }) => {
@@ -184,7 +225,55 @@ export default function NewAuditionPage() {
         } else {
           setErrors({ general: data.details || data.error || '作成に失敗しました' })
         }
+        return
       }
+
+      const auditionId = data.audition.id
+
+      // Step 2: メインビジュアルアップロード（ファイルがある場合のみ） [REH]
+      if (mainVisualFile) {
+        setMediaUploading(true)
+        try {
+          const formDataPayload = new FormData()
+          formDataPayload.append('file', mainVisualFile)
+
+          const uploadResponse = await fetch(
+            resolveApiUrl(`/api/v1/organizer/auditions/${auditionId}/main-visual/upload`),
+            {
+              method: 'POST',
+              credentials: 'include',
+              body: formDataPayload,
+            }
+          )
+
+          if (!uploadResponse.ok) {
+            // アップロード失敗でもオーディションは作成済み
+            console.error('メインビジュアルのアップロードに失敗しました')
+            setErrors({
+              general: 'オーディションは作成されましたが、メインビジュアルのアップロードに失敗しました。編集画面から再度設定してください。'
+            })
+            // 3秒後に詳細画面へ遷移
+            setTimeout(() => {
+              router.push(`/organizer/auditions/${auditionId}`)
+            }, 3000)
+            return
+          }
+        } catch (uploadError) {
+          console.error('メインビジュアルアップロードエラー:', uploadError)
+          setErrors({
+            general: 'オーディションは作成されましたが、メインビジュアルのアップロードに失敗しました。編集画面から再度設定してください。'
+          })
+          setTimeout(() => {
+            router.push(`/organizer/auditions/${auditionId}`)
+          }, 3000)
+          return
+        } finally {
+          setMediaUploading(false)
+        }
+      }
+
+      // Step 3: 成功時の遷移
+      router.push(`/organizer/auditions/${auditionId}`)
     } catch (error) {
       console.error('Failed to create audition:', error)
       setErrors({ general: 'ネットワークエラーが発生しました' })
@@ -325,6 +414,20 @@ export default function NewAuditionPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
                 placeholder="年齢、経験、スキルなど"
               />
+            </div>
+
+            {/* メインビジュアル */}
+            <div>
+              <MediaUploader
+                mediaUrl={mainVisualPreview?.url || null}
+                mediaType={mainVisualPreview?.type || null}
+                onUpload={handleMainVisualSelect}
+                onDelete={handleMainVisualRemove}
+                disabled={loading || mediaUploading}
+              />
+              {errors.mainVisual && (
+                <p className="text-red-500 text-sm mt-1">{errors.mainVisual}</p>
+              )}
             </div>
           </div>
         </div>
