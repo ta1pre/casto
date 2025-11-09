@@ -241,7 +241,7 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
         <div className="mt-8 mb-10">
           {audition.status === 'published' ? (
             <Link href={`/liff/auditions/${audition.id}/apply`} className="block">
-              <button className="w-full bg-gradient-to-r from-primary to-primary/70 text-primary-foreground py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/40 hover:shadow-primary/60 hover:from-primary/90 hover:to-primary/60 transition-all duration-200 transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+              <button className="w-full bg-gradient-to-r from-orange-500 via-rose-500 to-fuchsia-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-rose-400/40 hover:shadow-rose-500/60 hover:from-orange-600 hover:via-rose-600 hover:to-fuchsia-600 transition-all duration-200 transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                 今すぐ応募する
               </button>
             </Link>
