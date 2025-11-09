@@ -5,12 +5,13 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { FileText, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
 import { LoadingScreen } from '@/shared/components/LoadingScreen'
 import type { AuditionApplication } from '@casto/shared'
+import { formatDateJa } from '@/shared/lib/date'
 
 export function MyApplicationsClient() {
   const { user, isLoading: isAuthLoading } = useLiffAuth()
@@ -208,7 +209,7 @@ export function MyApplicationsClient() {
                     {app.auditionTitle || 'オーディション'}
                   </h3>
                   <p className="text-xs text-muted-foreground">
-                    応募日: {new Date(app.appliedAt).toLocaleDateString('ja-JP')}
+                    応募日: {formatDateJa(app.appliedAt)}
                   </p>
                 </div>
                 {getStatusBadge(app.overallStatus)}

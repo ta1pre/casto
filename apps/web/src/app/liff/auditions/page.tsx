@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Search, Calendar, CheckCircle } from 'lucide-react'
 import { apiFetch } from '@/shared/lib/api'
+import { formatDateJa } from '@/shared/lib/date'
 import type { Audition, AuditionApplication } from '@casto/shared'
 import { VideoThumbnail } from '@/shared/components/VideoThumbnail'
 
@@ -171,7 +172,7 @@ export default function AuditionsPage() {
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3" />
                       <span>
-                        締切: {new Date(audition.applicationEndDate).toLocaleDateString()}
+                        締切: {formatDateJa(audition.applicationEndDate)}
                       </span>
                     </div>
                   </div>

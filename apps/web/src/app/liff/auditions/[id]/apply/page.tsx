@@ -13,6 +13,7 @@ import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
 import { LoadingScreen } from '@/shared/components/LoadingScreen'
 import { ErrorScreen } from '@/shared/components/ErrorScreen'
 import { apiFetch, ApiError } from '@/shared/lib/api'
+import { formatDateJa } from '@/shared/lib/date'
 import type { Audition, AuditionStep, AuditionApplication } from '@casto/shared'
 
 export default function ApplyPage({ params }: { params: Promise<{ id: string }> }) {
@@ -25,6 +26,7 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
   const [error, setError] = useState<string | null>(null)
   const [auditionId, setAuditionId] = useState<string | null>(null)
   const [hasApplied, setHasApplied] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
 
   // paramsの解決
   useEffect(() => {
@@ -87,12 +89,8 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
     }
   }, [user, auditionId])
 
-  const handleSubmit = async () => {
+  const submitApplication = async () => {
     if (!auditionId) return
-
-    if (!confirm('このオーディションに応募しますか？\n応募後はマイページから進捗を確認できます。')) {
-      return
-    }
 
     try {
       setIsSubmitting(true)
@@ -133,6 +131,21 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
       setError('ネットワークエラーが発生しました')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleApplyClick = () => {
+    setIsConfirmOpen(true)
+  }
+
+  const handleConfirmSubmit = async () => {
+    setIsConfirmOpen(false)
+    await submitApplication()
+  }
+
+  const handleCancelConfirm = () => {
+    if (!isSubmitting) {
+      setIsConfirmOpen(false)
     }
   }
 
@@ -205,9 +218,9 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
           </h2>
           <div className="text-sm text-muted-foreground space-y-1">
             <p>
-              応募期間: {new Date(audition.applicationStartDate).toLocaleDateString()}
+              応募期間: {formatDateJa(audition.applicationStartDate)}
               {' 〜 '}
-              {new Date(audition.applicationEndDate).toLocaleDateString()}
+              {formatDateJa(audition.applicationEndDate)}
             </p>
             {audition.maxApplicants && (
               <p>定員: {audition.maxApplicants}名</p>
@@ -259,7 +272,7 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
         {/* 応募ボタン */}
         <div className="mt-6 mb-8 space-y-3">
           <button
-            onClick={handleSubmit}
+            onClick={handleApplyClick}
             disabled={isSubmitting}
             className="w-full bg-primary text-primary-foreground py-4 rounded-lg font-bold text-lg hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
@@ -273,6 +286,33 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
           </button>
         </div>
       </main>
+      {/* 応募確認モーダル */}
+      {isConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-card border border-border rounded-lg max-w-sm w-full p-6 space-y-4 shadow-lg">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">応募内容を送信しますか？</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                応募後はマイ応募一覧から進捗を確認できます。内容を確認のうえ送信してください。
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                onClick={handleCancelConfirm}
+                className="w-full sm:w-auto border border-border py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-muted"
+              >
+                戻る
+              </button>
+              <button
+                onClick={handleConfirmSubmit}
+                className="w-full sm:w-auto bg-primary text-primary-foreground py-2.5 px-4 rounded-lg text-sm font-semibold hover:bg-primary/90"
+              >
+                応募を送信する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

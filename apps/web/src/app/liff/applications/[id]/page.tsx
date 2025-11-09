@@ -8,11 +8,13 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, Clock, AlertCircle, Calendar } from 'lucide-react'
 import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
 import { LoadingScreen } from '@/shared/components/LoadingScreen'
 import { ErrorScreen } from '@/shared/components/ErrorScreen'
+import { apiFetch, ApiError } from '@/shared/lib/api'
 import type { AuditionApplication } from '@casto/shared'
+import { formatDateJa } from '@/shared/lib/date'
 
 export default function ApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -137,11 +139,7 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
             {application.auditionTitle || 'オーディション'}
           </h2>
           <p className="text-sm text-muted-foreground">
-            応募日: {new Date(application.appliedAt).toLocaleDateString('ja-JP', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
+            応募日: {formatDateJa(application.appliedAt)}
           </p>
         </div>
 

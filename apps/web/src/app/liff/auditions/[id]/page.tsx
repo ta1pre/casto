@@ -13,6 +13,7 @@ import { useLiffAuth } from '@/shared/hooks/useLiffAuth'
 import { LoadingScreen } from '@/shared/components/LoadingScreen'
 import { ErrorScreen } from '@/shared/components/ErrorScreen'
 import { apiFetch, ApiError } from '@/shared/lib/api'
+import { formatDateJa } from '@/shared/lib/date'
 import type { Audition, AuditionStep } from '@casto/shared'
 import { VideoThumbnail } from '@/shared/components/VideoThumbnail'
 
@@ -161,9 +162,9 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="h-4 w-4" />
             <span>
-              応募期間: {new Date(audition.applicationStartDate).toLocaleDateString()}
+              応募期間: {formatDateJa(audition.applicationStartDate)}
               {' 〜 '}
-              {new Date(audition.applicationEndDate).toLocaleDateString()}
+              {formatDateJa(audition.applicationEndDate)}
             </span>
           </div>
 
