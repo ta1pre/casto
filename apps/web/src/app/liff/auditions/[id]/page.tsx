@@ -138,15 +138,10 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
           </div>
         )}
 
-        {/* タイトルと基本情報 */}
-        <div className="bg-card border border-border rounded-lg p-4">
-          <h2 className="text-2xl font-bold text-foreground mb-3">
-            {audition.title}
-          </h2>
-
-          {/* ジャンル */}
+        {/* 基本情報 */}
+        <div className="bg-card border border-border rounded-lg p-5 space-y-4">
           {audition.genres && audition.genres.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3">
+            <div className="flex flex-wrap gap-2">
               {audition.genres.map((genre) => (
                 <span
                   key={genre.id}
@@ -158,49 +153,64 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
             </div>
           )}
 
-          {/* 応募期間 */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Calendar className="h-4 w-4" />
-            <span>
-              応募期間: {formatDateJa(audition.applicationStartDate)}
-              {' 〜 '}
-              {formatDateJa(audition.applicationEndDate)}
-            </span>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-foreground">
+              {audition.title}
+            </h2>
+            {audition.shortDescription && (
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {audition.shortDescription}
+              </p>
+            )}
           </div>
 
-          {/* 定員 */}
-          {audition.maxApplicants && (
-            <div className="mt-2 text-sm text-muted-foreground">
-              定員: {audition.maxApplicants}名
+          <div className="space-y-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span>
+                応募期間: {formatDateJa(audition.applicationStartDate)}
+                {' 〜 '}
+                {formatDateJa(audition.applicationEndDate)}
+              </span>
             </div>
-          )}
 
-          {/* 実施エリア */}
-          {audition.area && (
-            <div className="mt-3">
-              <p className="text-xs text-muted-foreground mb-1">実施エリア</p>
-              <div className="flex flex-wrap gap-1">
-                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                  {audition.area.name}
-                </span>
+            {audition.area && (
+              <div>
+                <p className="text-xs font-semibold text-foreground/80 mb-1">実施エリア</p>
+                <div className="flex flex-wrap gap-1">
+                  <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                    {audition.area.name}
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* 短い説明 */}
-        {audition.shortDescription && (
-          <div className="bg-card border border-border rounded-lg p-4">
-            <p className="text-foreground font-medium">
-              {audition.shortDescription}
+        {/* 詳細 */}
+        {audition.description && (
+          <div className="bg-card border border-border rounded-lg p-5">
+            <h3 className="text-lg font-semibold text-foreground mb-3">詳細</h3>
+            <p className="text-foreground/80 whitespace-pre-wrap leading-relaxed">
+              {audition.description}
             </p>
           </div>
         )}
 
-        {/* 選考フロー */}
+        {/* 応募条件 */}
+        {audition.requirements && (
+          <div className="bg-card border border-border rounded-lg p-5">
+            <h3 className="text-lg font-semibold text-foreground mb-3">応募条件</h3>
+            <p className="text-foreground/80 whitespace-pre-wrap leading-relaxed">
+              {audition.requirements}
+            </p>
+          </div>
+        )}
+
+        {/* 応募フロー */}
         {steps.length > 0 && (
-          <div className="bg-card border border-border rounded-lg p-4">
-            <h3 className="font-bold text-lg mb-3 text-foreground">選考フロー</h3>
+          <div className="bg-card border border-border rounded-lg p-5">
+            <h3 className="text-lg font-semibold mb-3 text-foreground">応募フロー</h3>
             <div className="space-y-3">
               {steps.map((step) => (
                 <div key={step.id} className="flex items-start gap-3">
@@ -227,38 +237,18 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
           </div>
         )}
 
-        {/* 詳細説明 */}
-        {audition.description && (
-          <div className="bg-card border border-border rounded-lg p-4">
-            <h3 className="font-bold text-lg mb-3 text-foreground">詳細</h3>
-            <p className="text-foreground/80 whitespace-pre-wrap">
-              {audition.description}
-            </p>
-          </div>
-        )}
-
-        {/* 応募条件 */}
-        {audition.requirements && (
-          <div className="bg-card border border-border rounded-lg p-4">
-            <h3 className="font-bold text-lg mb-3 text-foreground">応募条件</h3>
-            <p className="text-foreground/80 whitespace-pre-wrap">
-              {audition.requirements}
-            </p>
-          </div>
-        )}
-
         {/* 応募ボタン */}
-        <div className="mt-6 mb-8">
+        <div className="mt-8 mb-10">
           {audition.status === 'published' ? (
-            <Link href={`/liff/auditions/${audition.id}/apply`}>
-              <button className="w-full bg-primary text-primary-foreground py-4 rounded-lg font-bold text-lg hover:bg-primary/90 transition shadow-lg">
+            <Link href={`/liff/auditions/${audition.id}/apply`} className="block">
+              <button className="w-full bg-gradient-to-r from-primary to-primary/70 text-primary-foreground py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/40 hover:shadow-primary/60 hover:from-primary/90 hover:to-primary/60 transition-all duration-200 transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                 今すぐ応募する
               </button>
             </Link>
           ) : (
             <button 
               disabled 
-              className="w-full bg-muted text-muted-foreground py-4 rounded-lg font-bold text-lg cursor-not-allowed"
+              className="w-full bg-muted text-muted-foreground py-4 rounded-xl font-bold text-lg cursor-not-allowed"
             >
               {audition.status === 'closed' ? '応募受付終了' : '下書き'}
             </button>
