@@ -24,6 +24,7 @@ function toApplication(row: SupabaseApplicationRow): Application {
     applicantProfile: row.applicant_profile as unknown as ApplicantProfileSnapshot,
     additionalMessage: row.additional_message || undefined,
     additionalUrls: row.additional_urls || undefined,
+    extraApplicationData: (row.extra_application_data as Record<string, unknown>) || undefined,
     status: row.status,
     submittedAt: row.submitted_at,
     reviewedAt: row.reviewed_at || undefined,
@@ -120,6 +121,7 @@ export async function submitApplication(
       applicant_profile: profileSnapshot,
       additional_message: data.additionalMessage || null,
       additional_urls: data.additionalUrls || [],
+      extra_application_data: data.extraApplicationData || {},
     })
     .select()
     .single()
