@@ -5,7 +5,7 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -14,7 +14,7 @@ import { LoadingScreen } from '@/shared/components/LoadingScreen'
 import { ErrorScreen } from '@/shared/components/ErrorScreen'
 import { apiFetch, ApiError } from '@/shared/lib/api'
 import { formatDateJa } from '@/shared/lib/date'
-import type { Audition, AuditionStep, AuditionApplication } from '@casto/shared'
+import type { Audition, AuditionStep, AuditionApplication, ExtraApplicationData } from '@casto/shared'
 
 export default function ApplyPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -27,6 +27,8 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
   const [auditionId, setAuditionId] = useState<string | null>(null)
   const [hasApplied, setHasApplied] = useState(false)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [extraNotes, setExtraNotes] = useState('')
+  const [validationError, setValidationError] = useState<string | null>(null)
 
   // paramsの解決
   useEffect(() => {
@@ -89,6 +91,19 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
     }
   }, [user, auditionId])
 
+  const extraNotesLabel = useMemo(() => {
+    if (!audition) return 'この募集での追加事項'
+
+    switch (audition.projectType) {
+      case 'job':
+        return '求人応募での追加事項'
+      case 'extra':
+        return 'エキストラ募集での追加事項'
+      default:
+        return 'この募集での追加事項'
+    }
+  }, [audition])
+
   const submitApplication = async () => {
     if (!auditionId) return
 
@@ -109,6 +124,9 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
         console.warn('[Apply] LIFF access token取得失敗:', liffError)
       }
 
+      const extraApplicationData: ExtraApplicationData | Record<string, unknown> | undefined =
+        extraNotes.trim().length > 0 ? { notes: extraNotes.trim() } : undefined
+
       const response = await fetch('/api/v1/talent/audition-applications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -116,6 +134,7 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
         body: JSON.stringify({ 
           auditionId,
           liffAccessToken, // 通知送信用
+          extraApplicationData,
         }),
       })
 
@@ -135,6 +154,12 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
   }
 
   const handleApplyClick = () => {
+    if (extraNotes.length > 500) {
+      setValidationError('追加事項は500文字以内で入力してください')
+      return
+    }
+
+    setValidationError(null)
     setIsConfirmOpen(true)
   }
 
@@ -252,14 +277,36 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
           </div>
         )}
 
-        {/* 注意事項 */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="font-bold text-blue-900 mb-2">応募前の確認事項</h3>
-          <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-            <li>応募内容は、登録済みのプロフィール情報が使用されます</li>
-            <li>応募後の選考状況は「マイ応募」から確認できます</li>
-            <li>応募の取り下げも可能です</li>
-          </ul>
+        {/* 追加事項入力 */}
+        <div className="bg-card border border-border rounded-lg p-4 space-y-3">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">{extraNotesLabel}</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              この募集で特にアピールしたい点や、主催者に伝えたい追加情報などがあればご記入ください。
+            </p>
+          </div>
+          <div>
+            <textarea
+              value={extraNotes}
+              onChange={(event) => {
+                setExtraNotes(event.target.value)
+                if (validationError && event.target.value.length <= 500) {
+                  setValidationError(null)
+                }
+              }}
+              maxLength={500}
+              rows={5}
+              placeholder="例: 撮影経験があり、指定の日時すべて参加可能です など"
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            />
+            <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
+              <span>最大500文字</span>
+              <span>{extraNotes.length}/500</span>
+            </div>
+          </div>
+          {validationError && (
+            <p className="text-sm text-red-600">{validationError}</p>
+          )}
         </div>
 
         {/* エラーメッセージ */}
@@ -285,7 +332,9 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
             キャンセル
           </button>
         </div>
+
       </main>
+
       {/* 応募確認モーダル */}
       {isConfirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
