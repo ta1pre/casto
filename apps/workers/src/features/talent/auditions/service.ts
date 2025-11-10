@@ -24,7 +24,7 @@ export type GenericSupabaseClient = SupabaseClient<any, any, any>
 function toAudition(
   row: SupabaseAuditionRow, 
   adminDisplayLabel?: AdminDisplayLabel,
-  organizerProfile?: { name: string; profileImageUrl?: string }
+  organizerProfile?: { name: string; logoUrl?: string }
 ): Audition {
   return {
     id: row.id,
@@ -46,7 +46,7 @@ function toAudition(
     adminDisplayLabelId: row.admin_display_label_id || undefined,
     adminDisplayLabel: adminDisplayLabel,
     organizerName: adminDisplayLabel?.label || organizerProfile?.name,
-    organizerProfileImageUrl: organizerProfile?.profileImageUrl,
+    organizerProfileImageUrl: organizerProfile?.logoUrl,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -113,7 +113,7 @@ export async function getPublishedAuditions(
     .select(`
       *,
       admin_display_labels!auditions_admin_display_label_id_fkey (*),
-      organizer_profiles!auditions_organizer_profiles_fk (name, profile_image_url)
+      organizer_profiles!auditions_organizer_profiles_fk (name, logo_url)
     `, { count: 'exact' })
     .eq('status', 'published')
     .order('created_at', { ascending: false })
@@ -152,10 +152,10 @@ export async function getPublishedAuditions(
     const profiles = row.organizer_profiles as any
     const organizerProfile = Array.isArray(profiles)
       ? profiles.length > 0
-        ? { name: profiles[0].name, profileImageUrl: profiles[0].profile_image_url }
+        ? { name: profiles[0].name, logoUrl: profiles[0].logo_url }
         : undefined
       : profiles
-      ? { name: profiles.name, profileImageUrl: profiles.profile_image_url }
+      ? { name: profiles.name, logoUrl: profiles.logo_url }
       : undefined
 
     return toAudition(row, displayLabel, organizerProfile)
@@ -199,7 +199,7 @@ export async function getPublishedAuditionById(
     .select(`
       *,
       admin_display_labels!auditions_admin_display_label_id_fkey (*),
-      organizer_profiles!auditions_organizer_profiles_fk (name, profile_image_url)
+      organizer_profiles!auditions_organizer_profiles_fk (name, logo_url)
     `)
     .eq('id', auditionId)
     .eq('status', 'published')
@@ -225,10 +225,10 @@ export async function getPublishedAuditionById(
   const profiles = auditionData.organizer_profiles as any
   const organizerProfile = Array.isArray(profiles)
     ? profiles.length > 0
-      ? { name: profiles[0].name, profileImageUrl: profiles[0].profile_image_url }
+      ? { name: profiles[0].name, logoUrl: profiles[0].logo_url }
       : undefined
     : profiles
-    ? { name: profiles.name, profileImageUrl: profiles.profile_image_url }
+    ? { name: profiles.name, logoUrl: profiles.logo_url }
     : undefined
 
   const audition = toAudition(auditionData, displayLabel, organizerProfile)
