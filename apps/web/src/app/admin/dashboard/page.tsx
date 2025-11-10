@@ -5,6 +5,7 @@
  * [SF][CA][RP] シンプル、クリーンアーキテクチャ、可読性優先
  */
 
+import Link from 'next/link'
 import { useAdminAuth } from '../_hooks/useAdminAuth'
 import { useAdminStats } from '../_hooks/useAdminStats'
 import { OverviewCards } from './_components/OverviewCards'
@@ -109,18 +110,18 @@ export default function AdminDashboardPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">クイックアクション</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <a
+            <Link
               href="/admin/auditions"
               className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
             >
               <span className="text-sm font-medium text-gray-600">オーディション管理</span>
-            </a>
-            <a
+            </Link>
+            <Link
               href="/admin/messaging"
               className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
             >
               <span className="text-sm font-medium text-gray-600">メッセージ配信</span>
-            </a>
+            </Link>
             <button
               disabled
               className="flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg opacity-50 cursor-not-allowed"

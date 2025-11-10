@@ -65,6 +65,7 @@ export default function EditAuditionPage({ params }: { params: Promise<{ id: str
       fetchAreas()
       fetchLabels()
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params])
 
   useEffect(() => {

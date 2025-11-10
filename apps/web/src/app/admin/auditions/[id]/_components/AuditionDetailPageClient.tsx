@@ -49,6 +49,7 @@ export function AuditionDetailPageClient({ auditionId }: { auditionId: string })
     if (user) {
       fetchAudition()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, auditionId])
 
   const fetchAudition = async () => {
@@ -287,6 +288,7 @@ export function AuditionDetailPageClient({ auditionId }: { auditionId: string })
                 className="w-full max-w-2xl rounded-lg"
               />
             ) : (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={audition.mainVisualUrl}
                 alt={audition.coverImageAlt || audition.title}

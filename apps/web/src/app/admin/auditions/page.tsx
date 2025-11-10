@@ -35,6 +35,7 @@ export default function AuditionsPage() {
     if (user) {
       fetchAuditions()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, statusFilter])
 
   const fetchAuditions = async () => {
