@@ -67,6 +67,14 @@
 - [ ] ステップ管理やポイント課金との整合性チェック（大量応募を想定した処理改善）
 - [ ] 通知テンプレート（応募受付/採用連絡）を種別別にカスタマイズ @docs/tasks/pendding/POINTS_FEATURE_SPECIFICATION.md#34-76
 
+### Phase 3B: 主催者情報の表示制御とAdmin代理公開
+- [ ] **データモデル拡張**: `auditions` に `admin_display_label_id UUID` を追加し、既存の `organizer_id` や `organizer_profiles` との整合性を確認する（NULL=通常主催者表示）[SF][CA]  @supabase/migrations/20251015000004_create_auditions.sql#4-153
+- [ ] **ラベルマスタ**: `admin_display_labels` テーブル（`id`, `label`, `description`, `is_active`, `created_at`）を作成し、Adminのみ管理可能なRLSポリシーを設定する[SF][REH]
+- [ ] **API更新**: Admin用Workers APIでラベル一覧取得・CRUD・オーディション作成/更新時の `admin_display_label_id` 設定に対応し、タレント向けレスポンスでラベルが存在する場合は主催者情報をラベルに差し替える[CA][DRY]  @apps/workers/src/features/admin/auditions/service.ts#1-169 @apps/workers/src/features/talent/auditions/service.ts#1-380
+- [ ] **フロントエンド**: Admin UIにラベル管理画面を追加し、オーディション作成/編集フォームでプルダウン選択できるようにする（通常主催者のUIは非表示）[RP][PEC]  @apps/web/src/app/admin/auditions/new/page.tsx @apps/web/src/app/organizer/auditions/[id]/edit/page.tsx
+- [ ] **表示仕様**: タレント画面（LIFF）で `admin_display_label_id` が設定されていれば「castoオリジナル案件」等のラベルを表示し、未設定の場合は従来どおり主催者プロフィールを表示する[SF][UX]  @apps/web/src/app/liff/auditions/[id]/apply/page.tsx#1-368
+- [ ] **ドキュメント**: 管理者向け運用ガイドにラベル作成手順・表示ルールを追記し、テストケース（通常主催者・Admin代理・ダミー募集）の確認観点を整理する[SD]
+
 ### Phase 4: 運用ドキュメント・モニタリング
 - [ ] 主催者向けガイド（種別選択の基準、推奨入力項目）を docs/setup/ へ追加
 - [ ] 成約率/応募率などの指標を種別別にトラッキングできるよう分析要件を整理

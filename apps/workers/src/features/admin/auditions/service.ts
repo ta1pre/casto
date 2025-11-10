@@ -12,8 +12,12 @@ export interface AuditionListItem {
   application_end_date: string
   created_at: string
   organizer_id?: string
+  admin_display_label_id?: string
   organizer_profiles?: {
     name?: string
+  }
+  admin_display_labels?: {
+    label: string
   }
   _count?: {
     audition_applications: number
@@ -42,8 +46,12 @@ export async function getAuditions(
         application_end_date,
         created_at,
         organizer_id,
+        admin_display_label_id,
         organizer_profiles!auditions_organizer_profiles_fk (
           name
+        ),
+        admin_display_labels!auditions_admin_display_label_id_fkey (
+          label
         )
       `,
         { count: 'exact' }
@@ -83,11 +91,24 @@ export async function getAuditions(
             ? profiles[0]
             : undefined
           : profiles || undefined
+
+        const labels = audition.admin_display_labels as any
+        const displayLabel = Array.isArray(labels)
+          ? labels.length > 0
+            ? labels[0]
+            : undefined
+          : labels || undefined
+
         return {
           ...audition,
           organizer_profiles: organizerProfile
             ? {
                 name: organizerProfile.name ?? undefined,
+              }
+            : undefined,
+          admin_display_labels: displayLabel
+            ? {
+                label: displayLabel.label,
               }
             : undefined,
           _count: {
@@ -127,8 +148,12 @@ export async function getAuditionDetail(
         application_end_date,
         created_at,
         organizer_id,
+        admin_display_label_id,
         organizer_profiles!auditions_organizer_profiles_fk (
           name
+        ),
+        admin_display_labels!auditions_admin_display_label_id_fkey (
+          label
         )
       `
       )
@@ -151,11 +176,24 @@ export async function getAuditionDetail(
         ? profiles[0]
         : undefined
       : profiles || undefined
+
+    const labels = data.admin_display_labels as any
+    const displayLabel = Array.isArray(labels)
+      ? labels.length > 0
+        ? labels[0]
+        : undefined
+      : labels || undefined
+
     return {
       ...data,
       organizer_profiles: organizerProfile
         ? {
             name: organizerProfile.name ?? undefined,
+          }
+        : undefined,
+      admin_display_labels: displayLabel
+        ? {
+            label: displayLabel.label,
           }
         : undefined,
       _count: {

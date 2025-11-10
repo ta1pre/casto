@@ -13,6 +13,7 @@ import type {
   SupabaseAuditionAreaRow,
   AuditionStep,
   SupabaseAuditionStepRow,
+  AdminDisplayLabel,
 } from '@casto/shared'
 
 export type GenericSupabaseClient = SupabaseClient<any, any, any>
@@ -20,7 +21,7 @@ export type GenericSupabaseClient = SupabaseClient<any, any, any>
 /**
  * snake_caseからcamelCaseへ変換
  */
-function toAudition(row: SupabaseAuditionRow): Audition {
+function toAudition(row: SupabaseAuditionRow, adminDisplayLabel?: AdminDisplayLabel): Audition {
   return {
     id: row.id,
     organizerId: row.organizer_id,
@@ -38,6 +39,8 @@ function toAudition(row: SupabaseAuditionRow): Audition {
     status: row.status,
     projectType: row.project_type,
     evaluationMode: row.evaluation_mode,
+    adminDisplayLabelId: row.admin_display_label_id || undefined,
+    adminDisplayLabel: adminDisplayLabel,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -101,7 +104,10 @@ export async function getPublishedAuditions(
 ): Promise<{ auditions: Audition[]; total: number }> {
   let query = client
     .from('auditions')
-    .select('*', { count: 'exact' })
+    .select(`
+      *,
+      admin_display_labels!auditions_admin_display_label_id_fkey (*)
+    `, { count: 'exact' })
     .eq('status', 'published')
     .order('created_at', { ascending: false })
 
@@ -126,7 +132,17 @@ export async function getPublishedAuditions(
     throw new Error(`Failed to fetch auditions: ${error.message}`)
   }
 
-  let auditions = (data || []).map(toAudition)
+  let auditions = (data || []).map((row: any) => {
+    // Admin表示ラベルを抽出
+    const adminLabel = row.admin_display_labels as any
+    const displayLabel = Array.isArray(adminLabel)
+      ? adminLabel.length > 0
+        ? adminLabel[0]
+        : undefined
+      : adminLabel || undefined
+
+    return toAudition(row, displayLabel)
+  })
 
   // ジャンルフィルタリング（指定がある場合）
   if (options?.genreIds && options.genreIds.length > 0) {
@@ -163,7 +179,10 @@ export async function getPublishedAuditionById(
 ): Promise<Audition | null> {
   const { data: auditionData, error: auditionError } = await client
     .from('auditions')
-    .select('*')
+    .select(`
+      *,
+      admin_display_labels!auditions_admin_display_label_id_fkey (*)
+    `)
     .eq('id', auditionId)
     .eq('status', 'published')
     .maybeSingle()
@@ -176,7 +195,15 @@ export async function getPublishedAuditionById(
     return null
   }
 
-  const audition = toAudition(auditionData)
+  // Admin表示ラベルを抽出
+  const adminLabel = auditionData.admin_display_labels as any
+  const displayLabel = Array.isArray(adminLabel)
+    ? adminLabel.length > 0
+      ? adminLabel[0]
+      : undefined
+    : adminLabel || undefined
+
+  const audition = toAudition(auditionData, displayLabel)
 
   // ジャンル情報を取得
   const { data: genreData, error: genreError } = await client

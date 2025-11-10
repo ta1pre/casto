@@ -64,8 +64,21 @@ export interface SupabaseAuditionRow {
   project_type: ProjectType
   evaluation_mode: EvaluationMode
   extra_details: Record<string, unknown> | null
+  admin_display_label_id: string | null
   created_at: string
   updated_at: string
+}
+
+/**
+ * Admin表示ラベル
+ */
+export interface AdminDisplayLabel {
+  id: string
+  label: string
+  description?: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
 }
 
 /**
@@ -92,6 +105,8 @@ export interface Audition {
   genres?: AuditionGenre[]
   area?: AuditionArea
   steps?: AuditionStep[]
+  adminDisplayLabelId?: string
+  adminDisplayLabel?: AdminDisplayLabel
   createdAt: string
   updatedAt: string
 }
@@ -123,6 +138,7 @@ export interface CreateAuditionRequest {
   extraDetails?: ExtraDetails | JobDetails | Record<string, unknown>
   genreIds?: string[]
   areaId?: string
+  adminDisplayLabelId?: string
 }
 
 /**
@@ -143,6 +159,33 @@ export interface UpdateAuditionRequest {
   extraDetails?: ExtraDetails | JobDetails | Record<string, unknown>
   genreIds?: string[]
   areaId?: string
+  adminDisplayLabelId?: string
+}
+
+/**
+ * Admin表示ラベルレスポンス
+ */
+export interface AdminDisplayLabelsResponse {
+  labels: AdminDisplayLabel[]
+  total: number
+}
+
+/**
+ * Admin表示ラベル作成リクエスト
+ */
+export interface CreateAdminDisplayLabelRequest {
+  label: string
+  description?: string
+  isActive?: boolean
+}
+
+/**
+ * Admin表示ラベル更新リクエスト
+ */
+export interface UpdateAdminDisplayLabelRequest {
+  label?: string
+  description?: string
+  isActive?: boolean
 }
 
 /**
