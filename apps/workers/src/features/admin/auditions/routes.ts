@@ -5,6 +5,8 @@
  * GET /api/v1/admin/auditions
  * GET /api/v1/admin/auditions/:id
  * POST /api/v1/admin/auditions
+ * PATCH /api/v1/admin/auditions/:id
+ * PATCH /api/v1/admin/auditions/:id/status
  * 
  * 注意: 管理者認証必須
  */
@@ -14,10 +16,10 @@ import type { AppBindings } from '../../../types'
 import { createSupabaseClient } from '../../../lib/supabase'
 import { verifyAdminAuth } from '../../../middleware/verifyRoleAuth'
 import { getAuditions, getAuditionDetail } from './service'
-import { createAudition } from '../../organizer/auditions/service'
+import { createAudition, updateAudition } from '../../organizer/auditions/service'
 import { getOrganizerProfile, createOrganizerProfile } from '../../organizer/profile/service'
-import { createAuditionSchema } from '@casto/shared/validators'
-import type { CreateAuditionRequest, OrganizerProfileUpsertRequest } from '@casto/shared'
+import { createAuditionSchema, updateAuditionSchema } from '@casto/shared/validators'
+import type { CreateAuditionRequest, UpdateAuditionRequest, OrganizerProfileUpsertRequest } from '@casto/shared'
 
 const router = new Hono<AppBindings>()
 
@@ -178,6 +180,124 @@ router.post('/', async (c) => {
     return c.json(
       {
         error: 'Failed to create audition',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      500
+    )
+  }
+})
+
+/**
+ * オーディション更新
+ * 
+ * @route PATCH /api/v1/admin/auditions/:id
+ * @access Admin only
+ */
+router.patch('/:id', async (c) => {
+  try {
+    const userContext = c.get('user')
+
+    if (!userContext) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const auditionId = c.req.param('id')
+    const body = await c.req.json<UpdateAuditionRequest>()
+
+    // バリデーション
+    const validation = updateAuditionSchema.safeParse(body)
+    if (!validation.success) {
+      return c.json(
+        {
+          error: 'Validation failed',
+          errors: validation.error.errors,
+        },
+        400
+      )
+    }
+
+    // Admin作成のオーディションの場合、adminDisplayLabelIdがnullやundefinedになるのを防ぐ
+    if (validation.data.adminDisplayLabelId === null) {
+      return c.json(
+        {
+          error: 'Admin display label is required',
+          details: 'Admin代理公開では表示ラベルの選択が必須です',
+        },
+        400
+      )
+    }
+
+    const supabase = createSupabaseClient(c)
+    await ensureAdminOrganizerProfile(supabase, userContext.id)
+    
+    // Admin作成者のIDをorganizer_idとして使用
+    const audition = await updateAudition(
+      supabase,
+      auditionId,
+      userContext.id,
+      validation.data
+    )
+
+    return c.json({
+      status: 'ok',
+      audition,
+      updatedAt: new Date().toISOString(),
+    })
+  } catch (error) {
+    console.error('[PATCH /admin/auditions/:id] Error:', error)
+    return c.json(
+      {
+        error: 'Failed to update audition',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      500
+    )
+  }
+})
+
+/**
+ * オーディションステータス変更
+ * 
+ * @route PATCH /api/v1/admin/auditions/:id/status
+ * @access Admin only
+ */
+router.patch('/:id/status', async (c) => {
+  try {
+    const userContext = c.get('user')
+
+    if (!userContext) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const auditionId = c.req.param('id')
+    const { status } = await c.req.json<{ status: 'draft' | 'published' | 'closed' }>()
+
+    // ステータスバリデーション
+    if (!['draft', 'published', 'closed'].includes(status)) {
+      return c.json({ error: 'Invalid status' }, 400)
+    }
+
+    const supabase = createSupabaseClient(c)
+    await ensureAdminOrganizerProfile(supabase, userContext.id)
+    
+    // ステータスのみ更新
+    const audition = await updateAudition(
+      supabase,
+      auditionId,
+      userContext.id,
+      { status }
+    )
+
+    return c.json({
+      status: 'ok',
+      audition,
+      updatedAt: new Date().toISOString(),
+    })
+  } catch (error) {
+    console.error('[PATCH /admin/auditions/:id/status] Error:', error)
+    return c.json(
+      {
+        error: 'Failed to update status',
         details: error instanceof Error ? error.message : 'Unknown error',
       },
       500

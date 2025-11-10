@@ -75,6 +75,39 @@ export default function AuditionsPage() {
     return true
   })
 
+  const handleStatusChange = async (auditionId: string, newStatus: 'draft' | 'published' | 'closed') => {
+    const statusLabels = {
+      draft: '下書き',
+      published: '公開中',
+      closed: '終了',
+    }
+
+    if (!confirm(`ステータスを「${statusLabels[newStatus]}」に変更しますか？`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/v1/admin/auditions/${auditionId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ status: newStatus }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.details || error.error || 'ステータス変更に失敗しました')
+      }
+
+      // 一覧を再取得
+      await fetchAuditions()
+      alert(`ステータスを「${statusLabels[newStatus]}」に変更しました`)
+    } catch (error) {
+      console.error('Status change error:', error)
+      alert(error instanceof Error ? error.message : 'ステータスの変更に失敗しました')
+    }
+  }
+
   const getStatusBadge = (status: string) => {
     const config = {
       draft: { label: '下書き', color: 'bg-gray-100 text-gray-800' },
@@ -208,13 +241,18 @@ export default function AuditionsPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     作成日
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    アクション
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredAuditions.map((audition) => (
                   <tr key={audition.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{audition.title}</div>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900 max-w-xs truncate">
+                        {audition.title}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
@@ -237,6 +275,56 @@ export default function AuditionsPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
                         {new Date(audition.created_at).toLocaleDateString('ja-JP')}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2 text-sm">
+                        <button
+                          onClick={() => router.push(`/admin/auditions/${audition.id}`)}
+                          className="text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          詳細
+                        </button>
+                        <span className="text-gray-300">|</span>
+                        <button
+                          onClick={() => router.push(`/admin/auditions/${audition.id}/edit`)}
+                          className="text-green-600 hover:text-green-800 font-medium"
+                        >
+                          編集
+                        </button>
+                        {audition.status === 'draft' && (
+                          <>
+                            <span className="text-gray-300">|</span>
+                            <button
+                              onClick={() => handleStatusChange(audition.id, 'published')}
+                              className="text-green-600 hover:text-green-800 font-medium"
+                            >
+                              公開
+                            </button>
+                          </>
+                        )}
+                        {audition.status === 'published' && (
+                          <>
+                            <span className="text-gray-300">|</span>
+                            <button
+                              onClick={() => handleStatusChange(audition.id, 'closed')}
+                              className="text-red-600 hover:text-red-800 font-medium"
+                            >
+                              終了
+                            </button>
+                          </>
+                        )}
+                        {audition.status === 'closed' && (
+                          <>
+                            <span className="text-gray-300">|</span>
+                            <button
+                              onClick={() => handleStatusChange(audition.id, 'published')}
+                              className="text-green-600 hover:text-green-800 font-medium"
+                            >
+                              再開
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
