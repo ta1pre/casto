@@ -4,6 +4,7 @@
  */
 
 import type { AuditionStep } from './auditionStep'
+import type { ExtraApplicationData } from './application'
 
 /**
  * 応募全体ステータス（ステップ機能用）
@@ -25,6 +26,7 @@ export interface SupabaseAuditionApplicationRow {
   talent_id: string
   current_step_id: string | null
   overall_status: AuditionApplicationStatus
+  extra_application_data: Record<string, unknown> | null // JSONB
   applied_at: string
   created_at: string
   updated_at: string
@@ -39,6 +41,7 @@ export interface AuditionApplication {
   talentId: string
   currentStepId?: string
   overallStatus: AuditionApplicationStatus
+  extraApplicationData?: ExtraApplicationData | Record<string, unknown>
   appliedAt: string
   createdAt: string
   updatedAt: string
@@ -67,6 +70,7 @@ export interface ApplicationEvaluation {
  */
 export interface CreateAuditionApplicationRequest {
   auditionId: string
+  extraApplicationData?: ExtraApplicationData | Record<string, unknown>
   liffAccessToken?: string | null // LINE通知用（オプション）
 }
 

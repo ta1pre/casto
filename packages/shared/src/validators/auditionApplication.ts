@@ -4,12 +4,14 @@
  */
 
 import { z } from 'zod'
+import { extraApplicationDataSchema } from './application'
 
 /**
  * 応募作成スキーマ
  */
 export const createAuditionApplicationSchema = z.object({
   auditionId: z.string().uuid({ message: '有効なオーディションIDを指定してください' }),
+  extraApplicationData: z.union([extraApplicationDataSchema, z.record(z.unknown())]).optional(),
   liffAccessToken: z.string().optional().nullable(), // LINE通知用（オプション）
 })
 

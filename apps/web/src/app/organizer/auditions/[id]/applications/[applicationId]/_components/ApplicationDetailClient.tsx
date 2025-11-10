@@ -333,6 +333,16 @@ export function ApplicationDetailClient({ auditionId, applicationId }: Applicati
         </dl>
       </div>
 
+      {/* 応募時の追加事項 */}
+      {application.extraApplicationData && (
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-4">応募時の追加事項</h2>
+          <div className="text-sm text-gray-900 whitespace-pre-wrap">
+            {(application.extraApplicationData as { notes?: string })?.notes || '入力なし'}
+          </div>
+        </div>
+      )}
+
       {/* ステップ別評価 */}
       {application.overallStatus !== 'withdrawn' && (
         <div className="bg-white rounded-lg shadow p-6 mb-6">

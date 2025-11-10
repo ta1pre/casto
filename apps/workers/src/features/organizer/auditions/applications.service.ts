@@ -22,6 +22,7 @@ function toAuditionApplication(row: SupabaseAuditionApplicationRow): AuditionApp
     talentId: row.talent_id,
     currentStepId: row.current_step_id || undefined,
     overallStatus: row.overall_status,
+    extraApplicationData: (row.extra_application_data as Record<string, unknown>) || undefined,
     appliedAt: row.applied_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

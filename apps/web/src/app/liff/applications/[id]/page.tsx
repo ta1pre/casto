@@ -163,6 +163,16 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
           )}
         </div>
 
+        {/* 応募時の追加事項 */}
+        {application.extraApplicationData && (application.extraApplicationData as { notes?: string })?.notes && (
+          <div className="bg-card border border-border rounded-lg p-4">
+            <h3 className="font-bold text-lg mb-3 text-foreground">応募時の追加事項</h3>
+            <div className="text-sm text-foreground whitespace-pre-wrap">
+              {(application.extraApplicationData as { notes?: string }).notes}
+            </div>
+          </div>
+        )}
+
         {/* ステータスメッセージ */}
         <div className={`border rounded-lg p-4 ${
           application.overallStatus === 'passed' ? 'bg-green-50 border-green-200' :
