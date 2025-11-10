@@ -15,10 +15,41 @@ import { createSupabaseClient } from '../../../lib/supabase'
 import { verifyAdminAuth } from '../../../middleware/verifyRoleAuth'
 import { getAuditions, getAuditionDetail } from './service'
 import { createAudition } from '../../organizer/auditions/service'
+import { getOrganizerProfile, createOrganizerProfile } from '../../organizer/profile/service'
 import { createAuditionSchema } from '@casto/shared/validators'
-import type { CreateAuditionRequest } from '@casto/shared'
+import type { CreateAuditionRequest, OrganizerProfileUpsertRequest } from '@casto/shared'
 
 const router = new Hono<AppBindings>()
+
+const ADMIN_PROFILE_DEFAULTS: OrganizerProfileUpsertRequest = {
+  name: 'Casto 管理チーム',
+  prefecture: '東京都',
+  addressDetail: '港区南青山1-1-1',
+  phone: '03-0000-0000',
+  description:
+    'Casto管理チームによる代理公開用の主催者プロフィールです。各案件の品質管理と審査を担当し、プラットフォーム全体の体験向上を目的としています。',
+  contactPerson: 'Casto管理チーム',
+  email: 'admin@casto.jp',
+  website: 'https://casto.jp',
+  instagramUrl: null,
+  xUrl: null,
+  tiktokUrl: null,
+  youtubeUrl: null,
+  logoUrl: null,
+  logoPositionX: 0,
+  logoPositionY: 0,
+  logoScale: 1,
+  isActive: false,
+}
+
+async function ensureAdminOrganizerProfile(supabase: ReturnType<typeof createSupabaseClient>, organizerId: string) {
+  const existingProfile = await getOrganizerProfile(supabase, organizerId)
+  if (existingProfile) {
+    return existingProfile
+  }
+
+  return await createOrganizerProfile(supabase, organizerId, ADMIN_PROFILE_DEFAULTS)
+}
 
 // 全ルートに管理者認証を適用
 router.use('/*', verifyAdminAuth)
@@ -122,6 +153,7 @@ router.post('/', async (c) => {
     }
 
     const supabase = createSupabaseClient(c)
+    await ensureAdminOrganizerProfile(supabase, userContext.id)
     // Admin作成者のIDをorganizer_idとして使用
     const audition = await createAudition(supabase, userContext.id, validation.data)
 
