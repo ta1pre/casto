@@ -94,6 +94,9 @@ export const createAuditionSchema = z.object({
   
   areaId: z.string().uuid({ message: '有効なエリアIDを指定してください' })
     .optional(),
+  
+  adminDisplayLabelId: z.string().uuid({ message: '有効な表示ラベルIDを指定してください' })
+    .optional(),
 }).refine(
   (data) => new Date(data.applicationEndDate) > new Date(data.applicationStartDate),
   {
@@ -156,6 +159,9 @@ export const updateAuditionSchema = z.object({
     .optional(),
   
   areaId: z.string().uuid({ message: '有効なエリアIDを指定してください' })
+    .optional(),
+  
+  adminDisplayLabelId: z.string().uuid({ message: '有効な表示ラベルIDを指定してください' })
     .optional(),
   
   extraDetails: z.union([extraDetailsSchema, jobDetailsSchema, z.record(z.unknown())]).optional(),

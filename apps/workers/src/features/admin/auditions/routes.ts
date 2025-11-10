@@ -4,6 +4,7 @@
  * 
  * GET /api/v1/admin/auditions
  * GET /api/v1/admin/auditions/:id
+ * POST /api/v1/admin/auditions
  * 
  * 注意: 管理者認証必須
  */
@@ -13,6 +14,9 @@ import type { AppBindings } from '../../../types'
 import { createSupabaseClient } from '../../../lib/supabase'
 import { verifyAdminAuth } from '../../../middleware/verifyRoleAuth'
 import { getAuditions, getAuditionDetail } from './service'
+import { createAudition } from '../../organizer/auditions/service'
+import { createAuditionSchema } from '@casto/shared/validators'
+import type { CreateAuditionRequest } from '@casto/shared'
 
 const router = new Hono<AppBindings>()
 
@@ -82,6 +86,55 @@ router.get('/:id', async (c) => {
       {
         success: false,
         error: 'Failed to fetch audition',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      500
+    )
+  }
+})
+
+/**
+ * オーディション作成
+ * 
+ * @route POST /api/v1/admin/auditions
+ * @access Admin only
+ */
+router.post('/', async (c) => {
+  try {
+    const userContext = c.get('user')
+
+    if (!userContext) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+
+    const body = await c.req.json<CreateAuditionRequest>()
+
+    // バリデーション
+    const validation = createAuditionSchema.safeParse(body)
+    if (!validation.success) {
+      return c.json(
+        {
+          error: 'Validation failed',
+          errors: validation.error.errors,
+        },
+        400
+      )
+    }
+
+    const supabase = createSupabaseClient(c)
+    // Admin作成者のIDをorganizer_idとして使用
+    const audition = await createAudition(supabase, userContext.id, validation.data)
+
+    return c.json({
+      status: 'ok',
+      audition,
+      createdAt: new Date().toISOString(),
+    }, 201)
+  } catch (error) {
+    console.error('[POST /admin/auditions] Error:', error)
+    return c.json(
+      {
+        error: 'Failed to create audition',
         details: error instanceof Error ? error.message : 'Unknown error',
       },
       500
