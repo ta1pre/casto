@@ -152,6 +152,17 @@ router.post('/', async (c) => {
       )
     }
 
+    // Admin作成の場合、adminDisplayLabelIdは必須
+    if (!validation.data.adminDisplayLabelId) {
+      return c.json(
+        {
+          error: 'Admin display label is required for admin-created auditions',
+          details: 'Admin代理公開では表示ラベルの選択が必須です',
+        },
+        400
+      )
+    }
+
     const supabase = createSupabaseClient(c)
     await ensureAdminOrganizerProfile(supabase, userContext.id)
     // Admin作成者のIDをorganizer_idとして使用

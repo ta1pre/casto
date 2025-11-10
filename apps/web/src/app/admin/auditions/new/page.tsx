@@ -429,15 +429,16 @@ export default function AdminNewAuditionPage() {
             {/* Admin表示ラベル */}
             <div>
               <label htmlFor="adminDisplayLabelId" className="block text-sm font-medium text-gray-700 mb-2">
-                表示ラベル（主催者情報の代わりに表示）
+                表示ラベル <span className="text-red-500">*</span>
               </label>
               <select
                 id="adminDisplayLabelId"
                 value={formData.adminDisplayLabelId}
                 onChange={(e) => setFormData({ ...formData, adminDisplayLabelId: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
               >
-                <option value="">（選択しない：主催者情報を表示）</option>
+                <option value="">表示ラベルを選択してください</option>
                 {labels.map((label) => (
                   <option key={label.id} value={label.id}>
                     {label.label}
@@ -446,8 +447,11 @@ export default function AdminNewAuditionPage() {
                 ))}
               </select>
               <p className="text-xs text-gray-500 mt-1">
-                選択すると、タレント向け画面で主催者情報の代わりにこのラベルが表示されます
+                Admin代理公開では表示ラベルの選択が必須です。タレント向け画面でこのラベルが主催者情報として表示されます。
               </p>
+              {errors.adminDisplayLabelId && (
+                <p className="text-red-500 text-sm mt-1">{errors.adminDisplayLabelId}</p>
+              )}
             </div>
 
             {/* タイトル */}
@@ -783,17 +787,10 @@ export default function AdminNewAuditionPage() {
               <div className="mt-3 flex gap-2">
                 <button
                   type="button"
-                  onClick={() => router.push(`/organizer/auditions/${createdAudition.id}`)}
+                  onClick={() => router.push('/admin/auditions')}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  詳細画面を開く
-                </button>
-                <button
-                  type="button"
-                  onClick={() => router.push(`/organizer/auditions/${createdAudition.id}/edit`)}
-                  className="px-4 py-2 border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-100"
-                >
-                  編集画面で続ける
+                  オーディション一覧に戻る
                 </button>
               </div>
             </div>
