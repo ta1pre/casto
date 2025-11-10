@@ -62,7 +62,7 @@ export default function LiffHomePage() {
                     window.location.reload()
                   }
                 }}
-                className="w-full bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+                className="w-full bg-primary text-primary-foreground border border-primary px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
               >
                 ページを再読み込み
               </button>

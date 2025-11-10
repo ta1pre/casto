@@ -14,7 +14,7 @@ import { LoadingScreen } from '@/shared/components/LoadingScreen'
 import { ErrorScreen } from '@/shared/components/ErrorScreen'
 import { apiFetch, ApiError } from '@/shared/lib/api'
 import { formatDateJa } from '@/shared/lib/date'
-import type { Audition, AuditionStep } from '@casto/shared'
+import type { Audition, AuditionStep, AuditionApplication } from '@casto/shared'
 import { VideoThumbnail } from '@/shared/components/VideoThumbnail'
 
 export default function AuditionDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -25,6 +25,7 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
   const [isLoadingAudition, setIsLoadingAudition] = useState(true)
   const [auditionError, setAuditionError] = useState<string | null>(null)
   const [auditionId, setAuditionId] = useState<string | null>(null)
+  const [hasApplied, setHasApplied] = useState(false)
 
   // paramsの解決
   useEffect(() => {
@@ -53,6 +54,22 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
         // ステップ情報をセット
         if (response.audition.steps) {
           setSteps(response.audition.steps)
+        }
+
+        // 既に応募済みかチェック [SF][CA]
+        try {
+          const applicationsResponse = await fetch('/api/v1/talent/audition-applications', {
+            credentials: 'include',
+          })
+          if (applicationsResponse.ok) {
+            const applicationsData = await applicationsResponse.json()
+            const alreadyApplied = applicationsData.applications?.some(
+              (app: AuditionApplication) => app.auditionId === auditionId
+            )
+            setHasApplied(alreadyApplied)
+          }
+        } catch (err) {
+          console.log('Applications check failed (non-critical):', err)
         }
       } catch (err: unknown) {
         console.error('Failed to fetch audition:', err)
@@ -113,6 +130,11 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <h1 className="text-lg font-semibold text-foreground truncate">オーディション詳細</h1>
+          {hasApplied && (
+            <span className="ml-auto px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full whitespace-nowrap">
+              応募済み
+            </span>
+          )}
         </div>
       </div>
 
@@ -239,7 +261,22 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
 
         {/* 応募ボタン */}
         <div className="mt-8 mb-10">
-          {audition.status === 'published' ? (
+          {hasApplied ? (
+            <div className="space-y-3">
+              <button 
+                disabled 
+                className="w-full bg-muted text-muted-foreground border border-border py-4 rounded-xl font-bold text-lg cursor-not-allowed"
+              >
+                応募済み
+              </button>
+              <Link 
+                href="/liff/applications"
+                className="block w-full bg-background border border-border text-foreground py-3 rounded-lg text-center font-medium hover:bg-muted transition-colors"
+              >
+                マイ応募一覧を見る
+              </Link>
+            </div>
+          ) : audition.status === 'published' ? (
             <Link href={`/liff/auditions/${audition.id}/apply`} className="block">
               <button className="w-full bg-gradient-to-r from-orange-500 via-rose-500 to-fuchsia-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-rose-400/40 hover:shadow-rose-500/60 hover:from-orange-600 hover:via-rose-600 hover:to-fuchsia-600 transition-all duration-200 transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                 今すぐ応募する
@@ -248,7 +285,7 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
           ) : (
             <button 
               disabled 
-              className="w-full bg-muted text-muted-foreground py-4 rounded-xl font-bold text-lg cursor-not-allowed"
+              className="w-full bg-muted text-muted-foreground border border-border py-4 rounded-xl font-bold text-lg cursor-not-allowed"
             >
               {audition.status === 'closed' ? '応募受付終了' : '下書き'}
             </button>

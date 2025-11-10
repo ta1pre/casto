@@ -37,3 +37,6 @@ import { HelpHint } from "@/shared/ui/help-hint"
 ## 注意点
 - 長文やリンクを含める場合は `description` に `ReactNode` を渡し、段落やリンク要素を自前で整形してください。
 - モーダル表示が必要な場合は `HelpHint` の `trigger` を拡張する新コンポーネントを検討してください。
+
+## 関連ドキュメント
+- [ボタンスタイリングガイド](./BUTTON_STYLING_GUIDE.md) - ボタンの統一ルール

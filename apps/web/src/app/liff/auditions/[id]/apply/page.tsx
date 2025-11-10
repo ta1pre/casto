@@ -206,13 +206,13 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
           <div className="space-y-3">
             <Link
               href="/liff/applications"
-              className="block w-full bg-primary text-primary-foreground py-3 rounded-lg font-medium hover:bg-primary/90"
+              className="block w-full bg-primary text-primary-foreground border border-primary py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors"
             >
               マイ応募一覧へ
             </Link>
             <button
               onClick={() => router.back()}
-              className="block w-full border border-border py-3 rounded-lg font-medium hover:bg-muted"
+              className="block w-full bg-background border border-border py-3 rounded-lg font-medium hover:bg-muted transition-colors"
             >
               戻る
             </button>
@@ -321,13 +321,13 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
           <button
             onClick={handleApplyClick}
             disabled={isSubmitting}
-            className="w-full bg-primary text-primary-foreground py-4 rounded-lg font-bold text-lg hover:bg-primary/90 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+            className="w-full bg-primary text-primary-foreground border border-primary py-4 rounded-lg font-bold text-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
           >
             {isSubmitting ? '送信中...' : '応募する'}
           </button>
           <button
             onClick={() => router.back()}
-            className="w-full border border-border py-3 rounded-lg font-medium hover:bg-muted"
+            className="block w-full bg-background border border-border py-3 rounded-lg font-medium hover:bg-muted transition-colors"
           >
             キャンセル
           </button>
@@ -348,13 +348,13 @@ export default function ApplyPage({ params }: { params: Promise<{ id: string }> 
             <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
               <button
                 onClick={handleCancelConfirm}
-                className="w-full sm:w-auto border border-border py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-muted"
+                className="w-full sm:w-auto bg-background border border-border py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-muted transition-colors"
               >
                 戻る
               </button>
               <button
                 onClick={handleConfirmSubmit}
-                className="w-full sm:w-auto bg-primary text-primary-foreground py-2.5 px-4 rounded-lg text-sm font-semibold hover:bg-primary/90"
+                className="w-full sm:w-auto bg-primary text-primary-foreground border border-primary py-2.5 px-4 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors"
               >
                 応募を送信する
               </button>
