@@ -38,6 +38,24 @@ interface Audition {
   }
 }
 
+// 安全な日付フォーマット関数
+function formatDate(dateString: string | undefined): string {
+  if (!dateString) return '-'
+  try {
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return '-'
+    return date.toLocaleString('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    return '-'
+  }
+}
+
 export function AuditionDetailPageClient({ auditionId }: { auditionId: string }) {
   const router = useRouter()
   const { user, isLoading: authLoading } = useAdminAuth()
@@ -255,13 +273,13 @@ export function AuditionDetailPageClient({ auditionId }: { auditionId: string })
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">募集開始日時</label>
               <p className="text-gray-900">
-                {new Date(audition.applicationStartDate).toLocaleString('ja-JP')}
+                {formatDate(audition.applicationStartDate)}
               </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">募集終了日時</label>
               <p className="text-gray-900">
-                {new Date(audition.applicationEndDate).toLocaleString('ja-JP')}
+                {formatDate(audition.applicationEndDate)}
               </p>
             </div>
             {audition.maxApplicants && (
@@ -304,11 +322,11 @@ export function AuditionDetailPageClient({ auditionId }: { auditionId: string })
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
               <label className="block text-gray-700 font-medium mb-1">作成日時</label>
-              <p className="text-gray-900">{new Date(audition.createdAt).toLocaleString('ja-JP')}</p>
+              <p className="text-gray-900">{formatDate(audition.createdAt)}</p>
             </div>
             <div>
               <label className="block text-gray-700 font-medium mb-1">更新日時</label>
-              <p className="text-gray-900">{new Date(audition.updatedAt).toLocaleString('ja-JP')}</p>
+              <p className="text-gray-900">{formatDate(audition.updatedAt)}</p>
             </div>
             <div>
               <label className="block text-gray-700 font-medium mb-1">オーディションID</label>

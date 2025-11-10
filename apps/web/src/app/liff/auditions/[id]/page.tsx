@@ -229,6 +229,26 @@ export default function AuditionDetailPage({ params }: { params: Promise<{ id: s
           </div>
         )}
 
+        {/* 主催者情報 */}
+        {audition.organizerName && (
+          <div className="bg-card border border-border rounded-lg p-5">
+            <h3 className="text-lg font-semibold text-foreground mb-3">主催者</h3>
+            <div className="flex items-center gap-3">
+              {audition.organizerProfileImageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={audition.organizerProfileImageUrl}
+                  alt={audition.organizerName}
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+              )}
+              <div>
+                <p className="font-semibold text-foreground">{audition.organizerName}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 応募フロー */}
         {steps.length > 0 && (
           <div className="bg-card border border-border rounded-lg p-5">

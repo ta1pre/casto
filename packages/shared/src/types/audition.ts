@@ -107,6 +107,8 @@ export interface Audition {
   steps?: AuditionStep[]
   adminDisplayLabelId?: string
   adminDisplayLabel?: AdminDisplayLabel
+  organizerName?: string
+  organizerProfileImageUrl?: string
   createdAt: string
   updatedAt: string
 }

@@ -21,7 +21,11 @@ export type GenericSupabaseClient = SupabaseClient<any, any, any>
 /**
  * snake_caseからcamelCaseへ変換
  */
-function toAudition(row: SupabaseAuditionRow, adminDisplayLabel?: AdminDisplayLabel): Audition {
+function toAudition(
+  row: SupabaseAuditionRow, 
+  adminDisplayLabel?: AdminDisplayLabel,
+  organizerProfile?: { name: string; profileImageUrl?: string }
+): Audition {
   return {
     id: row.id,
     organizerId: row.organizer_id,
@@ -41,6 +45,8 @@ function toAudition(row: SupabaseAuditionRow, adminDisplayLabel?: AdminDisplayLa
     evaluationMode: row.evaluation_mode,
     adminDisplayLabelId: row.admin_display_label_id || undefined,
     adminDisplayLabel: adminDisplayLabel,
+    organizerName: adminDisplayLabel?.label || organizerProfile?.name,
+    organizerProfileImageUrl: organizerProfile?.profileImageUrl,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -106,7 +112,8 @@ export async function getPublishedAuditions(
     .from('auditions')
     .select(`
       *,
-      admin_display_labels!auditions_admin_display_label_id_fkey (*)
+      admin_display_labels!auditions_admin_display_label_id_fkey (*),
+      organizer_profiles!auditions_organizer_profiles_fk (name, profile_image_url)
     `, { count: 'exact' })
     .eq('status', 'published')
     .order('created_at', { ascending: false })
@@ -141,7 +148,17 @@ export async function getPublishedAuditions(
         : undefined
       : adminLabel || undefined
 
-    return toAudition(row, displayLabel)
+    // Organizer プロファイルを抽出
+    const profiles = row.organizer_profiles as any
+    const organizerProfile = Array.isArray(profiles)
+      ? profiles.length > 0
+        ? { name: profiles[0].name, profileImageUrl: profiles[0].profile_image_url }
+        : undefined
+      : profiles
+      ? { name: profiles.name, profileImageUrl: profiles.profile_image_url }
+      : undefined
+
+    return toAudition(row, displayLabel, organizerProfile)
   })
 
   // ジャンルフィルタリング（指定がある場合）
@@ -181,7 +198,8 @@ export async function getPublishedAuditionById(
     .from('auditions')
     .select(`
       *,
-      admin_display_labels!auditions_admin_display_label_id_fkey (*)
+      admin_display_labels!auditions_admin_display_label_id_fkey (*),
+      organizer_profiles!auditions_organizer_profiles_fk (name, profile_image_url)
     `)
     .eq('id', auditionId)
     .eq('status', 'published')
@@ -203,7 +221,17 @@ export async function getPublishedAuditionById(
       : undefined
     : adminLabel || undefined
 
-  const audition = toAudition(auditionData, displayLabel)
+  // Organizer プロファイルを抽出
+  const profiles = auditionData.organizer_profiles as any
+  const organizerProfile = Array.isArray(profiles)
+    ? profiles.length > 0
+      ? { name: profiles[0].name, profileImageUrl: profiles[0].profile_image_url }
+      : undefined
+    : profiles
+    ? { name: profiles.name, profileImageUrl: profiles.profile_image_url }
+    : undefined
+
+  const audition = toAudition(auditionData, displayLabel, organizerProfile)
 
   // ジャンル情報を取得
   const { data: genreData, error: genreError } = await client

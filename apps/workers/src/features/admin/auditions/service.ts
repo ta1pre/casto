@@ -142,13 +142,7 @@ export async function getAuditionDetail(
       .from('auditions')
       .select(
         `
-        id,
-        title,
-        status,
-        application_end_date,
-        created_at,
-        organizer_id,
-        admin_display_label_id,
+        *,
         organizer_profiles!auditions_organizer_profiles_fk (
           name
         ),
