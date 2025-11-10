@@ -93,6 +93,17 @@ export default function NewAuditionPage() {
     }
   }, [formData.projectType, formData.eventDates.length])
 
+  useEffect(() => {
+    if (formData.projectType !== 'job') {
+      setFormData((prev) => ({
+        ...prev,
+        workLocation: '',
+        employmentType: '',
+        salary: '',
+      }))
+    }
+  }, [formData.projectType])
+
   // メインビジュアルプレビューのクリーンアップ [PA]
   useEffect(() => {
     return () => {
@@ -658,41 +669,43 @@ export default function NewAuditionPage() {
         </div>
 
         {/* 求人情報（任意） */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">求人情報（任意）</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">勤務地</label>
-              <input
-                type="text"
-                value={formData.workLocation}
-                onChange={(e) => setFormData({ ...formData, workLocation: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                placeholder="例: 東京都渋谷区"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">雇用形態</label>
-              <input
-                type="text"
-                value={formData.employmentType}
-                onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                placeholder="例: 正社員、契約社員、アルバイト"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">給与</label>
-              <input
-                type="text"
-                value={formData.salary}
-                onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                placeholder="例: 月給25万円〜"
-              />
+        {formData.projectType === 'job' ? (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">求人情報（任意）</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">勤務地</label>
+                <input
+                  type="text"
+                  value={formData.workLocation}
+                  onChange={(e) => setFormData({ ...formData, workLocation: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  placeholder="例: 東京都渋谷区"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">雇用形態</label>
+                <input
+                  type="text"
+                  value={formData.employmentType}
+                  onChange={(e) => setFormData({ ...formData, employmentType: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  placeholder="例: 正社員、契約社員、アルバイト"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">給与</label>
+                <input
+                  type="text"
+                  value={formData.salary}
+                  onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  placeholder="例: 月給25万円〜"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
 
         {/* アクションボタン */}
         <div className="flex items-center justify-end gap-4">
